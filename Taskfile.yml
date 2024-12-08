@@ -1,8 +1,9 @@
 version: '3'
 
+includes:
+  vpn: "network/vpn/Taskfile.yml"
 
 tasks:
-  default:
+  help:
     silent: true
-    cmds: ["task -l"]
-      
+    cmds: [ "task -l" ]

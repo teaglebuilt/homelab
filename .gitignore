@@ -1,0 +1,21 @@
+.env
+.envrc
+.task
+.DS_Store
+
+*.crt
+*.key
+*.pem
+out/
+# tf folder
+**/.terraform/*
+.terraform
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

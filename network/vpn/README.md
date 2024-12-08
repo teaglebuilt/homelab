@@ -1,3 +1,3 @@
 
-1. Exoscale
+1. Linode Server
 2. Algo VPN
