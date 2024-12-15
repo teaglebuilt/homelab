@@ -4,7 +4,7 @@
 
 1. #### Proxmox Control Node
     A power efficient server.
-    * **Motherboard**: Supermicro M11SDV-8C-LN4F
+    * **Motherboard**: [Supermicro M11SDV-8C-LN4F](https://www.supermicro.com/en/products/motherboard/M11SDV-8C-LN4F)
     * 128G UDIMM
     * 1TB M2 Drive
     * 500W PSU
@@ -19,14 +19,27 @@
 
 ## IOT Devices
 
-1 Rasberry Pi 3 4gb
-1 Rasberry Pi 4 4gb
-1 Rasberry Pi 4 8gb
+1. #### RPI One
+    **Model** Rasberry Pi 4
+    **Memory** 8GB
+
+    **Purpose** - Testing AI in an IOT / Edge environment. Testing with on device training with `inference_mobilenet`
+
+2. #### RPI Two
+    **Model** Rasberry Pi 4
+    **Memory** 4GB
+
+    **Purpose** - Netbooter for proxmox nodes
+
+3. #### RPI Three
+    **Model** Rasberry Pi 3
+    **Memory** 4GB
 
 
 ## Network Storage
 
 Unifi NAS Pro
+
 
 ## Network
 

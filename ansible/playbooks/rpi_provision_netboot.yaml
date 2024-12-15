@@ -1,0 +1,115 @@
+---
+- name: PXE Boot Server Setup
+  hosts: pxe_server
+  become: true
+  tasks:
+  # Update and upgrade the system
+  - name: Update and upgrade the system
+    apt:
+      update_cache: yes
+      upgrade: dist
+
+  # Install required packages
+  - name: Install required packages
+    apt:
+      name:
+      - dnsmasq
+      - tftpd-hpa
+      - apache2
+      - nfs-kernel-server
+      - syslinux-common
+      state: present
+
+  # Configure dnsmasq
+  - name: Configure dnsmasq
+    copy:
+      dest: /etc/dnsmasq.conf
+      content: |
+        interface=eth0
+        bind-interfaces
+        domain-needed
+        bogus-priv
+        dhcp-range=192.168.1.100,192.168.1.200,12h
+        dhcp-boot=pxelinux.0
+        enable-tftp
+        tftp-root=/srv/tftp
+
+  - name: Restart dnsmasq service
+    service:
+      name: dnsmasq
+      state: restarted
+      enabled: true
+
+  # Configure TFTP
+  - name: Create TFTP directory
+    file:
+      path: /srv/tftp
+      state: directory
+      mode: '0777'
+
+  - name: Copy PXE boot files
+    copy:
+      src: /usr/lib/PXELINUX/pxelinux.0
+      dest: /srv/tftp/pxelinux.0
+      remote_src: yes
+
+  - name: Copy syslinux modules
+    copy:
+      src: /usr/lib/syslinux/modules/bios/
+      dest: /srv/tftp/
+      remote_src: yes
+
+  - name: Create PXE configuration directory
+    file:
+      path: /srv/tftp/pxelinux.cfg
+      state: directory
+      mode: '0755'
+
+  - name: Create PXE default configuration
+    copy:
+      dest: /srv/tftp/pxelinux.cfg/default
+      content: |
+        DEFAULT install
+        LABEL install
+            KERNEL vmlinuz
+            APPEND initrd=initrd.img ip=dhcp
+
+  - name: Create directory for Proxmox ISO
+    file:
+      path: /var/www/html/proxmox
+      state: directory
+      mode: '0755'
+
+  - name: Copy Proxmox ISO files
+    unarchive:
+      src: proxmox-ve_x.x.iso
+      dest: /var/www/html/proxmox
+      remote_src: yes
+
+  - name: Restart Apache server
+    service:
+      name: apache2
+      state: restarted
+      enabled: true
+
+  # Configure NFS (optional)
+  - name: Create NFS export directory
+    file:
+      path: /srv/nfs
+      state: directory
+      mode: '0755'
+
+  - name: Configure NFS exports
+    lineinfile:
+      path: /etc/exports
+      line: "/srv/nfs *(rw,sync,no_subtree_check,no_root_squash)"
+      state: present
+
+  - name: Export NFS directories
+    command: exportfs -a
+
+  - name: Restart NFS server
+    service:
+      name: nfs-kernel-server
+      state: restarted
+      enabled: true

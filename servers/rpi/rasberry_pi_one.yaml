@@ -1,0 +1,4 @@
+name: netbooter
+playbooks:
+  init: rpi_init.yaml
+  provision_netboot: rpi_provision_netboot.yaml

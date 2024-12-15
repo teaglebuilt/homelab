@@ -1,0 +1,8 @@
+---
+version: 3
+
+tasks:
+  provision_booter:
+    description: "Provision the Raspberry Pi with netbooting capabilities"
+    cmds:
+      - playbooks/rpi_provision_netboot.yaml

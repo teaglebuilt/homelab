@@ -1,0 +1,19 @@
+repositories:
+- name: 8gears
+  url: 8gears.container-registry.com/library
+  oci: true
+
+releases:
+- name: n8n
+  chart: n8n
+  version: 0.25.2
+  values:
+  - n8n:
+      encryption_key: { ? { .Values.encryption_key } }
+  - config:
+      host: { ? { .Values.domain } }
+  - persistence:
+      enabled: true
+      type: dynamic
+- name: openwebui
+- name: anythingllm

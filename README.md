@@ -4,7 +4,7 @@
 - [Ecosystem](#Ecosystem)
   - [Infrastructure](#Infrastructure)
     - [Network](#Network)
-    - [Machines](#Machines)
+    - [Virtual Machines](#VirtualMachines)
     - [Kubernetes](#Kubernetes)
   - [Applications](#Applications)
   - [Automation](#Automation)
@@ -14,8 +14,11 @@
 
 ## Overview
 
+This [Hardware](./docs/hardware.md) i
 
 ## Ecosystem
+
+
 
 ### Infrastructure
 
@@ -23,7 +26,7 @@
 
 #### Kubernetes
 
-#### Machines
+#### VirtualMachines
 
 ### Applications
 
