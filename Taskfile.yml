@@ -2,6 +2,7 @@ version: '3'
 
 includes:
   vpn: "network/vpn/Taskfile.yml"
+  k8s: "kubernetes/Taskfile.yml"
 
 tasks:
   help:

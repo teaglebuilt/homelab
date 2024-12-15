@@ -13,8 +13,8 @@ resource "proxmox_vm_qemu" "k8s_cp_01" {
     bridge = "vmbr0"
   }
 
-  ipconfig0 = "ip=192.168.1.100/24,gw=192.168.1.1"
-  sshkeys   = file("~/.ssh/id_rsa.pub")
+  ipconfig0 = "ip=${var.proxmox_node_cidr},gw=${var.gateway}"
+  sshkeys   = file("${var.ssh_public_key_path}")
 }
 
 resource "proxmox_vm_qemu" "k8s_worker_01" {
@@ -31,8 +31,8 @@ resource "proxmox_vm_qemu" "k8s_worker_01" {
     bridge = "vmbr0"
   }
 
-  ipconfig0 = "ip=192.168.1.100/24,gw=192.168.1.1"
-  sshkeys   = file("~/.ssh/id_rsa.pub")
+  ipconfig0 = "ip=${var.proxmox_node_cidr},gw=${var.gateway}"
+  sshkeys   = file("${var.ssh_public_key_path}")
 }
 
 module "k8s_administration_cluster" {

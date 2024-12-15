@@ -1,6 +1,22 @@
 version: 3
 
 tasks:
-  provision_administration:
+  generate_tf_variables:
+    dir: kubernetes
     cmds:
-      - 
+      - |
+        echo "Generating terraform.tfvars from .env file..."
+        if [ -f .env ]; then
+          awk -F= '/^[^#]+/ {print $1 " = \"" $2 "\""}' .env > terraform/terraform.tfvars
+        else
+          echo "No .env file found. Skipping terraform.tfvars generation."
+        fi
+    silent: true
+    sources:
+      - .env
+
+  provision_administration_cluster:
+    dir: kubernetes
+    cmds:
+      - task: generate_tf_variables
+      - make tf_run
