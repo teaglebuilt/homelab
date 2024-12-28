@@ -1,5 +1,9 @@
 version: 3
 
+includes:
+  talos:
+    taskfile: ".taskfiles/talos/Taskfile.yaml"
+
 tasks:
   generate_tf_variables:
     dir: kubernetes
@@ -18,5 +22,25 @@ tasks:
   provision_administration_cluster:
     dir: kubernetes
     cmds:
+      - echo "$PWD"
       - task: generate_tf_variables
-      - make tf_run
+      # - make tf_run
+
+  bootstrap_mlops_cluster:
+    cmds:
+      # - task: talos:generate-config
+      #   vars:
+      #     CLUSTER_DIR: "clusters/mlops"
+      # - task: talos:apply-config
+      #   vars:
+      #     CLUSTER_DIR: "clusters/mlops"
+      # - task: talos:bootstrap-etcd
+      #   vars:
+      #     CLUSTER_DIR: "clusters/mlops"
+      #     CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
+      - task: talos:fetch-kubeconfig
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
+          CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
+    sources:
+      - .env

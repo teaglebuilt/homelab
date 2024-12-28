@@ -1,0 +1,51 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+x-vars: &vars
+  CLUSTER_DIR: "{{.CLUSTER_DIR}}"
+  NODES: "{{.NODES}}"
+
+tasks:
+  generate-config:
+    desc: Generate Talos config
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - echo $PWD
+      - talhelper genconfig -o generated
+    preconditions:
+      - test -f talconfig.yaml
+
+  generate-secret:
+    desc: Generate Talos secret
+    prompt: This will overwrite the existing secret ... continue?
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talhelper gensecret > talsecret.sops.yaml
+      - sops --encrypt --in-place talsecret.sops.yaml
+    preconditions:
+      - test -f talsecret.sops.yaml
+
+  apply-config:
+    desc: Apply Talos config to the nodes
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talhelper gencommand apply
+    preconditions:
+      - test -f talconfig.yaml
+
+  fetch-kubeconfig:
+    desc: Fetch kubeconfig from Talos controllers
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl --talosconfig ./generated/talosconfig kubeconfig -n {{.CONTROL_PLANE}} ./generated
+    # preconditions:
+    #   - talosctl config info >/dev/null 2>&1
+
+  bootstrap-etcd:
+    desc: Bootstrap etcd cluster
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - until talosctl --nodes {{.CONTROL_PLANE}} bootstrap; do sleep 60; done
+    preconditions:
+      - test -f talconfig.yaml

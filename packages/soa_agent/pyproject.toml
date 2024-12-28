@@ -1,15 +1,16 @@
 [tool.poetry]
-name = "assistant"
+name = "soa_agent"
 version = "0.1.0"
 description = ""
 authors = ["teaglebuilt <dillan.teagle.va@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "lib" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
 huggingface-hub = "^0.26.5"
 transformers = "^4.47.0"
-
+soa_agent = {path = "./lib", develop = true}
 
 [build-system]
 requires = ["poetry-core"]

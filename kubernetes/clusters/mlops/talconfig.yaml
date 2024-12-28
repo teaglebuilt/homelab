@@ -1,0 +1,84 @@
+---
+clusterName: &cluster k8s
+# renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+talosVersion: v1.9.1
+# renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+kubernetesVersion: v1.32.0
+endpoint: https://mlops.${INTERNAL_DOMAIN}:6443
+additionalApiServerCertSans: &san
+  - ${HOMELAB_MLOPS_MASTER01_IP}
+  - 127.0.0.1
+additionalMachineCertSans: *san
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: homelab-mlops-master01.${INTERNAL_DOMAIN}
+    ipAddress: ${HOMELAB_MLOPS_MASTER01_IP}
+    installDisk: /dev/vda
+    controlPlane: true
+    disableSearchDomain: true
+    networkInterfaces:
+      - interface: eth0
+        dhcp: true
+    nodeLabels:
+      topology.kubernetes.io/region: mlops
+      topology.kubernetes.io/zone: cp
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/intel-ucode
+            - siderolabs/qemu-guest-agent
+
+  - hostname: homelab-mlops-worker01.${INTERNAL_DOMAIN}
+    ipAddress: ${HOMELAB_MLOPS_WORKER01_IP}
+    installDisk: /dev/vda
+    controlPlane: false
+    disableSearchDomain: true
+    networkInterfaces:
+      - interface: eth0
+        dhcp: true
+    nodeLabels:
+      topology.kubernetes.io/region: mlops
+      topology.kubernetes.io/zone: wk
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/intel-ucode
+            - siderolabs/qemu-guest-agent
+            - siderolabs/intel-ice-firmware
+    patches:
+      - |-
+        - op: add
+          path: /machine/kernel
+          value:
+            modules:
+              - name: nvidia
+              - name: nvidia_uvm
+              - name: nvidia_drm
+              - name: nvidia_modeset
+        - op: add
+          path: /machine/sysctls
+          value:
+            net.core.bpf_jit_harden: 1
+
+patches:
+  - "@./patches/host-dns.yaml"
+  - "@./patches/disable-search-domain.yaml"
+
+controlPlane:
+  nodeLabels:
+    topology.kubernetes.io/region: *cluster
+    topology.kubernetes.io/zone: cp
+  patches:
+    - "@./patches/host-dns.yaml"
+    - "@./patches/disable-search-domain.yaml"
+
+worker:
+  nodeLabels:
+    topology.kubernetes.io/region: *cluster
+    topology.kubernetes.io/zone: wk
+  patches:
+    - "@./patches/host-dns.yaml"

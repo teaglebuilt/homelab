@@ -8,5 +8,11 @@
     "editor.autoIndent": "advanced",
     "diffEditor.ignoreTrimWhitespace": false,
     "editor.formatOnSave": false
+  },
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnType": true,
+    "editor.wordBasedSuggestions": "off",
+    "editor.tabSize": 4
   }
 }

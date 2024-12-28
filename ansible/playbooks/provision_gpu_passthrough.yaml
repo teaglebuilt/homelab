@@ -1,0 +1,66 @@
+---
+- name: Configure GPU passthrough on Proxmox
+  hosts: proxmox
+  become: true
+  tasks:
+    # 1. Enable IOMMU in GRUB
+    - name: Ensure IOMMU is enabled in GRUB
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"'
+      notify:
+        - Update GRUB
+
+    # 2. Blacklist NVIDIA and Nouveau drivers
+    - name: Blacklist NVIDIA and Nouveau drivers
+      copy:
+        dest: /etc/modprobe.d/blacklist.conf
+        content: |
+          blacklist nouveau
+          blacklist nvidia
+
+    - name: Update initramfs
+      command: update-initramfs -u
+      notify:
+        - Reboot Host
+
+    # 3. Identify GPU PCI IDs
+    - name: Get GPU PCI IDs
+      command: lspci -nn | grep NVIDIA
+      register: gpu_pci_ids
+      changed_when: false
+
+    # 4. Configure vfio-pci for GPU
+    - name: Configure vfio-pci with GPU PCI IDs
+      copy:
+        dest: /etc/modprobe.d/vfio.conf
+        content: |
+          options vfio-pci ids={{ gpu_pci_ids.stdout_lines | map('regex_search', '([0-9a-f]{4}:[0-9a-f]{4})') | select('defined') | join(",") }}
+      notify:
+        - Update Initramfs
+
+    # 5. Verify IOMMU groups
+    - name: List IOMMU groups for verification
+      command: find /sys/kernel/iommu_groups/ -type l
+      register: iommu_groups
+      changed_when: false
+
+    # 6. Configure VM for GPU passthrough
+    - name: Add GPU passthrough to VM configuration
+      lineinfile:
+        path: /etc/pve/qemu-server/{{ vm_id }}.conf
+        line: "hostpci0: {{ gpu_pci_ids.stdout_lines | map('regex_search', '^[0-9a-f:.]+') | first }},pcie=1"
+
+  handlers:
+    - name: Update GRUB
+      command: update-grub
+
+    - name: Update Initramfs
+      command: update-initramfs -u
+
+    - name: Reboot Host
+      reboot:
+        reboot_timeout: 300
+        msg: "Rebooting host to apply changes"
+        post_reboot_delay: 30

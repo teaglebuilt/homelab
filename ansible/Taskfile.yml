@@ -6,3 +6,10 @@ tasks:
     description: "Provision the Raspberry Pi with netbooting capabilities"
     cmds:
       - playbooks/rpi_provision_netboot.yaml
+
+  provision_gpu_passthrough:
+    description: "Provision the host for GPU passthrough"
+    cmds:
+      - playbooks/provision_gpu_passthrough.yaml
+    status:
+      - nvidia-smi

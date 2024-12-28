@@ -11,3 +11,7 @@ apply:
 		-var-file=terraform.tfvars
 
 tf_run: init plan apply
+
+
+bootstrap:
+	task setup_kubernetes_cluster:
