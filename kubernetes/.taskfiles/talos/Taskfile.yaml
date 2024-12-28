@@ -4,7 +4,11 @@ version: "3"
 
 x-vars: &vars
   CLUSTER_DIR: "{{.CLUSTER_DIR}}"
-  NODES: "{{.NODES}}"
+  CONTROLLER:
+    sh: talosctl config info --output json | jq --raw-output '.endpoints[]' | shuf -n 1
+
+env:
+  TALOSCONFIG: "./generated/talosconfig"
 
 tasks:
   generate-config:
@@ -30,17 +34,14 @@ tasks:
     desc: Apply Talos config to the nodes
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talhelper gencommand apply
-    preconditions:
+      - talhelper gencommand apply --extra-flags=--insecure
       - test -f talconfig.yaml
 
   fetch-kubeconfig:
     desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl --talosconfig ./generated/talosconfig kubeconfig -n {{.CONTROL_PLANE}} ./generated
-    # preconditions:
-    #   - talosctl config info >/dev/null 2>&1
+      - talosctl kubeconfig -n {{.CONTROL_PLANE}} ./generated
 
   bootstrap-etcd:
     desc: Bootstrap etcd cluster
@@ -48,4 +49,15 @@ tasks:
     cmds:
       - until talosctl --nodes {{.CONTROL_PLANE}} bootstrap; do sleep 60; done
     preconditions:
-      - test -f talconfig.yaml
+      - talosctl config info >/dev/null 2>&1
+  
+  reset-cluster:
+    desc: Reset all the Talos nodes
+    prompt: Reset Talos nodes ... continue?
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl reset --nodes $(talosctl config info --output json | jq -r '[.nodes[]] | join(",")') --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL
+    preconditions:
+      - test -f generated/talosconfig
+      - talosctl config info >/dev/null 2>&1
+      # - talosctl --nodes {{.NODES}} get machineconfig >/dev/null 2>&1

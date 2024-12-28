@@ -26,21 +26,30 @@ tasks:
       - task: generate_tf_variables
       # - make tf_run
 
-  bootstrap_mlops_cluster:
+  bootstrap-mlops-cluster:
     cmds:
-      # - task: talos:generate-config
-      #   vars:
-      #     CLUSTER_DIR: "clusters/mlops"
-      # - task: talos:apply-config
-      #   vars:
-      #     CLUSTER_DIR: "clusters/mlops"
-      # - task: talos:bootstrap-etcd
-      #   vars:
-      #     CLUSTER_DIR: "clusters/mlops"
-      #     CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
+      - task: talos:generate-config
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
+      - task: talos:apply-config
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
+      - task: talos:bootstrap-etcd
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
+          CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
       - task: talos:fetch-kubeconfig
         vars:
           CLUSTER_DIR: "clusters/mlops"
           CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
+    sources:
+      - .env
+  
+  reset-mlops-cluster:
+    dir: clusters/mlops
+    cmds:
+      - task: talos:reset-cluster
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
     sources:
       - .env

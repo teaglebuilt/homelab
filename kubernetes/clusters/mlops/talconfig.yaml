@@ -1,19 +1,21 @@
 ---
-clusterName: &cluster k8s
+clusterName: &cluster homelab-mlops
 # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
 talosVersion: v1.9.1
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.32.0
-endpoint: https://mlops.${INTERNAL_DOMAIN}:6443
+endpoint: https://${HOMELAB_MLOPS_MASTER01_DNS}:6443
 additionalApiServerCertSans: &san
   - ${HOMELAB_MLOPS_MASTER01_IP}
+  - ${HOMELAB_MLOPS_MASTER01_DNS}
   - 127.0.0.1
 additionalMachineCertSans: *san
+allowSchedulingOnMasters: true
 cniConfig:
   name: none
 
 nodes:
-  - hostname: homelab-mlops-master01.${INTERNAL_DOMAIN}
+  - hostname: master01.local
     ipAddress: ${HOMELAB_MLOPS_MASTER01_IP}
     installDisk: /dev/vda
     controlPlane: true
@@ -31,7 +33,7 @@ nodes:
             - siderolabs/intel-ucode
             - siderolabs/qemu-guest-agent
 
-  - hostname: homelab-mlops-worker01.${INTERNAL_DOMAIN}
+  - hostname: worker01.local
     ipAddress: ${HOMELAB_MLOPS_WORKER01_IP}
     installDisk: /dev/vda
     controlPlane: false

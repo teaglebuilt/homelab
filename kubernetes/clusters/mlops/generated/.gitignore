@@ -1,3 +1,5 @@
 k8s-homelab-mlops-master01.homelab.local.yaml
 k8s-homelab-mlops-worker01.homelab.local.yaml
 talosconfig
+homelab-mlops-master01.local.yaml
+homelab-mlops-worker01.local.yaml
