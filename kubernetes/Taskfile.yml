@@ -11,7 +11,7 @@ tasks:
       - |
         echo "Generating terraform.tfvars from .env file..."
         if [ -f .env ]; then
-          awk -F= '/^[^#]+/ {print $1 " = \"" $2 "\""}' .env > terraform/terraform.tfvars
+          awk -F= '/^[^#]+/ {print $1 " = " $2}' .env > terraform/terraform.tfvars
         else
           echo "No .env file found. Skipping terraform.tfvars generation."
         fi
@@ -19,12 +19,11 @@ tasks:
     sources:
       - .env
 
-  provision_administration_cluster:
+  provision-mlops-cluster:
     dir: kubernetes
     cmds:
-      - echo "$PWD"
       - task: generate_tf_variables
-      # - make tf_run
+      - make tf_run
 
   bootstrap-mlops-cluster:
     cmds:
@@ -34,14 +33,25 @@ tasks:
       - task: talos:apply-config
         vars:
           CLUSTER_DIR: "clusters/mlops"
+          NODE_IP: $HOMELAB_MLOPS_MASTER01_IP
+          NODE_FILE: "./generated/homelab-mlops-mlops-master01.local.yaml"
+       - task: talos:apply-config
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
+          NODE_IP: $HOMELAB_MLOPS_WORKER01_IP
+          NODE_FILE: "./generated/homelab-mlops-mlops-worker01.local.yaml"
+       - task: talos:apply-config
+        vars:
+          CLUSTER_DIR: "clusters/mlops"
+          NODE_IP: $HOMELAB_MLOPS_WORKER02_IP
+          NODE_FILE: "./generated/homelab-mlops-mlops-worker02.local.yaml"
       - task: talos:bootstrap-etcd
         vars:
           CLUSTER_DIR: "clusters/mlops"
-          CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
+          CONTROL_PLANE_IP: $HOMELAB_MLOPS_MASTER01_IP
       - task: talos:fetch-kubeconfig
         vars:
           CLUSTER_DIR: "clusters/mlops"
-          CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
     sources:
       - .env
   

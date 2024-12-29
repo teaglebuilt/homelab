@@ -1,5 +1,8 @@
 TERRAFORM=terraform -chdir=terraform
 
+include_env_vars:
+	@[ -f .env ] && set -a && . ./.env && set +a
+
 init:
 	$(TERRAFORM) init
 
@@ -10,8 +13,4 @@ apply:
 	$(TERRAFORM) apply -auto-approve \
 		-var-file=terraform.tfvars
 
-tf_run: init plan apply
-
-
-bootstrap:
-	task setup_kubernetes_cluster:
+tf_run: include_env_vars init plan apply

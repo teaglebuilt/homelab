@@ -2,12 +2,8 @@
 machine:
   kubelet:
     extraArgs:
+      feature-gates: GracefulNodeShutdown=true
       rotate-server-certificates: true
-    extraMounts:
-      - destination: /var/mnt
-        type: bind
-        source: /var/mnt
-        options:
-          - bind
-          - rshared
-          - rw
+    nodeIP:
+      validSubnets:
+          - 192.168.2.0/24

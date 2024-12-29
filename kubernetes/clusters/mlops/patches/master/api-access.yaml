@@ -7,5 +7,6 @@ machine:
         - os:reader
         - os:admin
       allowedKubernetesNamespaces:
+        - kube-system
         - system-upgrade
         - default

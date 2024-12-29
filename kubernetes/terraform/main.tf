@@ -1,63 +1,107 @@
-resource "proxmox_vm_qemu" "talos_node" {
-  count    = 1
-  name     = "homelab-mlops-master0${count.index + 1}"
-  target_node = "pve2"
-  clone    = "talostemplate"
+resource "proxmox_virtual_environment_vm" "talos_master_node" {
+  count             = 1
+  name              = "mlops-master0${count.index + 1}"
+  node_name         = "mlops-master0${count.index + 1}"
+  on_boot = true
 
-  disks {
-    id             = 0
-    size           = 10
-    type           = "scsi"
-    storage        = "local-lvm"
-    storage_type   = "lvm"
+  clone {
+    vm_id = 202
+    node_name = "pve2"
   }
 
-  network {
-    id         = 0
-    model      = "virtio"
-    bridge     = "vmbr0"
+  agent {
+    enabled = true
+  }
+
+  disk {
+    datastore_id    = "local-lvm"
+    size            = 10
+    interface       = "scsi"
+  }
+
+  network_device {
+    model  = "virtio"
+    bridge = "vmbr0"
   }
 
   cpu {
-    sockets = 1
     cores   = 2
+    sockets = 1
   }
 
   memory {
     dedicated = 4098
-    dynamic   = 4098
-    maximum   = 9068
+  }
+
+  lifecycle {
+    ignore_changes = [started]
   }
 }
 
-resource "proxmox_vm_qemu" "talos_node" {
-  count    = 3
-  name     = "homelab-mlops-worker0${count.index + 1}"
-  target_node = "pve2"
-  clone    = "talostemplate"
+resource "proxmox_virtual_environment_vm" "talos_worker_node" {
+  count             = 2
+  name              = "mlops-worker0${count.index + 1}"
+  node_name         = "mlops-worker0${count.index + 1}"
+  on_boot = true
 
-  disks {
-    id             = 0
-    size           = 10
-    type           = "scsi"
-    storage        = "local-lvm"
-    storage_type   = "lvm"
+  clone {
+    vm_id = 202
+    node_name = "pve2"
   }
 
-  network {
-    id         = 0
-    model      = "virtio"
-    bridge     = "vmbr0"
+  agent {
+    enabled = true
+  }
+
+  disk {
+    datastore_id    = "local-lvm"
+    size            = 10
+    interface       = "scsi"
+  }
+
+  network_device {
+    model  = "virtio"
+    bridge = "vmbr0"
   }
 
   cpu {
-    sockets = 1
     cores   = 2
+    sockets = 1
   }
 
   memory {
-    dedicated = 4098
-    dynamic   = 4098
-    maximum   = 9068
+    dedicated = 6098
   }
+
+  lifecycle {
+    ignore_changes = [started]
+  }
+}
+
+resource "null_resource" "wait_for_provisioning_of_worker_nodes" {
+  provisioner "local-exec" {
+    command = "sleep 60" # Wait for 60 seconds
+  }
+
+  triggers = {
+    vm_creation = join(",", flatten([for vm in proxmox_virtual_environment_vm.talos_worker_node : vm.id]))
+  }
+}
+
+output "master_node_info" {
+  value = [for vm in proxmox_virtual_environment_vm.talos_master_node : {
+    id   = vm.id
+    name = vm.name
+    ip   = vm.network_device[0].ip_address
+  }]
+}
+
+output "mlops_master_node" {
+  value       = [for vm in proxmox_virtual_environment_vm.talos_master_node : vm.name]
+  depends_on  = [null_resource.wait_for_provisioning]
+}
+
+output "mlops_worker_nodes" {
+  value       = [for vm in proxmox_virtual_environment_vm.talos_worker_node : vm.name]
+  depends_on  = [null_resource.wait_for_provisioning]
 }

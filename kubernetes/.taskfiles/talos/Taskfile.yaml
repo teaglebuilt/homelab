@@ -34,23 +34,25 @@ tasks:
     desc: Apply Talos config to the nodes
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talhelper gencommand apply --extra-flags=--insecure
-      - test -f talconfig.yaml
+      - talosctl apply-config --insecure --nodes {{.NODE_IP}} --file=./generated/{{.NODE_FILE}}
+      # - test -f talconfig.yaml
 
   fetch-kubeconfig:
     desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl kubeconfig -n {{.CONTROL_PLANE}} ./generated
+      - talosctl kubeconfig ./generated
 
   bootstrap-etcd:
     desc: Bootstrap etcd cluster
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - until talosctl --nodes {{.CONTROL_PLANE}} bootstrap; do sleep 60; done
+      - talosctl config endpoint {{.CONTROL_PLANE_IP}}
+      - talosctl config node {{.CONTROL_PLANE_IP}}
+      - talosctl bootstrap
     preconditions:
       - talosctl config info >/dev/null 2>&1
-  
+
   reset-cluster:
     desc: Reset all the Talos nodes
     prompt: Reset Talos nodes ... continue?

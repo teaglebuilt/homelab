@@ -15,7 +15,7 @@ cniConfig:
   name: none
 
 nodes:
-  - hostname: master01.local
+  - hostname: mlops-master01.local
     ipAddress: ${HOMELAB_MLOPS_MASTER01_IP}
     installDisk: /dev/vda
     controlPlane: true
@@ -23,9 +23,9 @@ nodes:
     networkInterfaces:
       - interface: eth0
         dhcp: true
-    nodeLabels:
-      topology.kubernetes.io/region: mlops
-      topology.kubernetes.io/zone: cp
+    # nodeLabels:
+    #   topology.kubernetes.io/region: mlops
+    #   topology.kubernetes.io/zone: cp
     schematic:
       customization:
         systemExtensions:
@@ -33,7 +33,7 @@ nodes:
             - siderolabs/intel-ucode
             - siderolabs/qemu-guest-agent
 
-  - hostname: worker01.local
+  - hostname: mlops-worker01.local
     ipAddress: ${HOMELAB_MLOPS_WORKER01_IP}
     installDisk: /dev/vda
     controlPlane: false
@@ -41,9 +41,28 @@ nodes:
     networkInterfaces:
       - interface: eth0
         dhcp: true
-    nodeLabels:
-      topology.kubernetes.io/region: mlops
-      topology.kubernetes.io/zone: wk
+    # nodeLabels:
+    #   topology.kubernetes.io/region: mlops
+    #   topology.kubernetes.io/zone: wk
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/intel-ucode
+            - siderolabs/qemu-guest-agent
+            # - siderolabs/intel-ice-firmware
+
+  - hostname: mlops-worker02.local
+    ipAddress: ${HOMELAB_MLOPS_WORKER02_IP}
+    installDisk: /dev/vda
+    controlPlane: false
+    disableSearchDomain: true
+    networkInterfaces:
+      - interface: eth0
+        dhcp: true
+    # nodeLabels:
+    #   topology.kubernetes.io/region: mlops
+    #   topology.kubernetes.io/zone: wk
     schematic:
       customization:
         systemExtensions:
@@ -51,36 +70,26 @@ nodes:
             - siderolabs/intel-ucode
             - siderolabs/qemu-guest-agent
             - siderolabs/intel-ice-firmware
-    patches:
-      - |-
-        - op: add
-          path: /machine/kernel
-          value:
-            modules:
-              - name: nvidia
-              - name: nvidia_uvm
-              - name: nvidia_drm
-              - name: nvidia_modeset
-        - op: add
-          path: /machine/sysctls
-          value:
-            net.core.bpf_jit_harden: 1
 
 patches:
-  - "@./patches/host-dns.yaml"
+  - "@./patches/cluster-discovery.yaml"
   - "@./patches/disable-search-domain.yaml"
+  - "@./patches/kubelet.yaml"
+  - "@./patches/host-dns.yaml"
 
 controlPlane:
-  nodeLabels:
-    topology.kubernetes.io/region: *cluster
-    topology.kubernetes.io/zone: cp
+  # nodeLabels:
+  #   topology.kubernetes.io/region: *cluster
+  #   topology.kubernetes.io/zone: cp
   patches:
-    - "@./patches/host-dns.yaml"
-    - "@./patches/disable-search-domain.yaml"
+    - "@./patches/master/api-access.yaml"
+    - "@./patches/master/controller.yaml"
+    - "@./patches/master/cluster-config.yaml"
+    - "@./patches/master/etcd.yaml"
 
 worker:
-  nodeLabels:
-    topology.kubernetes.io/region: *cluster
-    topology.kubernetes.io/zone: wk
+  # nodeLabels:
+  #   topology.kubernetes.io/region: *cluster
+  #   topology.kubernetes.io/zone: wk
   patches:
-    - "@./patches/host-dns.yaml"
+    - "@./patches/worker/gpu-worker-patch.yaml"
