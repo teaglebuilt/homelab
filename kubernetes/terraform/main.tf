@@ -1,8 +1,11 @@
 resource "proxmox_virtual_environment_vm" "talos_master_node" {
   count             = 1
   name              = "mlops-master0${count.index + 1}"
-  node_name         = "mlops-master0${count.index + 1}"
-  on_boot = true
+  node_name         = "pve2"
+  started           = false
+  stop_on_destroy   = true
+  on_boot           = false
+  timeout_clone     = 30
 
   clone {
     vm_id = 202
@@ -11,12 +14,6 @@ resource "proxmox_virtual_environment_vm" "talos_master_node" {
 
   agent {
     enabled = true
-  }
-
-  disk {
-    datastore_id    = "local-lvm"
-    size            = 10
-    interface       = "scsi"
   }
 
   network_device {
@@ -29,20 +26,18 @@ resource "proxmox_virtual_environment_vm" "talos_master_node" {
     sockets = 1
   }
 
-  memory {
-    dedicated = 4098
-  }
-
-  lifecycle {
-    ignore_changes = [started]
-  }
+  # lifecycle {
+  #   ignore_changes = [node_name, started, initialization]
+  # }
 }
 
 resource "proxmox_virtual_environment_vm" "talos_worker_node" {
   count             = 2
   name              = "mlops-worker0${count.index + 1}"
-  node_name         = "mlops-worker0${count.index + 1}"
-  on_boot = true
+  node_name         = "pve2"
+  on_boot           = false
+  started           = false
+  stop_on_destroy   = true
 
   clone {
     vm_id = 202
@@ -51,12 +46,6 @@ resource "proxmox_virtual_environment_vm" "talos_worker_node" {
 
   agent {
     enabled = true
-  }
-
-  disk {
-    datastore_id    = "local-lvm"
-    size            = 10
-    interface       = "scsi"
   }
 
   network_device {
@@ -69,39 +58,23 @@ resource "proxmox_virtual_environment_vm" "talos_worker_node" {
     sockets = 1
   }
 
-  memory {
-    dedicated = 6098
-  }
-
-  lifecycle {
-    ignore_changes = [started]
-  }
-}
-
-resource "null_resource" "wait_for_provisioning_of_worker_nodes" {
-  provisioner "local-exec" {
-    command = "sleep 60" # Wait for 60 seconds
-  }
-
-  triggers = {
-    vm_creation = join(",", flatten([for vm in proxmox_virtual_environment_vm.talos_worker_node : vm.id]))
-  }
+  # lifecycle {
+  #   ignore_changes = [node_name, started, initialization]
+  # }
 }
 
 output "master_node_info" {
   value = [for vm in proxmox_virtual_environment_vm.talos_master_node : {
     id   = vm.id
     name = vm.name
-    ip   = vm.network_device[0].ip_address
+    ip   = vm.network_device
   }]
 }
 
-output "mlops_master_node" {
-  value       = [for vm in proxmox_virtual_environment_vm.talos_master_node : vm.name]
-  depends_on  = [null_resource.wait_for_provisioning]
-}
-
-output "mlops_worker_nodes" {
-  value       = [for vm in proxmox_virtual_environment_vm.talos_worker_node : vm.name]
-  depends_on  = [null_resource.wait_for_provisioning]
+output "worker_node_info" {
+  value = [for vm in proxmox_virtual_environment_vm.talos_worker_node : {
+    id   = vm.id
+    name = vm.name
+    ip   = vm.network_device
+  }]
 }
