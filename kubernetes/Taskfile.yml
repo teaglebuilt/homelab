@@ -25,41 +25,7 @@ tasks:
       - task: generate_tf_variables
       - make tf_run
 
-  bootstrap-mlops-cluster:
+  destroy-mlops-cluster:
+    dir: kubernetes
     cmds:
-      - task: talos:generate-config
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-      - task: talos:apply-config
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-          NODE_IP: $HOMELAB_MLOPS_MASTER01_IP
-          NODE_FILE: "./generated/homelab-mlops-mlops-master01.local.yaml"
-       - task: talos:apply-config
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-          NODE_IP: $HOMELAB_MLOPS_WORKER01_IP
-          NODE_FILE: "./generated/homelab-mlops-mlops-worker01.local.yaml"
-       - task: talos:apply-config
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-          NODE_IP: $HOMELAB_MLOPS_WORKER02_IP
-          NODE_FILE: "./generated/homelab-mlops-mlops-worker02.local.yaml"
-      - task: talos:bootstrap-etcd
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-          CONTROL_PLANE_IP: $HOMELAB_MLOPS_MASTER01_IP
-      - task: talos:fetch-kubeconfig
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-    sources:
-      - .env
-  
-  reset-mlops-cluster:
-    dir: clusters/mlops
-    cmds:
-      - task: talos:reset-cluster
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-    sources:
-      - .env
+      - make tf_destroy
