@@ -72,7 +72,7 @@ data "talos_cluster_health" "this" {
 resource "talos_cluster_kubeconfig" "this" {
   depends_on = [
     talos_machine_bootstrap.this,
-    data.talos_cluster_health.this
+    # data.talos_cluster_health.this
   ]
   node                 = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
   endpoint             = var.cluster.endpoint
