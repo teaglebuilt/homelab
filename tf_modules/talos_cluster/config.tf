@@ -20,6 +20,7 @@ data "talos_machine_configuration" "this" {
     templatefile("${path.module}/templates/controlplane.yaml.tftpl", {
       hostname       = each.key
       node_name      = each.value.host_node
+      node_ip = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
       cluster_name   = var.cluster.proxmox_cluster
       cilium_values  = var.cilium.values
       cilium_install = var.cilium.install
@@ -29,7 +30,10 @@ data "talos_machine_configuration" "this" {
       hostname     = each.key
       node_name    = each.value.host_node
       cluster_name = var.cluster.proxmox_cluster
-    })
+      node_ip      = each.value.ip
+    }),
+    file("${path.module}/manifests/gpu-worker-patch.yaml"),
+    file("${path.module}/manifests/nvidia-runtime-class.yaml"),
   ]
 }
 
