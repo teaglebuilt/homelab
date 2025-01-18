@@ -1,5 +1,5 @@
 cluster:
-  name: talos
+  name: mlops
   id: 1
 
 kubeProxyReplacement: true
@@ -75,8 +75,7 @@ ingressController:
   loadbalancerMode: shared
   service:
     annotations:
-      io.cilium/lb-ipam-ips: 192.168.1.223
-    # Random values so Argo CD doesn't complain about the service being out of sync
+      io.cilium/lb-ipam-ips: 192.168.2.195
     insecureNodePort: 32434
     secureNodePort: 31247
 

@@ -25,6 +25,11 @@ tasks:
       - task: generate_tf_variables
       - make tf_run
 
+  bootstrap-mlops-cluster:
+    dir: kubernetes
+    cmds:
+      - make helmfile_apply
+
   destroy-mlops-cluster:
     dir: kubernetes
     cmds:

@@ -11,14 +11,24 @@ env:
   TALOSCONFIG: "./generated/talosconfig"
 
 tasks:
+  info:
+    cmds:
+      - talosctl --talosconfig=./generated/talosconfig config info
+
+  dashboard:
+    desc: Open Talos dashboard
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl --talosconfig=./generated/talosconfig dashboard -n 192.168.2.195
+
   generate-config:
     desc: Generate Talos config
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - echo $PWD
-      - talhelper genconfig -o generated
-    preconditions:
-      - test -f talconfig.yaml
+      - talosctl --talosconfig ./generated/talosconfig gen config --force mlops https://192.168.2.195:6443 --output-dir generated
+      # - talhelper genconfig -o generated
+    # preconditions:
+    #   - test -f talconfig.yaml
 
   generate-secret:
     desc: Generate Talos secret

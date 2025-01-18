@@ -17,3 +17,6 @@ tf_run: include_env_vars init plan apply
 
 tf_destroy:
 	$(TERRAFORM) destroy -auto-approve
+
+helmfile_apply:
+	helmfile apply --skip-diff-on-install --suppress-diff

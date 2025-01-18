@@ -1,0 +1,8 @@
+---
+version: 3
+
+tasks:
+  list-ai-pods:
+    desc: List all AI pods
+    cmds:
+      - kubectl get pods -A -o wide | grep -E 'nvidia|cuda'

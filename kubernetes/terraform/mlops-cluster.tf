@@ -1,5 +1,5 @@
 module "talos_cluster" {
-  source = "https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=terraform_talos"
+  source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=terraform_talos"
 
   providers = {
     proxmox = proxmox
@@ -13,10 +13,10 @@ module "talos_cluster" {
 
   cluster = {
     name            = "mlops"
-    endpoint        = var.k8s_api_server
+    endpoint        = var.k8s_api_server_ip
     gateway         = var.network_gateway
-    talos_version   = "v1.9"
-    proxmox_cluster = "homelab"
+    talos_version   = "v1.9.1"
+    proxmox_cluster = "mlops"
   }
 
   nodes = {
@@ -24,7 +24,7 @@ module "talos_cluster" {
       host_node     = "pve2"
       machine_type  = "controlplane"
       ip            = var.master_node_ip
-      vm_id         = 800
+      vm_id         = 100
       cpu           = 8
       ram_dedicated = 20480
       igpu          = false
@@ -33,7 +33,7 @@ module "talos_cluster" {
       host_node     = "pve2"
       machine_type  = "worker"
       ip            = var.worker_node_ip
-      vm_id         = 810
+      vm_id         = 102
       cpu           = 8
       ram_dedicated = 4096
       igpu          = false
