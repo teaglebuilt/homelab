@@ -22,8 +22,6 @@ data "talos_machine_configuration" "this" {
       node_name      = each.value.host_node
       node_ip = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
       cluster_name   = var.cluster.proxmox_cluster
-      cilium_values  = var.cilium.values
-      cilium_install = var.cilium.install
     })
   ] : [
     templatefile("${path.module}/templates/worker.yaml.tftpl", {

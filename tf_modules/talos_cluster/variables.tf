@@ -37,11 +37,3 @@ variable "nodes" {
     igpu = optional(bool, false)
   }))
 }
-
-variable "cilium" {
-  description = "Cilium configuration"
-  type = object({
-    values  = string
-    install = string
-  })
-}

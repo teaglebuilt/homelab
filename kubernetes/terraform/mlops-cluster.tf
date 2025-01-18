@@ -39,9 +39,4 @@ module "talos_cluster" {
       igpu          = false
     }
   }
-
-  cilium = {
-    values = file("${path.module}/../apps/kube-system/cilium/values.yaml")
-    install = file("${path.module}/manifests/cilium.yaml")
-  }
 }

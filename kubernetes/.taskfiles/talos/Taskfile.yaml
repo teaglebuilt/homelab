@@ -73,3 +73,9 @@ tasks:
       - test -f generated/talosconfig
       - talosctl config info >/dev/null 2>&1
       # - talosctl --nodes {{.NODES}} get machineconfig >/dev/null 2>&1
+
+  reboot-node:
+    desc: Reboot a node
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl reboot --nodes {{.NODE_IP}}
