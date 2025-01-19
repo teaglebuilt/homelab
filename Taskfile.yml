@@ -19,6 +19,7 @@ tasks:
   up-*:
     summary: Used for launching docker compose stacks.
     vars:
-      STACK: '{{index .MATCH 0}}'  # the first * value
+      STACK: '{{index .MATCH 0}}'
+    cmds: # the first * value
       - echo "Starting stack [{{.STACK}}]"
       - docker compose up -d apps/{{.STACK}}
