@@ -1,23 +1,27 @@
-# resource "proxmox_virtual_environment_download_file" "talos_controlplane_image_download" {
-#   for_each = toset( formatlist("%s-controlplane", local.proxmox_nodes))
+locals {
+  factory_url = "https://factory.talos.dev"
+  platform    = "nocloud"
+  arch        = "amd64"
+  version     = var.image.version
 
-#   provider     = proxmox
-#   node_name    = split("-", each.key)[0]
-#   content_type = "iso"
-#   datastore_id = "local"
-#   file_name    = "talos-controlplane-v${var.talos_data.talos_version}-amd64.iso"
+  schematic    = file("${path.module}/manifests/schematic.yaml")
+  schematic_id = jsondecode(data.http.schematic_id.response_body)["id"]
+  image_id     = "${local.schematic_id}_${local.version}"
 
-#   url = "https://factory.talos.dev/image/${local.talos_controlplane_schematic_id}/v${var.talos_data.talos_version}/metal-amd64.iso"
-# }
+  schematic_nvidia    = file("${path.module}/manifests/schematic-nvidia.yaml")
+  schematic_nvidia_id = jsondecode(data.http.schematic_nvidia_id.response_body)["id"]
+  image_nvidia_id     = "${local.schematic_nvidia_id}_${local.version}"
+}
 
-# resource "proxmox_virtual_environment_download_file" "talos_worker_image_download" {
-#   for_each = toset( formatlist("%s-worker", local.proxmox_nodes))
+resource "proxmox_virtual_environment_download_file" "this" {
+  for_each = toset(distinct([for k, v in var.vms : "${v.host_node}_${v.igpu == true ? local.image_nvidia_id : local.image_id}"]))
 
-#   provider     = proxmox
-#   node_name    = split("-", each.key)[0]
-#   content_type = "iso"
-#   datastore_id = "local"
-#   file_name    = "talos-worker-v${var.talos_data.talos_version}-amd64.iso"
+  node_name    = split("_", each.key)[0]
+  content_type = "iso"
+  datastore_id = "local"
 
-#   url = "https://factory.talos.dev/image/${local.talos_worker_schematic_id}/v${var.talos_data.talos_version}/metal-amd64.iso"
-# }
+  file_name               = "${var.cluster.name}-talos-${split("_", each.key)[1]}-${split("_", each.key)[2]}-${local.platform}-${local.arch}.img"
+  url                     = "${local.factory_url}/image/${split("_", each.key)[1]}/${split("_", each.key)[2]}/${local.platform}-${local.arch}.raw.gz"
+  decompression_algorithm = "gz"
+  overwrite               = false
+}
