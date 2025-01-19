@@ -7,6 +7,10 @@
   <img src="https://img.shields.io/badge/Argo%20CD-1e0b3e?style=for-the-badge&logo=argo&logoColor=#d16044" />
 </div>
 
+<div align="center">
+  <img src="./docs/assets/homelab-logo.webp" />
+</div>
+
 - [Overview](#Overview)
 - [Ecosystem](#Ecosystem)
   - [Infrastructure](#Infrastructure)
