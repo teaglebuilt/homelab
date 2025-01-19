@@ -8,7 +8,7 @@
 </div>
 
 <div align="center">
-  <img src="./docs/assets/homelab-logo.webp" />
+  <img src="./docs/assets/homelab-logo.webp" style="width:250px;"/>
 </div>
 
 - [Overview](#Overview)
