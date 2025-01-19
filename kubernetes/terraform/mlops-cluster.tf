@@ -1,14 +1,12 @@
 module "talos_cluster" {
-  source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=terraform_talos"
-
-  providers = {
-    proxmox = proxmox
-  }
+  source = "../../tf_modules/talos_cluster"
+  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=terraform_talos"
 
   image = {
     version = "v1.9.1"
     update_version = "v1.9.1" # renovate: github-releases=siderolabs/talos
-    schematic = file("${path.module}/../clusters/mlops/patches/schemantics.yaml")
+    schematic = file("${path.module}/manifests/schematic.yaml")
+    nvidia_schematic = file("${path.module}/manifests/schematic-nvidia.yaml")
   }
 
   cluster = {
@@ -36,7 +34,15 @@ module "talos_cluster" {
       vm_id         = 102
       cpu           = 8
       ram_dedicated = 4096
-      igpu          = false
+      igpu          = true
+      pci           = {
+        id = "10de:2783"
+        name = "GeForce RTX 4070 SUPER"
+        iommu_group = 20
+        node = "pve2"
+        path = "0000:2e:00.0"
+        subsystem_id = "10de:22bc"
+      }
     }
   }
 }

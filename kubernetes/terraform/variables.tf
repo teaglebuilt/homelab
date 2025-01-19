@@ -1,12 +1,3 @@
-variable "proxmox_endpoint" {
-  description = "Proxmox endpoint"
-  type = string
-}
-
-variable "proxmox_insecure" {
-  description = "Proxmox insecure"
-  type = bool
-}
 
 variable "k8s_api_server_ip" {
   description = "ip address of k8s api server"

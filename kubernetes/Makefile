@@ -5,14 +5,13 @@ include_env_vars:
 	@[ -f .env ] && set -a && . ./.env && set +a
 
 init:
-	$(TERRAFORM) init
+	$(TERRAFORM) init --upgrade
 
-plan:
-	$(TERRAFORM) plan
+plan: include_env_vars
+	$(TERRAFORM) plan --var-file=terraform.tfvars
 
-apply:
-	$(TERRAFORM) apply -auto-approve \
-		-var-file=terraform.tfvars
+apply: include_env_vars
+	$(TERRAFORM) apply --var-file=terraform.tfvars -auto-approve
 
 tf_run: include_env_vars init plan apply
 
