@@ -2,7 +2,8 @@ variable "image" {
   description = "Talos image configuration"
   type = object({
     factory_url = optional(string, "https://factory.talos.dev")
-    schematic = string
+    schematic = optional(string)
+    nvidia_schematic = optional(string)
     version   = string
     update_schematic = optional(string)
     update_version = optional(string)
@@ -35,5 +36,13 @@ variable "nodes" {
     ram_dedicated = number
     update = optional(bool, false)
     igpu = optional(bool, false)
+    pci = optional(object({
+      name         = string
+      id           = string
+      iommu_group  = number
+      node         = string
+      path         = string
+      subsystem_id = string
+    }))
   }))
 }

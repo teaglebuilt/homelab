@@ -1,27 +1,27 @@
-locals {
-  factory_url = "https://factory.talos.dev"
-  platform    = "nocloud"
-  arch        = "amd64"
-  version     = var.image.version
-
-  schematic    = file("${path.module}/manifests/schematic.yaml")
-  schematic_id = jsondecode(data.http.schematic_id.response_body)["id"]
-  image_id     = "${local.schematic_id}_${local.version}"
-
-  schematic_nvidia    = file("${path.module}/manifests/schematic-nvidia.yaml")
-  schematic_nvidia_id = jsondecode(data.http.schematic_nvidia_id.response_body)["id"]
-  image_nvidia_id     = "${local.schematic_nvidia_id}_${local.version}"
+resource "talos_image_factory_schematic" "this" {
+  schematic = yamlencode(
+    {
+      customization = {
+        systemExtensions = {
+          officialExtensions = [
+            "siderolabs/qemu-guest-agent",
+          ]
+        }
+      }
+    }
+  )
 }
 
 resource "proxmox_virtual_environment_download_file" "this" {
-  for_each = toset(distinct([for k, v in var.vms : "${v.host_node}_${v.igpu == true ? local.image_nvidia_id : local.image_id}"]))
+  for_each = var.nodes # Loop through all Proxmox nodes
 
-  node_name    = split("_", each.key)[0]
+  node_name    = each.value.host_node
   content_type = "iso"
   datastore_id = "local"
 
-  file_name               = "${var.cluster.name}-talos-${split("_", each.key)[1]}-${split("_", each.key)[2]}-${local.platform}-${local.arch}.img"
-  url                     = "${local.factory_url}/image/${split("_", each.key)[1]}/${split("_", each.key)[2]}/${local.platform}-${local.arch}.raw.gz"
+  file_name               = "talos-${each.key}-nocloud-amd64.img"
+  url                     = "https://factory.talos.dev/image/${talos_image_factory_schematic.this.id}/${var.image.version}/nocloud-amd64.raw.gz"
   decompression_algorithm = "gz"
   overwrite               = false
+  verify                  = true
 }
