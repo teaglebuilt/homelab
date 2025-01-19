@@ -1,0 +1,21 @@
+machine:
+  certSANs:
+    - ${hostname}
+    - ${node_ip}
+  network:
+    hostname: ${hostname}
+    interfaces:
+      - interface: eth0
+        addresses:
+          - ${node_ip}
+  nodeLabels:
+    topology.kubernetes.io/region: ${cluster_name}
+    topology.kubernetes.io/zone: ${node_name}
+
+cluster:
+  allowSchedulingOnControlPlanes: true
+  network:
+    cni:
+      name: none
+  proxy:
+    disabled: true

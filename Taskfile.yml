@@ -15,3 +15,10 @@ tasks:
     cmds:
       - echo "Zipping repository..."
       - zip -r repository.zip . -x ".task/*" "*.tfstate.*" "packages/soa_agent/.venv/*" "*/terraform/.terraform/*" ".git/*" "**/.env" "**/.envrc"
+  
+  up-*:
+    summary: Used for launching docker compose stacks.
+    vars:
+      STACK: '{{index .MATCH 0}}'  # the first * value
+      - echo "Starting stack [{{.STACK}}]"
+      - docker compose up -d apps/{{.STACK}}

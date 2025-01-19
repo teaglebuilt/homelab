@@ -11,7 +11,7 @@ tasks:
       - |
         echo "Generating terraform.tfvars from .env file..."
         if [ -f .env ]; then
-          awk -F= '/^[^#]+/ {print $1 " = \"" $2 "\""}' .env > terraform/terraform.tfvars
+          awk -F= '/^[^#]+/ {print $1 " = " $2}' .env > terraform/terraform.tfvars
         else
           echo "No .env file found. Skipping terraform.tfvars generation."
         fi
@@ -19,28 +19,18 @@ tasks:
     sources:
       - .env
 
-  provision_administration_cluster:
+  provision-mlops-cluster:
     dir: kubernetes
     cmds:
-      - echo "$PWD"
       - task: generate_tf_variables
-      # - make tf_run
+      - make tf_run
 
-  bootstrap_mlops_cluster:
+  bootstrap-mlops-cluster:
+    dir: kubernetes
     cmds:
-      # - task: talos:generate-config
-      #   vars:
-      #     CLUSTER_DIR: "clusters/mlops"
-      # - task: talos:apply-config
-      #   vars:
-      #     CLUSTER_DIR: "clusters/mlops"
-      # - task: talos:bootstrap-etcd
-      #   vars:
-      #     CLUSTER_DIR: "clusters/mlops"
-      #     CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
-      - task: talos:fetch-kubeconfig
-        vars:
-          CLUSTER_DIR: "clusters/mlops"
-          CONTROL_PLANE: $HOMELAB_MLOPS_MASTER01_IP
-    sources:
-      - .env
+      - make helmfile_apply
+
+  destroy-mlops-cluster:
+    dir: kubernetes
+    cmds:
+      - make tf_destroy

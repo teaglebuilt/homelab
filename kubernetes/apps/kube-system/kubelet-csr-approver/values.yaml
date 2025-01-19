@@ -1,0 +1,3 @@
+---
+providerRegex: ^(mlops-ctrl-00|mlops-work-00)$
+bypassDnsResolution: true

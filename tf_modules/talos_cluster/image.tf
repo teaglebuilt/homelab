@@ -1,0 +1,27 @@
+resource "talos_image_factory_schematic" "this" {
+  schematic = yamlencode(
+    {
+      customization = {
+        systemExtensions = {
+          officialExtensions = [
+            "siderolabs/qemu-guest-agent",
+          ]
+        }
+      }
+    }
+  )
+}
+
+resource "proxmox_virtual_environment_download_file" "this" {
+  for_each = var.nodes # Loop through all Proxmox nodes
+
+  node_name    = each.value.host_node
+  content_type = "iso"
+  datastore_id = "local"
+
+  file_name               = "talos-${each.key}-nocloud-amd64.img"
+  url                     = "https://factory.talos.dev/image/${talos_image_factory_schematic.this.id}/${var.image.version}/nocloud-amd64.raw.gz"
+  decompression_algorithm = "gz"
+  overwrite               = false
+  verify                  = true
+}

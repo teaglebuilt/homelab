@@ -1,0 +1,16 @@
+provider "proxmox" {
+  endpoint = var.proxmox_endpoint
+  insecure = true
+  api_token = var.proxmox_api_token
+  ssh {
+    agent    = true
+    username = var.proxmox_username
+  }
+}
+
+provider "kubernetes" {
+  host = module.talos.kube_config.kubernetes_client_configuration.host
+  client_certificate = base64decode(module.talos.kube_config.kubernetes_client_configuration.client_certificate)
+  client_key = base64decode(module.talos.kube_config.kubernetes_client_configuration.client_key)
+  cluster_ca_certificate = base64decode(module.talos.kube_config.kubernetes_client_configuration.ca_certificate)
+}

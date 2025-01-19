@@ -21,3 +21,6 @@ override.tf.json
 *_override.tf.json
 
 .venv
+terraform.tfvars
+.task
+generated

@@ -1,6 +1,6 @@
 {
   "python.analysis.extraPaths": [
-    "packages/soa_agent"
+    "packages/soa_observability/lib"
   ],
   "[yaml]": {
     "editor.insertSpaces": true,

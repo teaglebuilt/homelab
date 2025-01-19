@@ -4,17 +4,31 @@ version: "3"
 
 x-vars: &vars
   CLUSTER_DIR: "{{.CLUSTER_DIR}}"
-  NODES: "{{.NODES}}"
+  CONTROLLER:
+    sh: talosctl config info --output json | jq --raw-output '.endpoints[]' | shuf -n 1
+
+env:
+  TALOSCONFIG: "./generated/talosconfig"
 
 tasks:
+  info:
+    cmds:
+      - talosctl --talosconfig=./generated/talosconfig config info
+
+  dashboard:
+    desc: Open Talos dashboard
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl --talosconfig=./generated/talosconfig dashboard -n 192.168.2.195
+
   generate-config:
     desc: Generate Talos config
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - echo $PWD
-      - talhelper genconfig -o generated
-    preconditions:
-      - test -f talconfig.yaml
+      - talosctl --talosconfig ./generated/talosconfig gen config --force mlops https://192.168.2.195:6443 --output-dir generated
+      # - talhelper genconfig -o generated
+    # preconditions:
+    #   - test -f talconfig.yaml
 
   generate-secret:
     desc: Generate Talos secret
@@ -30,22 +44,38 @@ tasks:
     desc: Apply Talos config to the nodes
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talhelper gencommand apply
-    preconditions:
-      - test -f talconfig.yaml
+      - talosctl apply-config --insecure --nodes {{.NODE_IP}} --file=./generated/{{.NODE_FILE}}
+      # - test -f talconfig.yaml
 
   fetch-kubeconfig:
     desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl --talosconfig ./generated/talosconfig kubeconfig -n {{.CONTROL_PLANE}} ./generated
-    # preconditions:
-    #   - talosctl config info >/dev/null 2>&1
+      - talosctl kubeconfig ./generated
 
   bootstrap-etcd:
     desc: Bootstrap etcd cluster
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - until talosctl --nodes {{.CONTROL_PLANE}} bootstrap; do sleep 60; done
+      - talosctl config endpoint {{.CONTROL_PLANE_IP}}
+      - talosctl config node {{.CONTROL_PLANE_IP}}
+      - talosctl bootstrap
     preconditions:
-      - test -f talconfig.yaml
+      - talosctl config info >/dev/null 2>&1
+
+  reset-cluster:
+    desc: Reset all the Talos nodes
+    prompt: Reset Talos nodes ... continue?
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl reset --nodes $(talosctl config info --output json | jq -r '[.nodes[]] | join(",")') --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL
+    preconditions:
+      - test -f generated/talosconfig
+      - talosctl config info >/dev/null 2>&1
+      # - talosctl --nodes {{.NODES}} get machineconfig >/dev/null 2>&1
+
+  reboot-node:
+    desc: Reboot a node
+    dir: "{{.CLUSTER_DIR}}"
+    cmds:
+      - talosctl reboot --nodes {{.NODE_IP}}
