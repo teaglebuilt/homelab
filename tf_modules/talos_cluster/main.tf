@@ -31,28 +31,28 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   network_device {
     bridge      = "vmbr0"
+    model       = "virtio"
   }
 
   boot_order = ["scsi0"]
 
   operating_system {
-    type = "l26" # Linux Kernel 2.6 - 6.X.
+    type = "l26"
   }
 
   disk {
     datastore_id = each.value.datastore_id
     interface    = "scsi0"
-    iothread     = true
-    cache        = "writethrough"
-    discard      = "on"
-    ssd          = true
-    file_format  = "raw"
+    # iothread     = true
+    # cache        = "writethrough"
+    # discard      = "on"
+    # ssd          = true
+    # file_format  = "raw"
     size         = 20
     file_id      = proxmox_virtual_environment_download_file.this[each.key].id
   }
   
   initialization {
-    datastore_id = "local-lvm"
     ip_config {
       ipv4 {
         address = "${each.value.ip}/24"
@@ -66,7 +66,7 @@ resource "proxmox_virtual_environment_vm" "this" {
     content {
       # Passthrough iGPU
       device  = "hostpci0"
-      mapping = "iGPU"
+      mapping = "nvidia_4070_super"
       pcie    = true
       rombar  = true
       xvga    = false

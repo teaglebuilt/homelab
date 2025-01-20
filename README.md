@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/assets/homelab-logo.webp" style="width:250px;"/>
+  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/assets/img/homelab-logo.webp" style="width:250px;"/>
 </div>
 
 <div align="center">
@@ -8,39 +8,3 @@
   <img src="https://img.shields.io/badge/Intel%20Core_i9_10th-0071C5?style=for-the-badge&logo=intel&logoColor=white" />
   <img src="https://img.shields.io/badge/Argo%20CD-1e0b3e?style=for-the-badge&logo=argo&logoColor=#d16044" />
 </div>
-
-- [Overview](#Overview)
-- [Ecosystem](#Ecosystem)
-  - [Infrastructure](#Infrastructure)
-    - [Network](#Network)
-    - [Virtual Machines](#VirtualMachines)
-    - [Kubernetes](#Kubernetes)
-  - [Applications](#Applications)
-  - [Automation](#Automation)
-  - [Data Platform](#DataPlatform)
-  - [Security](#Security)
-
-
-## Overview
-
-This [Hardware](./docs/hardware.md)
-
-## Ecosystem
-
-
-
-### Infrastructure
-
-#### Network
-
-#### Kubernetes
-
-#### VirtualMachines
-
-### Applications
-
-### Automation
-
-### DataPlatform
-
-### Security

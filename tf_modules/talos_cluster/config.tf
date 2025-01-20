@@ -30,13 +30,13 @@ data "talos_machine_configuration" "this" {
       cluster_name = var.cluster.proxmox_cluster
       node_ip      = each.value.ip
     }),
-    file("${path.module}/manifests/worker/gpu-worker-patch.yaml"),
-    file("${path.module}/manifests/worker/nvidia-runtime-class.yaml"),
+    file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
+    file("${path.module}/patches/worker/nvidia-runtime-class.yaml"),
   ]
 }
 
 resource "talos_machine_configuration_apply" "this" {
-  # depends_on = [proxmox_virtual_environment_vm.this]
+  depends_on = [proxmox_virtual_environment_vm.this]
   for_each                    = var.nodes
   node                        = each.value.ip
   client_configuration        = talos_machine_secrets.this.client_configuration
