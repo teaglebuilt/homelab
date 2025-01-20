@@ -93,15 +93,15 @@ releases:
   - name: nvidia-device-plugin
     namespace: kube-system
     chart: nvidia/nvidia-device-plugin
-    version: 0.13.0
+    version: 0.17.0
     values:
       - runtimeClassName: nvidia
     hooks:
       - events: ["postsync"]
-          showlogs: true
-          command: "bash"
-          args:
-            - -c
-            - |
-              kustomize build --enable-exec --enable-helm ../apps/kube-system/nvidia | kubectl apply -f -
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build --enable-exec --enable-helm ../apps/kube-system/nvidia | kubectl apply -f -
       

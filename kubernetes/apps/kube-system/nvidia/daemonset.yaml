@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -8,6 +9,7 @@ spec:
     spec:
       initContainers:
         - name: nvidia-device-plugin-init
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.17.0
           resources:
             limits:
               cpu: 150m
@@ -17,6 +19,7 @@ spec:
               memory: 256Mi
       containers:
         - name: nvidia-device-plugin-sidecar
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.17.0
           resources:
             limits:
               cpu: 150m
