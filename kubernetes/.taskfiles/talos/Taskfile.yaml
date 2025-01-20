@@ -51,7 +51,7 @@ tasks:
     desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl kubeconfig ./generated
+      - talosctl --talosconfig ./generated/talosconfig kubeconfig ./generated
 
   bootstrap-etcd:
     desc: Bootstrap etcd cluster

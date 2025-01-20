@@ -5,6 +5,8 @@ resource "talos_image_factory_schematic" "this" {
         systemExtensions = {
           officialExtensions = [
             "siderolabs/qemu-guest-agent",
+            "siderolabs/nvidia-container-toolkit-lts",
+            "siderolabs/nvidia-open-gpu-kernel-modules-lts"
           ]
         }
       }
@@ -13,7 +15,10 @@ resource "talos_image_factory_schematic" "this" {
 }
 
 resource "proxmox_virtual_environment_download_file" "this" {
-  for_each = var.nodes # Loop through all Proxmox nodes
+  for_each = {
+    for k, v in var.nodes : k => v
+    if !fileexists("/var/lib/vz/template/iso/talos-${k}-nocloud-amd64.img")
+  }
 
   node_name    = each.value.host_node
   content_type = "iso"
@@ -22,6 +27,6 @@ resource "proxmox_virtual_environment_download_file" "this" {
   file_name               = "talos-${each.key}-nocloud-amd64.img"
   url                     = "https://factory.talos.dev/image/${talos_image_factory_schematic.this.id}/${var.image.version}/nocloud-amd64.raw.gz"
   decompression_algorithm = "gz"
-  overwrite               = false
-  verify                  = true
+  verify                 = true
+  overwrite              = false
 }

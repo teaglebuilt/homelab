@@ -43,11 +43,6 @@ resource "proxmox_virtual_environment_vm" "this" {
   disk {
     datastore_id = each.value.datastore_id
     interface    = "scsi0"
-    # iothread     = true
-    # cache        = "writethrough"
-    # discard      = "on"
-    # ssd          = true
-    # file_format  = "raw"
     size         = 20
     file_id      = proxmox_virtual_environment_download_file.this[each.key].id
   }

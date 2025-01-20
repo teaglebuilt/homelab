@@ -96,10 +96,12 @@ releases:
     version: 0.13.0
     values:
       - runtimeClassName: nvidia
-      - resources:
-          - apiVersion: node.k8s.io/v1
-            kind: RuntimeClass
-            metadata:
-              name: nvidia
-            handler: nvidia
-    
+    hooks:
+      - events: ["postsync"]
+          showlogs: true
+          command: "bash"
+          args:
+            - -c
+            - |
+              kustomize build --enable-exec --enable-helm ../apps/kube-system/nvidia | kubectl apply -f -
+      
