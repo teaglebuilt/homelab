@@ -37,11 +37,11 @@ module "talos_cluster" {
       igpu          = true
       pci           = {
         id = "10de:2783"
-        name = "GeForce RTX 4070 SUPER"
+        name = "nvidia_4070_super"
         iommu_group = 20
         node = "pve2"
         path = "0000:2e:00.0"
-        subsystem_id = "10de:22bc"
+        subsystem_id = "10de:18fe"
       }
     }
   }

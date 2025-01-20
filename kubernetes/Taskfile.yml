@@ -22,6 +22,10 @@ tasks:
   provision-mlops-cluster:
     dir: kubernetes
     cmds:
+      - |
+        if [ -f ../.envrc ]; then
+          source ../.envrc
+        fi
       - task: generate_tf_variables
       - make tf_run
 

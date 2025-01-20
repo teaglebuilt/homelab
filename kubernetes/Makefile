@@ -2,7 +2,7 @@ TERRAFORM=tofu -chdir=terraform
 TALOSCONFIG=./generated/talosconfig
 
 include_env_vars:
-	@[ -f .env ] && set -a && . ./.env && set +a
+	@[ -f ../.envrc ] && set -a && . ../.envrc && set +a
 
 init:
 	$(TERRAFORM) init --upgrade
