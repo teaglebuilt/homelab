@@ -1,16 +1,31 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: n8n-config
-  namespace: automation
-  labels:
-    version: v1.0
+    name: n8n-config
+    namespace: automation
+    labels:
+        version: v1.0
 data:
-  # Add your environment variables here
-  DB_TYPE: "postgresdb"
-  DB_POSTGRESDB_HOST: "postgres"
-  N8N_DIAGNOSTICS_ENABLED: "true"
-  N8N_PERSONALIZATION_ENABLED: "false"
-  DB_POSTGRESDB_PORT: "5432"
-  POSTGRES_USER:  "postgresadmin"
-  POSTGRES_PASSWORD: "postgrespassword"
+    #ENC[AES256_GCM,data:LmvhInMLi/aKoNjaNYzvAK4Yhvmu/65Cad8O06jCFl+qIyla,iv:xTKLiDGupn4inp150gIHF9q+P9oXspRlKEQmaR/GSDs=,tag:S3bDr0EYzMWvxWbol71FiA==,type:comment]
+    DB_TYPE: ENC[AES256_GCM,data:jie72d4+F78N9Q==,iv:YfYGEBcoZ98eiGVXAqjc6RJiMQT+bfDD8F+FOLKL6IM=,tag:TTFQhO/hqkasEy6cB3Hb5A==,type:str]
+    DB_POSTGRESDB_HOST: ENC[AES256_GCM,data:/ryhimgvnBE=,iv:6CIsU9Px3Ue1Twc/qJDF+Om91QFsyY3SWTQ0gviFptM=,tag:rnTTYvZqGkx4VB4evr2l8g==,type:str]
+    N8N_DIAGNOSTICS_ENABLED: ENC[AES256_GCM,data:+PlL3Q==,iv:/tEmQaVi79AioaPaXlXm2EzWRWMtPaF0cGc9oooYuMU=,tag:Ot/42Q/VNxGjVmzDUFtFvg==,type:str]
+    N8N_PERSONALIZATION_ENABLED: ENC[AES256_GCM,data:CbZ/ulo=,iv:yOVXbM3mxDgLn8ky5pFYy5/NydJqkjnuUkEUDCfhHZA=,tag:6ap3mJbLhpSoNn/OcoqtdA==,type:str]
+    DB_POSTGRESDB_PORT: ENC[AES256_GCM,data:YG2y2A==,iv:ONB1zZ/SePYvr+RtRx/aytk7WUZ4QSMgSMqIYIJoQL0=,tag:yc3ZoMAnGsLfhHx7gS8T8A==,type:str]
+    POSTGRES_USER: ENC[AES256_GCM,data:G8RTWld8P1fH4mltSQ==,iv:8IlImGM/3rAQ6JJoMzTZYzPxBp82huH9h0dLAxDJR2M=,tag:hD/Q2t67zoKkXoPL2lQklw==,type:str]
+    POSTGRES_PASSWORD: ENC[AES256_GCM,data:CZlVgPn7zXN47mBnZ2xI+w==,iv:I4Rhm8+JeR39P55JiBN9/+Weijx4iyMcc68FMZm/Rx8=,tag:2YE7eztTpElfjxHq/lW9gQ==,type:str]
+sops:
+    kms:
+        - arn: arn:aws:kms:us-east-1:626956831217:key/f22ea8b8-ec28-4d80-988e-7372419dbc28
+          created_at: "2025-01-20T15:33:39Z"
+          enc: AQICAHgf2Bz/yC/N+d80dqtXyzpCypiaZx1Lgwl8YcJR1TYnOAGkHuLCIU65rhT84CCYHO/pAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMPvd1FmEGHjn4menOAgEQgDu6dI9KOK6vqnxoq1wuo2VOHuzED+ARmbglVLV+LQkrVCGWJbj1PNpTsRwhj3X4+A2UXaK+7sTTuql5/A==
+          aws_profile: ""
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2025-01-20T15:33:39Z"
+    mac: ENC[AES256_GCM,data:N5dwp7OvrRTQg349Dx4QzbdzeRxfksirkeNWGoAZd60MAcbNiXqtJ4ajOAlcsv660/Vrqg4AfITMGLfrX4AU/OLj0gZeYti8nCjhGcRRUp9tfudkj0ovIWBt7D52g1Luv58yypCPf1GLdFt4CKJNfXk6/W8XKw5EOItCJfRgTLY=,iv:sIZzdrcjWXmFyxOzPBsRADoJKqUyXFH+0gLHmfAoD/I=,tag:EVjQobav1F1Zw0VOfqnTJQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1

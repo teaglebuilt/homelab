@@ -23,7 +23,7 @@
 
 ## Overview
 
-This [Hardware](./docs/hardware.md) i
+This [Hardware](./docs/hardware.md)
 
 ## Ecosystem
 
