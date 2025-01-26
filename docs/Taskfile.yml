@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  serve:
+    summary: Serve the docs
+    dir: docs
+    cmds:
+      - npm run start
