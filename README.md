@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelab-logo.webp" style="width:250px;"/>
+  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelab.webp" style="width:250px;"/>
 </div>
 
 <div align="center">
