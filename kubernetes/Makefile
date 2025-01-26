@@ -21,6 +21,9 @@ tf_destroy:
 helmfile_apply:
 	helmfile apply --skip-diff-on-install --suppress-diff .
 
+helmfile_sync:
+	helmfile sync  .
+
 clean:
 	rm -rf .task
 	rm -rf terraform/.terraform

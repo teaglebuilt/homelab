@@ -1,0 +1,10 @@
+version: v0.170.0
+dependencies:
+- name: external-dns
+  repository: https://kubernetes-sigs.github.io/external-dns
+  version: 1.15.0
+- name: external-secrets
+  repository: https://charts.external-secrets.io
+  version: 0.13.0
+digest: sha256:e851f349c649d03d499bc65751eee586ee1acabda1e299dbca3a62b13cbf8744
+generated: "2025-01-23T14:36:28.113787-05:00"

@@ -1,0 +1,16 @@
+version: v0.170.0
+dependencies:
+- name: cilium
+  repository: https://helm.cilium.io
+  version: 1.16.5
+- name: coredns
+  repository: https://coredns.github.io/helm
+  version: 1.37.3
+- name: kubelet-csr-approver
+  repository: https://postfinance.github.io/kubelet-csr-approver
+  version: 1.2.3
+- name: nvidia-device-plugin
+  repository: https://nvidia.github.io/k8s-device-plugin
+  version: 0.17.0
+digest: sha256:79bdb7244b04145a59468a59218f773bafc5204f50381121bfcd6edd528a2792
+generated: "2025-01-23T14:36:26.105065-05:00"

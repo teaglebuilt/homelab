@@ -14,5 +14,15 @@
     "editor.formatOnType": true,
     "editor.wordBasedSuggestions": "off",
     "editor.tabSize": 4
-  }
+  },
+  "go-template.languages": [
+    "gotmpl",
+    "yaml",
+  ],
+  "go-template.patterns": [
+    "**/*.yaml.gotmpl"
+  ],
+  "files.associations": {
+    "*.gotmpl": "yaml"
+  },
 }

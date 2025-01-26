@@ -1,10 +1,7 @@
 ---
-environments:
-  default:
-
 helmDefaults:
   wait: true
   waitForJobs: true
   timeout: 600
-  recreatePods: true
+  recreatePods: false
   force: true

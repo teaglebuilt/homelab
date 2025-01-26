@@ -3,7 +3,7 @@ cluster:
   id: 1
 
 kubeProxyReplacement: true
-
+kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
  # Talos specific
 k8sServiceHost: localhost
 k8sServicePort: 7445
@@ -17,7 +17,6 @@ cgroup:
     enabled: false
   hostRoot: /sys/fs/cgroup
 
-# https://docs.cilium.io/en/stable/network/concepts/ipam/
 ipam:
   mode: kubernetes
 
@@ -31,7 +30,7 @@ operator:
       cpu: 50m
       memory: 128Mi
 
-# Roll out cilium agent pods automatically when ConfigMap is updated.
+
 rollOutCiliumPods: true
 resources:
   limits:
@@ -69,15 +68,15 @@ hubble:
     enabled: true
     rollOutPods: true
 
-ingressController:
-  enabled: true
-  default: true
-  loadbalancerMode: shared
-  service:
-    annotations:
-      io.cilium/lb-ipam-ips: 192.168.2.195
-    insecureNodePort: 32434
-    secureNodePort: 31247
+# ingressController:
+#   enabled: true
+#   default: true
+#   loadbalancerMode: shared
+#   service:
+#     annotations:
+#       io.cilium/lb-ipam-ips: 192.168.2.195
+#     insecureNodePort: 32434
+#     secureNodePort: 31247
 
 # mTLS
 authentication:

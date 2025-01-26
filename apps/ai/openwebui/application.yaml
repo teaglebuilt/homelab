@@ -1,0 +1,19 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openwebui
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: n8n
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: .
+    repoURL: https://github.com/teaglebuilt/kubernetes-n8n.git
+    targetRevision: main
+    path: apps/ai/openwebui
+  syncPolicy: {}

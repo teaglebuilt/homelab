@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cmp-plugin
+data:
+  avp-kustomize.yaml: |
+  ...

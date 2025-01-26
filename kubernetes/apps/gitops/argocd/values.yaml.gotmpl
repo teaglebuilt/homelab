@@ -1,0 +1,17 @@
+---
+global:
+  domain: argocd.homelab.local
+
+configs:
+  cm:
+    admin.enabled: true
+    exec.enabled: true
+    kustomize.buildOptions: "--enable-alpha-plugins --enable-helm"
+
+server:
+  extraArgs:
+    - --insecure
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Cluster
+    externalIP: {{ .Values | get "controlplane_node_ip" }}

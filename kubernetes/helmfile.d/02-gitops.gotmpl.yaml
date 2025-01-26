@@ -1,0 +1,17 @@
+---
+bases:
+  - ../defaults.yaml
+  - ../environment.yaml
+
+repositories:
+  - name: argo-cd
+    url: https://argoproj.github.io/argo-helm
+
+releases:
+  - name: argo-cd
+    namespace: argocd
+    chart: argo-cd/argo-cd
+    version: 7.7.16
+    createNamespace: true
+    values:
+      - ../apps/gitops/argocd/values.yaml.gotmpl

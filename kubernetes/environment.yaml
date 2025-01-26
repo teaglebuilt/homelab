@@ -1,0 +1,8 @@
+---
+environments:
+  default:
+    values:
+      - unifi_network_gateway: ${UNIFI_NETWORK_GATEWAY}
+      - unifi_username: ${UNIFI_USERNAME}
+      - unifi_password: ${UNIFI_PASSWORD}
+      - controlplane_node_ip: ${MASTER_NODE_IP}

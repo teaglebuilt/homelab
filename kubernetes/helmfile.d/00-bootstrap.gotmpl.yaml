@@ -28,41 +28,40 @@ releases:
       - ../apps/kube-system/cilium/values.yaml
     needs:
       - observability/prometheus-operator-crds
-    hooks:
-      - events: ["presync"]
-        showlogs: true
-        command: "kubectl"
-        args:
-          - apply
-          - -f
-          - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
-          - -f
-          - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/experimental/gateway.networking.k8s.io_gateways.yaml
-          - -f
-          - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml
-          - -f
-          - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_referencegrants.yaml
-          - -f
-          - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
-          - -f
-          - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
-      - events: ["postsync"]
-        showlogs: true
-        command: "bash"
-        args:
-          - -c
-          - |
-            kustomize build --enable-exec --enable-helm ../apps/kube-system/cilium | kubectl apply -f -
+    # hooks:
+    #   - events: ["presync"]
+    #     showlogs: true
+    #     command: "kubectl"
+    #     args:
+    #       - apply
+    #       - -f
+    #       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
+    #       - -f
+    #       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/experimental/gateway.networking.k8s.io_gateways.yaml
+    #       - -f
+    #       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml
+    #       - -f
+    #       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_referencegrants.yaml
+    #       - -f
+    #       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
+    #       - -f
+    #       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
+    #   - events: ["postsync"]
+    #     showlogs: true
+    #     command: "bash"
+    #     args:
+    #       - -c
+    #       - |
+    #         kustomize build --enable-exec --enable-helm ../apps/kube-system/cilium | kubectl apply -f -
 
   - name: coredns
     namespace: kube-system
     chart: coredns/coredns
-    version: 1.37.0
+    version: 1.37.3
     createNamespace: true
     values:
       - ../apps/kube-system/coredns/values.yaml
     needs:
-      - observability/prometheus-operator-crds
       - kube-system/cilium
 
   - name: kubelet-csr-approver
