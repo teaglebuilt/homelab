@@ -33,6 +33,7 @@ tasks:
     dir: kubernetes
     cmds:
       - make helmfile_apply
+      - kubectl create namespace automation
 
   destroy-mlops-cluster:
     dir: kubernetes

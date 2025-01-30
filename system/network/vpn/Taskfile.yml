@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  provision:
+    dir: "network/vpn"
+    description: "provision a vpn server"
+    cmds:
+    - "make provision"

@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  gatewayClassName: gitops
+  listeners:
+    - name: argocd-http
+      protocol: HTTP
+      port: 80
+      hostname: '*.local'
+  # tls:
+  #   certificateRefs:
+  #     - kind: Secret
+  #       name: argocd-server-tls
+  #       namespace: argocd

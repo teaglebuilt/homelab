@@ -6,5 +6,8 @@ dependencies:
 - name: external-secrets
   repository: https://charts.external-secrets.io
   version: 0.13.0
-digest: sha256:e851f349c649d03d499bc65751eee586ee1acabda1e299dbca3a62b13cbf8744
-generated: "2025-01-23T14:36:28.113787-05:00"
+- name: mayastor
+  repository: https://openebs.github.io/mayastor-extensions/
+  version: 2.5.0
+digest: sha256:177a8b289b4174e24d7291d6f0c3b1bc6fcde388cb8285728598ddc32745b05a
+generated: "2025-01-30T08:39:35.115583-05:00"

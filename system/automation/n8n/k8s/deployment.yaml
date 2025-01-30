@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: automation
+  labels:
+    app: n8n
+    version: v1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+        version: v1.0
+    spec:
+      initContainers:
+        - name: n8n-import
+          image: n8nio/n8n:0.230.3
+            - /bin/sh
+            - -c
+            - "n8n import:credentials --separate --input=/backup/credentials --update-existing  --verbose"
+            - "n8n import:workflow --separate --input=/backup/workflows"
+          securityContext:
+            runAsNonRoot: true
+          volumeMounts:
+            - name: credentials
+              mountPath: /backup/credentials
+            - name: workflows
+              mountPath: /backup/workflow
+      containers:
+        - name: n8n
+          image: n8nio/n8n:0.230.3
+          ports:
+            - containerPort: 5678
+          securityContext:
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 150m
+              memory: 512Mi
+            limits:
+              cpu: 550m
+              memory: 768Mi
+          volumeMounts:
+            - name: n8n-storage
+              mountPath: /home/node/.n8n
+            - name: credentials
+              mountPath: /backup/credentials
+            - name: workflows
+              mountPath: /backup/workflows
+            - name: shared-data
+              mountPath: /data/shared
+      volumes:
+        - name: n8n-storage
+          persistentVolumeClaim:
+            claimName: n8n-storage-pvc
+        - name: credentials
+          configMap:
+            name: credentials-cm
+        - name: workflows
+          persistentVolumeClaim:
+            claimName: n8n-storage-workflows-pvc
+        - name: shared-data
+          persistentVolumeClaim:
+            claimName: n8n-storage-shared-pvc

@@ -1,13 +1,14 @@
 ---
 bases:
   - ../defaults.yaml
-  - ../environment.yaml
 
 repositories:
   - name: external-dns
     url: https://kubernetes-sigs.github.io/external-dns
   - name: external-secrets
     url: https://charts.external-secrets.io
+  - name: mayastor
+    url: https://openebs.github.io/mayastor-extensions/
 
 releases:
   - name: external-secrets
@@ -35,3 +36,19 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/externaldns/values.yaml.gotmpl
+  
+  - name: openebs
+    namespace: mayastor
+    chart: mayastor/mayastor
+    version: 2.5.0
+    values:
+      - csi:
+          node:
+            initContainers:
+              enabled: false
+      - engines:
+          local:
+            lvm:
+              enabled: false
+            zfs:
+              enabled: false

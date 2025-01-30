@@ -1,0 +1,5 @@
+services:
+  octobot:
+    image: octobot:latest
+    ports:
+      - 8080:8080

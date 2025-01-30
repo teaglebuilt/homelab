@@ -7,6 +7,7 @@ configs:
     admin.enabled: true
     exec.enabled: true
     kustomize.buildOptions: "--enable-alpha-plugins --enable-helm"
+    statusbadge.enabled: "true"
 
 server:
   extraArgs:
@@ -14,4 +15,14 @@ server:
   service:
     type: LoadBalancer
     externalTrafficPolicy: Cluster
-    externalIP: {{ .Values | get "controlplane_node_ip" }}
+    externalIP: {{ requiredEnv "MASTER_NODE_IP" | quote }}
+    annotations:
+      external-dns.alpha.kubernetes.io/target: gitops.local
+      external-dns.alpha.kubernetes.io/hostname: gitops.local
+  
+  ingress:
+    enabled: true
+    https: true
+    pathType: ImplementationSpecific
+    hosts:
+      - gitops.local
