@@ -8,12 +8,22 @@ init:
 	$(TERRAFORM) init --upgrade
 
 plan: include_env_vars
-	$(TERRAFORM) plan --var-file=terraform.tfvars
+	$(TERRAFORM) plan \
+		-var k8s_api_server_ip=${MASTER_NODE_IP} \
+		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+    -var master_node_ip=${MASTER_NODE_IP} \
+    -var worker_one_node_ip=${WORKER_00_NODE_IP} \
+    -var worker_two_node_ip=${WORKER_01_NODE_IP}
 
 apply: include_env_vars
-	$(TERRAFORM) apply --var-file=terraform.tfvars -auto-approve
+	$(TERRAFORM) apply -auto-approve \
+		-var k8s_api_server_ip=${MASTER_NODE_IP} \
+		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+    -var master_node_ip=${MASTER_NODE_IP} \
+    -var worker_one_node_ip=${WORKER_00_NODE_IP} \
+    -var worker_two_node_ip=${WORKER_01_NODE_IP}
 
-tf_run: include_env_vars init plan apply
+tf_run: init plan apply
 
 tf_destroy:
 	$(TERRAFORM) destroy -auto-approve
@@ -23,6 +33,9 @@ helmfile_apply:
 
 helmfile_sync:
 	helmfile sync  .
+
+helmfile_lock:
+	helmfile deps
 
 clean:
 	rm -rf .task

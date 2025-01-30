@@ -24,16 +24,16 @@ module "talos_cluster" {
       ip            = var.master_node_ip
       vm_id         = 100
       cpu           = 8
-      ram_dedicated = 20480
+      ram_dedicated = 8096
       igpu          = false
     }
     "mlops-work-00" = {
       host_node     = "pve2"
       machine_type  = "worker"
-      ip            = var.worker_node_ip
+      ip            = var.worker_one_node_ip
       vm_id         = 102
       cpu           = 8
-      ram_dedicated = 4096
+      ram_dedicated = 20480
       igpu          = true
       pci           = {
         id = "10de:2783"
@@ -43,6 +43,15 @@ module "talos_cluster" {
         path = "0000:2e:00.0"
         subsystem_id = "10de:18fe"
       }
+    }
+    "mlops-work-01" = {
+      host_node     = "pve2"
+      machine_type  = "worker"
+      ip            = var.worker_two_node_ip
+      vm_id         = 103
+      cpu           = 8
+      ram_dedicated = 20480
+      igpu          = false
     }
   }
 }

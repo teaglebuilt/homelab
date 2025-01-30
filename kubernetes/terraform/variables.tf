@@ -9,7 +9,12 @@ variable "master_node_ip" {
   type = string
 }
 
-variable "worker_node_ip" {
+variable "worker_one_node_ip" {
+  description = "ip address of worker node"
+  type = string
+}
+
+variable "worker_two_node_ip" {
   description = "ip address of worker node"
   type = string
 }

@@ -8,8 +8,17 @@ resources:
   - configmap.yaml
   - pvc.yaml
   - workflows-pvc.yaml
-  - workflows.yaml
-  - credentials.yaml
+  # - gateway.yaml
+  # - http-route.yaml
+
+configMapGenerator:
+  - name: workflows-cm
+    files:
+      - srOnR8PAY3u4RSwb.json=workflows/demo-workflow.json
+  - name: credentials-cm
+    files:
+      - srOnR8PAY3u4RSwb.json=credentials/ollama.json
+      - sFfERYppMeBnFNeA.json=credentials/qdrant.json
 
 generatorOptions:
   disableNameSuffixHash: true

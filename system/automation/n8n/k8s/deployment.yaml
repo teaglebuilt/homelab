@@ -18,15 +18,27 @@ spec:
         app: n8n
         version: v1.0
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-00
       initContainers:
         - name: n8n-import
-          image: n8nio/n8n:0.230.3
-            - /bin/sh
-            - -c
-            - "n8n import:credentials --separate --input=/backup/credentials --update-existing  --verbose"
-            - "n8n import:workflow --separate --input=/backup/workflows"
+          image: ghcr.io/n8n-io/n8n:1.76.0
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              n8n import:credentials --separate --input=/backup/credentials --update-existing  --verbose
+              n8n import:workflow --separate --input=/backup/workflows
           securityContext:
             runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
             - name: credentials
               mountPath: /backup/credentials
@@ -34,11 +46,16 @@ spec:
               mountPath: /backup/workflow
       containers:
         - name: n8n
-          image: n8nio/n8n:0.230.3
+          image: ghcr.io/n8n-io/n8n:1.76.0
           ports:
             - containerPort: 5678
           securityContext:
             runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 150m
@@ -46,25 +63,31 @@ spec:
             limits:
               cpu: 550m
               memory: 768Mi
+          env:
+            - name: N8N_SECURE_COOKIE
+              value: "false"
           volumeMounts:
-            - name: n8n-storage
-              mountPath: /home/node/.n8n
             - name: credentials
               mountPath: /backup/credentials
             - name: workflows
               mountPath: /backup/workflows
-            - name: shared-data
-              mountPath: /data/shared
+            # - name: n8n-storage
+            #   mountPath: /home/node/.n8n
+            # - name: shared-data
+            #   mountPath: /data/shared
       volumes:
-        - name: n8n-storage
-          persistentVolumeClaim:
-            claimName: n8n-storage-pvc
         - name: credentials
           configMap:
             name: credentials-cm
         - name: workflows
-          persistentVolumeClaim:
-            claimName: n8n-storage-workflows-pvc
-        - name: shared-data
-          persistentVolumeClaim:
-            claimName: n8n-storage-shared-pvc
+          configMap:
+            name: workflows-cm
+        # - name: n8n-storage
+        #   persistentVolumeClaim:
+        #     claimName: n8n-storage-pvc
+        # - name: workflows
+        #   persistentVolumeClaim:
+        #     claimName: n8n-storage-workflows-pvc
+        # - name: shared-data
+        #   persistentVolumeClaim:
+        #     claimName: n8n-storage-shared-pvc

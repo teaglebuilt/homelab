@@ -16,23 +16,26 @@ data "talos_machine_configuration" "this" {
   talos_version    = var.cluster.talos_version
   machine_type     = each.value.machine_type
   machine_secrets  = talos_machine_secrets.this.machine_secrets
-  config_patches   = each.value.machine_type == "controlplane" ? [
+  config_patches = each.value.machine_type == "controlplane" ? [
     templatefile("${path.module}/templates/controlplane.yaml.tftpl", {
       hostname       = each.key
       node_name      = each.value.host_node
-      node_ip = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
+      node_ip        = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
       cluster_name   = var.cluster.proxmox_cluster
-    })
-  ] : [
+    }),
+    file("${path.module}/patches/local-path-storage.yaml"),
+  ] : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname     = each.key
       node_name    = each.value.host_node
       cluster_name = var.cluster.proxmox_cluster
       node_ip      = each.value.ip
     }),
+    file("${path.module}/patches/local-path-storage.yaml"),
+  ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/nvidia-runtime-class.yaml"),
-  ]
+  ] : [])
 }
 
 resource "talos_machine_configuration_apply" "this" {

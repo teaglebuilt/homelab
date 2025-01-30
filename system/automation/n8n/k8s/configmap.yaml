@@ -1,12 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: n8n-config
-    namespace: automation
-    labels:
-        version: v1.0
+  name: n8n-config
+  namespace: automation
+  labels:
+    version: v1.0
 data:
-    # Add your environment variables here
     DB_TYPE: postgresdb
     DB_POSTGRESDB_HOST: postgres
     N8N_DIAGNOSTICS_ENABLED: "true"
