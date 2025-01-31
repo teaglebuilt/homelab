@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Homelab',
-  tagline: 'Dinosaurs are cool',
+  tagline: 'Built By Teagle at Home',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
@@ -14,19 +14,14 @@ const config: Config = {
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
-
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'teaglebuilt', // Usually your GitHub org/user name.
-  projectName: 'homelab', // Usually your repo name.
-
+  organizationName: 'teaglebuilt',
+  projectName: 'homelab',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
   },
-
   presets: [
     [
       '@docusaurus/preset-classic',
@@ -35,21 +30,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false
         // theme: {
         //   customCss: './src/css/custom.css',
         // },
@@ -78,9 +59,9 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          sidebarId: 'sidebar',
+          label: 'docs',
           position: 'left',
-          label: 'Docs',
         },
         {
           href: 'https://github.com/facebook/docusaurus',

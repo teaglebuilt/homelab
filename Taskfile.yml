@@ -3,6 +3,8 @@ version: '3'
 includes:
   kubernetes:
     taskfile: kubernetes/Taskfile.yml
+  docs:
+    taskfile: docs/Taskfile.yml
 
 dotenv: ['./kubernetes/.env']
 
@@ -16,10 +18,14 @@ tasks:
       - echo "Zipping repository..."
       - zip -r repository.zip . -x ".task/*" "*.tfstate.*" "packages/soa_agent/.venv/*" "*/terraform/.terraform/*" ".git/*" "**/.env" "**/.envrc"
   
-  up-*:
+  compose-up-*:
     summary: Used for launching docker compose stacks.
     vars:
       STACK: '{{index .MATCH 0}}'
     cmds: # the first * value
       - echo "Starting stack [{{.STACK}}]"
       - docker compose up -d apps/{{.STACK}}
+
+  serve-docs:
+    cmds:
+      - task: docs:serve

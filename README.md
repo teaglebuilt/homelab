@@ -1,5 +1,6 @@
 <div align="center">
   <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelab-icon.png" style="width:250px;"/>
+  <h1>Homelab</h1>
 </div>
 
 <div align="center">

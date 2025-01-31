@@ -17,7 +17,7 @@ function HomepageHeader() {
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
-        {/* <p className="hero__subtitle">{siteConfig.tagline}</p> */}
+        <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div>
           <img src="https://img.shields.io/badge/Proxmox-E57000?style=for-the-badge&logo=proxmox&logoColor=white" />
           <img src="https://img.shields.io/badge/NVIDIA-GTX4070-76B900?style=for-the-badge&logo=nvidia&logoColor=white" />
@@ -38,7 +38,7 @@ export default function Home(): ReactNode {
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
       <main>
-        {/* <HomepageFeatures /> */}
+        <HomepageFeatures />
       </main>
     </Layout>
   );
