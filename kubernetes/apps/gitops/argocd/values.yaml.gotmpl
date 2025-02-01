@@ -26,3 +26,11 @@ server:
     pathType: ImplementationSpecific
     hosts:
       - gitops.local
+
+repoServer:
+  nodeSelector:
+    kubernetes.io/hostname: mlops-work-00
+
+dex:
+  nodeSelector:
+    kubernetes.io/hostname: mlops-work-00

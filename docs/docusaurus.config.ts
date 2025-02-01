@@ -60,7 +60,7 @@ const config: Config = {
         {
           type: 'docSidebar',
           sidebarId: 'sidebar',
-          label: 'docs',
+          label: 'Docs',
           position: 'left',
         },
         {

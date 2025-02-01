@@ -7,6 +7,10 @@ repositories:
     url: https://kubernetes-sigs.github.io/external-dns
   - name: external-secrets
     url: https://charts.external-secrets.io
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: metrics-server
+    url: https://kubernetes-sigs.github.io/metrics-server/
   - name: openebs
     url: https://openebs.github.io/charts
 
@@ -29,6 +33,7 @@ releases:
               sops --decrypt --input-type yaml --output-type yaml \
               ../apps/security/external-secrets/secret.sops.yaml /dev/stdin | \
               kubectl apply -f -
+
   - name: external-dns
     namespace: external-dns
     chart: external-dns/external-dns
@@ -37,6 +42,39 @@ releases:
     values:
       - ../apps/networking/externaldns/values.yaml.gotmpl
   
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    createNamespace: true
+    values:
+      - crds:
+          enabled: true
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/security/cert-manager | kubectl apply -f -
+
+  - name: metrics-server
+    chart: metrics-server/metrics-server
+    namespace: kube-system
+    version: 3.8.3
+    values:
+      - apiService:
+          create: true
+        metrics:
+          enabled: true
+        hostNetwork:
+          enabled: true
+        args:
+          - --cert-dir=/tmp
+          - --kubelet-use-node-status-port
+          - --kubelet-insecure-tls
+          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
+          - --metric-resolution=60s
   # - name: openebs
   #   namespace: openebs
   #   chart: openebs/openebs

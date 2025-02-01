@@ -22,15 +22,15 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-      nodeSelector:
-        kubernetes.io/hostname: mlops-work-00
+      # nodeSelector:
+      #   kubernetes.io/hostname: mlops-work-00
       initContainers:
         - name: n8n-import
           image: ghcr.io/n8n-io/n8n:1.76.0
           command: ["/bin/sh", "-c"]
           args:
             - |
-              n8n import:credentials --separate --input=/backup/credentials --update-existing  --verbose
+              n8n import:credentials --separate --input=/backup/credentials
               n8n import:workflow --separate --input=/backup/workflows
           securityContext:
             runAsNonRoot: true
@@ -66,13 +66,19 @@ spec:
           env:
             - name: N8N_SECURE_COOKIE
               value: "false"
+            # - name: N8N_EXTERNAL_STORAGE_S3_HOST
+            # - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_REGION
+            # - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_NAME
+            # - name: N8N_EXTERNAL_STORAGE_S3_ACCESS_KEY
+            # - name: N8N_EXTERNAL_STORAGE_S3_ACCESS_SECRET
+
           volumeMounts:
             - name: credentials
               mountPath: /backup/credentials
             - name: workflows
               mountPath: /backup/workflows
-            # - name: n8n-storage
-            #   mountPath: /home/node/.n8n
+            - name: n8n-storage
+              mountPath: /home/node/.n8n
             # - name: shared-data
             #   mountPath: /data/shared
       volumes:
@@ -82,9 +88,9 @@ spec:
         - name: workflows
           configMap:
             name: workflows-cm
-        # - name: n8n-storage
-        #   persistentVolumeClaim:
-        #     claimName: n8n-storage-pvc
+        - name: n8n-storage
+          persistentVolumeClaim:
+            claimName: n8n-storage-pvc
         # - name: workflows
         #   persistentVolumeClaim:
         #     claimName: n8n-storage-workflows-pvc

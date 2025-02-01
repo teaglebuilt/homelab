@@ -20,6 +20,11 @@ tasks:
       - make helmfile_lock
       - make helmfile_apply
 
+  sync-mlops-cluster:
+    dir: kubernetes
+    cmds:
+      - make helmfile_sync
+
   destroy-mlops-cluster:
     dir: kubernetes
     cmds:
