@@ -1,0 +1,46 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: reading
+resources:
+  - rsshub
+  - feedpushr
+helmCharts:
+- name: app-template
+  repo: https://bjw-s.github.io/helm-charts/
+  releaseName: freshrss
+  namespace: freshrss
+  inlineValues:
+    image:
+      repository: linuxserver/freshrss
+      pullPolicy: Always
+      tag: 1.23.1
+    controller:
+      strategy: RollingUpdate
+    env:
+    - name: PUID
+      value: "1000"
+    - name: PGID
+      value: "1000"
+    service:
+      main:
+        ports:
+          http:
+            port: 80
+    ingress:
+      main:
+        ingressClassName: "nginx"
+        enabled: true
+        hosts:
+        - host: rss.local
+          paths:
+          - path: /
+    persistence:
+      config:
+        enabled: true
+        retain: false
+        accessMode: ReadWriteMany
+        size: 1Gi
+        globalMounts:
+        - path: /config
+          readOnly: false
