@@ -9,8 +9,5 @@ dependencies:
 - name: kubelet-csr-approver
   repository: https://postfinance.github.io/kubelet-csr-approver
   version: 1.2.3
-- name: nvidia-device-plugin
-  repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.0
-digest: sha256:9844292ff74a3cfec57f2ad2d4ead23eff0a187cf0d810ad5a3455644d3cc19b
-generated: "2025-02-01T14:55:09.102325-05:00"
+digest: sha256:e2ffeb6f1eee7029685d4ba52f87be638acbcaaefe7237c0f13cc0c9adc1ad74
+generated: "2025-02-08T12:33:14.852048-05:00"

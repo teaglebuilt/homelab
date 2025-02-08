@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-service
+  namespace: automation
+  labels:
+    version: v1.0
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: workflows.local
+    cert-manager.io/cluster-issuer: lets-encrypt-prod
+spec:
+  type: LoadBalancer
+  selector:
+    app: n8n
+  ports:
+  - port: 5678
+    name: http-5678
+    protocol: TCP
+    targetPort: 5678

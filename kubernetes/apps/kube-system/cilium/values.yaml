@@ -56,6 +56,7 @@ externalIPs:
 
 enableCiliumEndpointSlice: true
 
+installCRDs: true
 gatewayAPI:
   enabled: true
 

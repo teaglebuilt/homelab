@@ -25,8 +25,13 @@ apply: include_env_vars
 
 tf_run: init plan apply
 
-tf_destroy:
-	$(TERRAFORM) destroy -auto-approve
+tf_destroy: include_env_vars
+	$(TERRAFORM) destroy -auto-approve \
+		-var k8s_api_server_ip=${MASTER_NODE_IP} \
+		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+    -var master_node_ip=${MASTER_NODE_IP} \
+    -var worker_one_node_ip=${WORKER_00_NODE_IP} \
+    -var worker_two_node_ip=${WORKER_01_NODE_IP}
 
 helmfile_apply:
 	helmfile apply --skip-diff-on-install --suppress-diff .

@@ -5,7 +5,7 @@ includes:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
 
 tasks:
-  provision-mlops-cluster:
+  provision-cluster:
     dir: kubernetes
     cmds:
       - |
@@ -14,18 +14,23 @@ tasks:
         fi
       - make tf_run
 
-  bootstrap-mlops-cluster:
+  bootstrap-cluster:
     dir: kubernetes
     cmds:
       - make helmfile_lock
       - make helmfile_apply
 
-  sync-mlops-cluster:
+  sync-cluster:
     dir: kubernetes
     cmds:
       - make helmfile_sync
 
-  destroy-mlops-cluster:
+  destroy-cluster:
     dir: kubernetes
     cmds:
       - make tf_destroy
+
+  reboot-cluster:
+    dir: kubernetes
+    cmds:
+      - task: talos:reboot-node

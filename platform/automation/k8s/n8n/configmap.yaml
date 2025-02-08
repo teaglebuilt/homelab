@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: n8n-config
+  namespace: automation
+  labels:
+    version: v1.0
+data:
+    DB_TYPE: postgresdb
+    DB_POSTGRESDB_HOST: postgres
+    N8N_DIAGNOSTICS_ENABLED: "true"
+    N8N_PERSONALIZATION_ENABLED: "false"
+    DB_POSTGRESDB_PORT: "5432"
+    POSTGRES_USER: postgresadmin
+    POSTGRES_PASSWORD: postgrespassword

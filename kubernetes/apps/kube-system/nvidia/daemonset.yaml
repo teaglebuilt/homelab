@@ -7,6 +7,8 @@ metadata:
 spec:
   template:
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-00
       initContainers:
         - name: nvidia-device-plugin-init
           image: nvcr.io/nvidia/k8s-device-plugin:v0.17.0

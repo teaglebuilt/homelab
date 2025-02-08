@@ -1,0 +1,54 @@
+---
+bases:
+  - ../defaults.yaml
+
+repositories:
+  - name: nfd
+    url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+  - name: intel
+    url: https://intel.github.io/helm-charts/
+  - name: nvidia
+    url: https://nvidia.github.io/k8s-device-plugin
+
+releases:
+  - name: node-feature-discovery
+    chart: nfd/node-feature-discovery
+    version: 0.17.1
+    namespace: kube-system
+    
+  - name: intel-device-plugins-operator
+    chart: intel/intel-device-plugins-operator
+    version: 0.30.0
+    namespace: kube-system
+    needs:
+      - kube-system/node-feature-discovery
+
+  - name: intel-device-plugins-gpu
+    chart: intel/intel-device-plugins-gpu
+    version: 0.30.0
+    namespace: kube-system
+    # disableValidationOnInstall: true
+    needs:
+      - kube-system/node-feature-discovery
+      - kube-system/intel-device-plugins-operator
+    values:
+      - sharedDevNum: 3
+        nodeFeatureRule: false
+  
+  - name: nvidia-device-plugin
+    namespace: kube-system
+    chart: nvidia/nvidia-device-plugin
+    version: 0.17.0
+    needs:
+      - kube-system/node-feature-discovery
+      - kube-system/intel-device-plugins-operator
+    values:
+      - ../apps/kube-system/nvidia/helm-values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build --enable-exec --enable-helm ../apps/kube-system/nvidia | kubectl apply -f -

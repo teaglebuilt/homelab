@@ -5,8 +5,6 @@ module "talos_cluster" {
   image = {
     version = "v1.9.1"
     update_version = "v1.9.1" # renovate: github-releases=siderolabs/talos
-    schematic = file("${path.module}/manifests/schematic.yaml")
-    nvidia_schematic = file("${path.module}/manifests/schematic-nvidia.yaml")
   }
 
   cluster = {
@@ -24,8 +22,7 @@ module "talos_cluster" {
       ip            = var.master_node_ip
       vm_id         = 100
       cpu           = 8
-      ram_dedicated = 8096
-      igpu          = false
+      ram_dedicated = 12096
     }
     "mlops-work-00" = {
       host_node     = "pve2"
@@ -51,7 +48,6 @@ module "talos_cluster" {
       vm_id         = 103
       cpu           = 8
       ram_dedicated = 20480
-      igpu          = false
     }
   }
 }

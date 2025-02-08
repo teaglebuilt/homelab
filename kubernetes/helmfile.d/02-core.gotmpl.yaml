@@ -9,10 +9,10 @@ repositories:
     url: https://charts.external-secrets.io
   - name: jetstack
     url: https://charts.jetstack.io
+  - name: nvidia
+    url: https://nvidia.github.io/k8s-device-plugin
   - name: metrics-server
     url: https://kubernetes-sigs.github.io/metrics-server/
-  - name: openebs
-    url: https://openebs.github.io/charts
 
 releases:
   - name: external-secrets
@@ -39,6 +39,8 @@ releases:
     chart: external-dns/external-dns
     version: 1.15.0
     createNamespace: true
+    needs:
+      - external-secrets/external-secrets
     values:
       - ../apps/networking/externaldns/values.yaml.gotmpl
   
@@ -46,38 +48,16 @@ releases:
     namespace: cert-manager
     chart: jetstack/cert-manager
     createNamespace: true
+    needs:
+      - external-dns/external-dns
     values:
       - crds:
           enabled: true
     hooks:
-      - events: ["presync"]
+      - events: ["postsync"]
         showlogs: true
         command: "bash"
         args:
           - -c
           - |
             kustomize build ../apps/security/cert-manager | kubectl apply -f -
-
-  - name: metrics-server
-    chart: metrics-server/metrics-server
-    namespace: kube-system
-    version: 3.8.3
-    values:
-      - apiService:
-          create: true
-        metrics:
-          enabled: true
-        hostNetwork:
-          enabled: true
-        args:
-          - --cert-dir=/tmp
-          - --kubelet-use-node-status-port
-          - --kubelet-insecure-tls
-          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
-          - --metric-resolution=60s
-  # - name: openebs
-  #   namespace: openebs
-  #   chart: openebs/openebs
-  #   version: 4.1.3
-  #   values:
-  #     - ../apps/storage/openebs/helm-values.yaml

@@ -3,11 +3,15 @@ resource "talos_image_factory_schematic" "this" {
     {
       customization = {
         systemExtensions = {
-          officialExtensions = [
-            "siderolabs/qemu-guest-agent",
-            "siderolabs/nvidia-container-toolkit-lts",
-            "siderolabs/nvidia-open-gpu-kernel-modules-lts"
-          ]
+          officialExtensions = concat(
+            [
+              "siderolabs/qemu-guest-agent"
+            ],
+            anytrue([for _, v in var.nodes : v.igpu && v.machine_type == "worker"]) ? [
+              "siderolabs/nvidia-container-toolkit-production",
+              "siderolabs/nonfree-kmod-nvidia-production"
+            ] : []
+          )
         }
       }
     }

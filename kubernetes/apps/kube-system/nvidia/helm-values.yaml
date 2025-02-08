@@ -1,0 +1,29 @@
+---
+ config:
+  map:
+    default: |-
+      version: v1
+      flags:
+        migStrategy: none
+    mig-single: |-
+      version: v1
+      flags:
+        migStrategy: single
+    mig-mixed: |-
+      version: v1
+      flags:
+        migStrategy: mixed
+  default: "default"
+  fallbackStrategies: ["named", "single"]
+runtimeClassName: nvidia
+nodeSelector:
+  feature.node.kubernetes.io/pci-10de.present: "true"
+gfd:
+  enabled: false
+# resources:
+#   limits:
+#     cpu: 150m
+#     memory: 512Mi
+#   requests:
+#     cpu: 150m
+#     memory: 256Mi
