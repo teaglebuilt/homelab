@@ -1,9 +1,0 @@
-image:
-  # repository: ghcr.io/linuxserver/calibre-web
-  repository: lscr.io/linuxserver/calibre-web
-  tag: 0.6.24@sha256:d8e3385cefe4dd294fa8b19fefa42218ce9ac6da782f8dfca27f23bd0efe576d
-env:
-  TZ: UTC
-  PUID: "1000"
-  PGID: "1000"
-  DOCKER_MODS: linuxserver/mods:universal-calibre

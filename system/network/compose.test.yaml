@@ -1,8 +1,0 @@
-services:
-  unifi:
-    image: unifi:latest
-    restart: always
-    ports:
-      - 8080:8080
-      - 8443:8443
-      - 8081:8081
