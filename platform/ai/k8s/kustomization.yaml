@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: ai
 resources:
   - namespace.yaml
+  - ollama
 helmCharts:
   - name: open-webui
     repo: https://helm.openwebui.com/
@@ -11,13 +12,3 @@ helmCharts:
     namespace: ai
     releaseName: open-webui
     valuesFile: openwebui-values.yaml
-  # - name: ollama
-  #   repo: https://otwld.github.io/ollama-helm/
-  #   version: 1.4.0
-  #   releaseName: ollama
-  #   valuesFile: ollama-values.yaml
-
-patches:
-  - target:
-      kind: Pod
-    path: patch-test-connection.yaml

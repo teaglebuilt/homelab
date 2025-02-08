@@ -1,0 +1,7 @@
+---
+apiVersion: 
+kind: Kustomization
+namespace: ai
+resources:
+  - deployment.yaml
+  - service.yaml

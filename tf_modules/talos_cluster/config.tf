@@ -24,6 +24,7 @@ data "talos_machine_configuration" "this" {
       cluster_name   = var.cluster.proxmox_cluster
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
+    file("${path.module}/patches/containerd.yaml"),
   ] : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname     = each.key
@@ -32,8 +33,8 @@ data "talos_machine_configuration" "this" {
       node_ip      = each.value.ip
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
+    file("${path.module}/patches/containerd.yaml"),
   ], each.value.igpu ? [
-    file("${path.module}/patches/worker/nvidia-runtime-class.yaml"),
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
   ] : [])
 }

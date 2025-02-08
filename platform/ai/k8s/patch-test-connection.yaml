@@ -5,25 +5,23 @@ metadata:
   name: ollama-test-connection
   namespace: ai
 spec:
-  securityContext:
-    seccompProfile:
-      type: RuntimeDefault
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-              - key: nvidia.com/gpu.present
+              - key: feature.node.kubernetes.io/pci-0300_10de.present
                 operator: In
                 values:
                   - "true"
   containers:
     - name: wget
       securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        privileged: false
         allowPrivilegeEscalation: false
-        runAsNonRoot: false
         capabilities:
-          drop:
-            - ALL
+          drop: ["ALL"]
         seccompProfile:
           type: RuntimeDefault
