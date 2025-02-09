@@ -1,16 +1,10 @@
 version: v0.170.0
 dependencies:
-- name: intel-device-plugins-gpu
-  repository: https://intel.github.io/helm-charts/
-  version: 0.30.0
-- name: intel-device-plugins-operator
-  repository: https://intel.github.io/helm-charts/
-  version: 0.30.0
 - name: node-feature-discovery
   repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
   version: 0.17.1
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.0
-digest: sha256:c5d2f90eb1f633f79db1212129c0e7d238f449a581971ec71122a0cf566f9cd7
-generated: "2025-02-08T14:56:39.978305-05:00"
+  version: 0.16.2
+digest: sha256:83f0255d4596f818491ba0c2519d13669f598d1b5e973849ddc45543b3b58f5e
+generated: "2025-02-09T10:47:41.760132-05:00"
