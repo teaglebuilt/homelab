@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: ai
 resources:
   - namespace.yaml
+  - secrets.sops.yaml
   - ollama
 helmCharts:
   - name: open-webui

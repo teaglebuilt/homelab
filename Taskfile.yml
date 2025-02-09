@@ -18,6 +18,12 @@ tasks:
       - echo "Zipping repository..."
       - zip -r repository.zip . -x ".task/*" "*.tfstate.*" "packages/soa_agent/.venv/*" "*/terraform/.terraform/*" ".git/*" "**/.env" "**/.envrc"
   
+  cluster-up:
+    cmds:
+      - task: kubernetes:provision-cluster
+      - task: kubernetes:bootstrap-cluster
+      - task: kubernetes:sync-cluster
+
   compose-up-*:
     summary: Used for launching docker compose stacks.
     vars:

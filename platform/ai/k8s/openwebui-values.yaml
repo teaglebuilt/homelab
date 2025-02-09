@@ -20,14 +20,29 @@ persistence:
 pipelines:
   enabled: false
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
+service:
+  type: LoadBalancer
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: openwebui.local
+    cert-manager.io/cluster-issuer: lets-encrypt-prod
+
 extraEnvVars:
   - name: WEBUI_SECRET_KEY
     value: "key"
-# ingress:
-#   enabled: true
-#   class: "nginx"
-#   annotations:
-#     cert-manager.io/cluster-issuer: cloudflare-issuer
-#   host: ollama.local
-#   tls: true
-  
+  - name: WEBUI_URL
+    value: http://openwebui.local
+  - name: K8S_FLAG
+    value: "true"
+  - name: OLLAMA_HOST
+    value: http://ollama.ai.svc.cluster.local:11434
+  - name: OLLAMA_BASE_URL
+    value: http://ollama.ai.svc.cluster.local:11434
+  - name: SEARXNG_QUERY_URL
+    value: "http://searxng.ai.svc.cluster.local:8080/search?q=<query>"
+  - name: ENABLE_OPENAI_API
+    value: "false"
+  - name: OPENAI_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: ai-credentials
+        key: OPENAI_API_KEY

@@ -31,12 +31,3 @@ spec:
           limits:
             memory: 8Gi
             nvidia.com/gpu: 1
-        # securityContext:
-        #   runAsUser: 1000
-        #   runAsNonRoot: true
-        #   privileged: false
-        #   allowPrivilegeEscalation: false
-        #   capabilities:
-        #     drop: ["ALL"]
-        #   seccompProfile:
-        #     type: RuntimeDefault
