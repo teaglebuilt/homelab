@@ -26,6 +26,8 @@ releases:
           enabled: true
         gfd:
           enabled: true
+        nfd:
+          enabled: false
     hooks:
       - events: ["postsync"]
         showlogs: true
