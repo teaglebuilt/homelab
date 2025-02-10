@@ -10,5 +10,5 @@
 </div>
 
 <div align="center">
-  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelab-rack.png" style="width:250px;"/>
+  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelabrack.png" style="width:250px;"/>
 </div>
