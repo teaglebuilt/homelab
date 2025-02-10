@@ -28,11 +28,3 @@ releases:
           enabled: true
         nfd:
           enabled: false
-    hooks:
-      - events: ["postsync"]
-        showlogs: true
-        command: "bash"
-        args:
-          - -c
-          - |
-            kustomize build --enable-exec --enable-helm ../apps/kube-system/nvidia | kubectl apply -f -

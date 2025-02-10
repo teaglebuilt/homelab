@@ -1,6 +1,39 @@
 ---
 ollama:
-  enabled: false
+  enabled: true
+  runtimeClassName: "nvidia"
+  nodeSelector:
+    kubernetes.io/hostname: mlops-work-00
+  podSecurityContext:
+    fsGroupChangePolicy: Always
+    fsGroup: 1001
+  containerSecurityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities: { drop: ["ALL"] }
+    seccompProfile: { type: RuntimeDefault }
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+      nvidia.com/gpu: 1
+    limits:
+      memory: 8Gi
+      nvidia.com/gpu: 1
+  ollama:
+    gpu:
+      enabled: true
+      type: 'nvidia'
+      number: 1
+    models:
+      pull:
+        - llama3
+        - codellama
+    insecure: true
 
 podSecurityContext:
   fsGroupChangePolicy: Always
