@@ -11,8 +11,6 @@ repositories:
     url: https://charts.jetstack.io
   - name: nvidia
     url: https://nvidia.github.io/k8s-device-plugin
-  - name: metrics-server
-    url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
   - name: external-secrets

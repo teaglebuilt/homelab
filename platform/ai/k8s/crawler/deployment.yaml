@@ -2,26 +2,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ollama
+  name: crawl4ai
   namespace: ai
 spec:
   selector:
     matchLabels:
-      name: ollama
+      name: crawl4ai
   template:
     metadata:
       labels:
-        name: ollama
+        name: crawl4ai
     spec:
       runtimeClassName: nvidia
       nodeSelector:
         kubernetes.io/hostname: mlops-work-00
       containers:
-      - name: ollama
-        image: ollama/ollama:latest
+      - name: crawl4ai
+        image: unclecode/crawl4ai:basic
         ports:
         - name: http
-          containerPort: 11434
+          containerPort: 11235
           protocol: TCP
         resources:
           requests:
@@ -29,5 +29,5 @@ spec:
             memory: 1Gi
             nvidia.com/gpu: 1
           limits:
-            memory: 8Gi
+            memory: 1Gi
             nvidia.com/gpu: 1
