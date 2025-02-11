@@ -13,11 +13,11 @@ function HomepageHeader() {
   return (
     <header className={clsx('', styles.heroBanner)}>
       <div className="container">
-        <img src="img/homelab-icon.png" className={styles.heroImg}/>
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <img src="img/homelabrack.png" className={styles.heroImg}/>
+        <p className={styles.heroQuote}>{siteConfig.tagline}</p>
         <div>
           <img src="https://img.shields.io/badge/Proxmox-E57000?style=for-the-badge&logo=proxmox&logoColor=white" />
           <img src="https://img.shields.io/badge/NVIDIA-GTX4070-76B900?style=for-the-badge&logo=nvidia&logoColor=white" />
@@ -37,9 +37,9 @@ export default function Home(): ReactNode {
       title={`Hello from ${siteConfig.title}`}
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
-      <main>
+      {/* <main>
         <HomepageFeatures />
-      </main>
+      </main> */}
     </Layout>
   );
 }

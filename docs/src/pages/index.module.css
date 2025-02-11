@@ -14,6 +14,11 @@
   height: 200px;
 }
 
+.heroQuote {
+  font-size: 12px;
+  font-style: italic;
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 2rem;

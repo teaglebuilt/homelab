@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Homelab',
-  tagline: 'Built By Teagle at Home',
+  tagline: 'empower yourself',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
