@@ -25,6 +25,7 @@ data "talos_machine_configuration" "this" {
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
+    file("${path.module}/patches/logging.yaml"),
   ] : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname     = each.key
@@ -34,6 +35,7 @@ data "talos_machine_configuration" "this" {
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
+    file("${path.module}/patches/logging.yaml"),
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
   ] : [])
