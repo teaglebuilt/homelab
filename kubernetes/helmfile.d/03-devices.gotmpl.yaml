@@ -28,3 +28,11 @@ releases:
           enabled: true
         nfd:
           enabled: false
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/kube-system/nvidia | kubectl apply -f -

@@ -12,7 +12,7 @@ type FeatureItem = {
 const FeatureList: FeatureItem[] = [
   {
     title: 'Automation',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    Svg: require('@site/static/svg/workflow.svg').default,
     description: (
       <>
         Workflow automation support with n8n
@@ -21,19 +21,19 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Privacy',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    Svg: require('@site/static/svg/anon.svg').default,
     description: (
       <>
-        Focus on network privacy
+        Focus on network privacy, security, and lab sandboxes.
       </>
     ),
   },
   {
     title: 'Research',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    Svg: require('@site/static/svg/ollama.svg').default,
     description: (
       <>
-        AI powered research platform
+        AI powered research with self hosted LLM's, agents, and research tools
       </>
     ),
   },
@@ -56,6 +56,7 @@ function Feature({title, Svg, description}: FeatureItem) {
 export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
+      <h3>A platform for</h3>
       <div className="container">
         <div className="row">
           {FeatureList.map((props, idx) => (

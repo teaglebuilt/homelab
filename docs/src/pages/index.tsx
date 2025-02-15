@@ -13,7 +13,7 @@ function HomepageHeader() {
   return (
     <header className={clsx('', styles.heroBanner)}>
       <div className="container">
-        <Heading as="h1" className="hero__title">
+        <Heading as="h2" className="hero__title">
           {siteConfig.title}
         </Heading>
         <img src="img/homelabrack.png" className={styles.heroImg}/>
@@ -34,12 +34,12 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`${siteConfig.title}`}
+      description="Dillan Teagle's Homelab Documentation">
       <HomepageHeader />
-      {/* <main>
+      <main>
         <HomepageFeatures />
-      </main> */}
+      </main>
     </Layout>
   );
 }

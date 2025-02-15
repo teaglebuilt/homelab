@@ -2,7 +2,7 @@
 resource "proxmox_lxc" "lxc-portainer" {
   hostname = "portainer"
   ostemplate = "local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
-  password = "password"
+  password = var.portainer_password
   target_node = "pve"
   start = true
   unprivileged = true
@@ -12,7 +12,7 @@ resource "proxmox_lxc" "lxc-portainer" {
     bridge = "vmbr0"
     ip = var.ip_address
     ip6 = "dhcp"
-    gw = "192.168.2.1"
+    gw = var.network_gateway
   }
 
   cores = 2
@@ -48,8 +48,7 @@ resource "proxmox_lxc" "lxc-portainer" {
     ]
   }
 
-  provisioner "remote-exec" { # Added provisioner to run Portainer Agent
-    inline = [
+  provisioner "remote-exec" {
       <<-EOF
       docker run -d --name portainer_agent -p 9001:9001 \
           --restart=always \
@@ -57,14 +56,6 @@ resource "proxmox_lxc" "lxc-portainer" {
           --volume /var/lib/docker/volumes:/mnt/preview/docker/volumes \
           portainer/agent:2.19.4
       EOF
-    ]
-  }
-
-  provisioner "remote-exec" { # Added provisioner to run Portainer Agent
-    inline = [
-      "docker network create realview-services",
-      "docker network create realview-product-services",
-      "docker network create realview-platform"
     ]
   }
 }

@@ -22,7 +22,8 @@ module "talos_cluster" {
       ip            = var.master_node_ip
       vm_id         = 100
       cpu           = 8
-      ram_dedicated = 12096
+      disk_size     = 20
+      ram_dedicated = 20480
     }
     "mlops-work-00" = {
       host_node     = "pve2"
@@ -30,6 +31,7 @@ module "talos_cluster" {
       ip            = var.worker_one_node_ip
       vm_id         = 102
       cpu           = 8
+      disk_size     = 30
       ram_dedicated = 20480
       igpu          = true
       pci           = {
@@ -47,7 +49,9 @@ module "talos_cluster" {
       ip            = var.worker_two_node_ip
       vm_id         = 103
       cpu           = 8
+      disk_size     = 20
       ram_dedicated = 20480
     }
   }
 }
+

@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: management
+helmCharts:
+  - name:
+    chart: paperless-ngx
+    repo: https://charts.gabe565.com
+    version: 0.22.0
+    inlineValues:
+      env:
+        TZ: America/NewYork
+        PAPERLESS_CONSUMER_POLLING: "60"
+        PAPERLESS_URL: https://document.homelab.local
+        # Required in order to import signed documents
+        PAPERLESS_OCR_USER_ARGS: '{"invalidate_digital_signatures": true}'

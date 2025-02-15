@@ -51,6 +51,12 @@ releases:
       - ../apps/kube-system/coredns/values.yaml
     needs:
       - kube-system/cilium
+    hooks:
+      - events: ["prepare"]
+        showlogs: true
+        command: "bash"
+        args:
+          - "../scripts/prepare-coredns.sh"
 
   - name: kubelet-csr-approver
     namespace: kube-system
