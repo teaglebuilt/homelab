@@ -30,6 +30,7 @@ variable "nodes" {
     ip            = string
     vm_id         = number
     cpu           = number
+    disk_size     = number
     ram_dedicated = number
     update = optional(bool, false)
     igpu = optional(bool, false)

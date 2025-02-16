@@ -23,7 +23,7 @@ releases:
     version: 1.16.5
     createNamespace: true
     values:
-      - ../apps/kube-system/cilium/values.yaml
+      - ../apps/networking/cilium/values.yaml
     needs:
       - observability/prometheus-operator-crds
     hooks:
@@ -40,7 +40,7 @@ releases:
         args:
           - -c
           - |
-            kustomize build --enable-exec --enable-helm ../apps/kube-system/cilium | kubectl apply -f -
+            kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
 
   - name: coredns
     namespace: kube-system
@@ -48,7 +48,7 @@ releases:
     version: 1.37.3
     createNamespace: true
     values:
-      - ../apps/kube-system/coredns/values.yaml
+      - ../apps/networking/coredns/values.yaml
     needs:
       - kube-system/cilium
     hooks:
@@ -64,7 +64,7 @@ releases:
     version: 1.2.3
     createNamespace: true
     values:
-      - ../apps/kube-system/kubelet-csr-approver/values.yaml
+      - ../apps/security/kubelet-csr-approver/values.yaml
     needs:
       - observability/prometheus-operator-crds
       - kube-system/cilium
@@ -76,7 +76,7 @@ releases:
     version: v0.0.28
     createNamespace: true
     values:
-      - ../apps/kube-system/spegel/values.yaml
+      - ../apps/security/spegel/values.yaml
     needs:
       - observability/prometheus-operator-crds
       - kube-system/cilium

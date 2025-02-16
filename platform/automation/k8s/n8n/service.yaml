@@ -6,8 +6,7 @@ metadata:
   labels:
     version: v1.0
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: workflows.local
-    cert-manager.io/cluster-issuer: lets-encrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: n8n.homelab.local
 spec:
   type: LoadBalancer
   selector:

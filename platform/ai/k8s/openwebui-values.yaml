@@ -79,15 +79,18 @@ extraEnvVars:
   - name: STORAGE_PROVIDER
     value: s3
   - name: S3_BUCKET_NAME
-    value: openwebui
+    valueFrom:
+      secretKeyRef:
+        name: aws-credentials
+        key: aws_homelab_remote_state_backup
   - name: S3_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: aws-credentials
-        value: AWS_ACCESS_KEY_ID
+        key: aws_access_key_id
   - name: S3_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: aws-credentials
-        value: AWS_SECRET_ACCESS_KEY
+        key: aws_secret_access_key
   

@@ -7,7 +7,7 @@ resource "talos_image_factory_schematic" "this" {
             [
               "siderolabs/qemu-guest-agent"
             ],
-            anytrue([for _, v in var.nodes : v.igpu && v.machine_type == "worker"]) ? [
+            anytrue([for _, v in var.nodes : v.igpu == true && v.machine_type == "worker"]) ? [
               "siderolabs/nvidia-container-toolkit-production",
               "siderolabs/nonfree-kmod-nvidia-production"
             ] : []

@@ -1,3 +1,4 @@
+---
 name: netbooter
 playbooks:
   init: rpi_init.yaml

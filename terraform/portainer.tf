@@ -1,38 +1,23 @@
 
-resource "proxmox_lxc" "lxc-portainer" {
-  hostname = "portainer"
-  ostemplate = "local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
-  password = var.portainer_password
-  target_node = "pve"
-  start = true
-  unprivileged = true
+resource "proxmox_virtual_environment_container" "portainer" {
+  node_name = "pve"
+  start_on_boot = "true"
 
-  network {
+  disk {
+    file_id = "local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+  }
+
+  network_interface {
     name = "eth0"
-    bridge = "vmbr0"
-    ip = var.ip_address
-    ip6 = "dhcp"
-    gw = var.network_gateway
   }
 
-  cores = 2
-  cpuunits = 4098
-  memory = 9062
-
-  features {
-    nesting = true
-  }
-
-  rootfs {
-    storage = "local-lvm"
-    size    = "64G"
-  }
-
-  connection {
-      type        = "ssh"
-      user        = "root"
-      private_key = file("~/.ssh/pve")
-      host        = var.ip_address
+  initialization {
+    hostname = "portainer"
+    ip_config {
+      ipv4 {
+        address = "dhcp"
+      }
+    }
   }
 
   provisioner "remote-exec" {
@@ -44,47 +29,44 @@ resource "proxmox_lxc" "lxc-portainer" {
       "apt-cache policy docker-ce",
       "rm /var/cache/apt/archives/lock && rm /var/lib/dpkg/lock*",
       "apt install -y docker-ce",
-      "echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && source ~/.bashrc"
+      "echo 'eval $ (direnv hook bash)' >> ~/.bashrc && source ~/.bashrc"
     ]
   }
 
   provisioner "remote-exec" {
-      <<-EOF
+      command = <<EOF
       docker run -d --name portainer_agent -p 9001:9001 \
           --restart=always \
           --volume /var/run/docker.sock:/var/run/docker.sock \
           --volume /var/lib/docker/volumes:/mnt/preview/docker/volumes \
           portainer/agent:2.19.4
       EOF
-    ]
   }
 }
 
 resource "time_sleep" "wait_60_sec" {
-  depends_on = [proxmox_lxc.lxc-docker]
+  depends_on = [proxmox_virtual_environment_container.portainer]
   create_duration = "60s"
 }
 
 resource "null_resource" "provisioning" {
-  depends_on = [time_sleep.wait_60_sec, proxmox_lxc.lxc-docker]
+  depends_on = [time_sleep.wait_60_sec, proxmox_virtual_environment_container.portainer]
 
   connection {
     type        = "ssh"
     user        = "root"
     private_key = file("~/.ssh/pve")
-    host        = var.ip_address
+    host        = var.portainer_ip
   }
 
   provisioner "file" {
     source = var.compose_file_path
-    destination = "/root/compose.preview.yaml"
+    destination = "/root/compose.yaml"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "docker network create realview && cd /root",
-      "docker compose -f ./platform/compose.preview.yaml up -d",
-      "docker compose -f compose.preview.yaml up -d"
+      "docker compose -f compose.yaml up -d"
     ]
   }
 }
