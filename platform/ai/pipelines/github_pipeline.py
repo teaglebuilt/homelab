@@ -8,6 +8,7 @@ from typing import List, Union, Generator, Iterator
 import os
 import asyncio
 
+OLLAMA_SERVICE = os.environ["OLLAMA_HOST"]
 
 class Pipeline:
     def __init__(self):
@@ -22,15 +23,15 @@ class Pipeline:
 
         Settings.embed_model = OllamaEmbedding(
             model_name="nomic-embed-text",
-            base_url="http://localhost:11434",
+            base_url=OLLAMA_SERVICE,
         )
         Settings.llm = Ollama(model="llama3")
 
         global index, documents
 
         github_token = os.environ.get("GITHUB_TOKEN")
-        owner = "open-webui"
-        repo = "plugin-server"
+        owner = "teaglebuilt"
+        repo = "homelab"
         branch = "main"
 
         github_client = GithubClient(github_token=github_token, verbose=True)
