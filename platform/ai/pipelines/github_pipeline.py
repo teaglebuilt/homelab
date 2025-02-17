@@ -5,7 +5,6 @@ requirements: llama-index, llama-index-llms-ollama, llama-index-embeddings-ollam
 """
 
 from typing import List, Union, Generator, Iterator
-from schemas import OpenAIChatMessage
 import os
 import asyncio
 
