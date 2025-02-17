@@ -33,6 +33,9 @@ ollama:
       pull:
         - llama3
         - codellama
+        - llama2-uncensored
+        - deepseek-r1
+        - nomic-embed-text
     insecure: true
 
 podSecurityContext:
@@ -49,9 +52,28 @@ containerSecurityContext:
   seccompProfile: { type: RuntimeDefault }
 persistence:
   enabled: true
-  # existingClaim: open-webui
 pipelines:
-  enabled: false
+  enabled: true
+  extraEnvVars:
+    - name: DEBUG
+      value: "true"
+    - name: PIPELINES_URLS
+      value: https://github.com/teaglebuilt/homelab/blob/main/platform/ai/pipelines/github_pipeline.py
+    - name: PIPELINES_REQUIREMENTS_PATH
+      value: platform/ai/pipelines
+    - name: OLLAMA_HOST
+      value: http://ollama.ai.svc.cluster.local:11434
+    - name: N8N_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: openwebui-secrets
+          key: n8n_api_key
+    - name: GITHUB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: openwebui-secrets
+          key: github_token
+
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
 service:
   type: LoadBalancer
@@ -60,8 +82,6 @@ service:
     cert-manager.io/cluster-issuer: lets-encrypt-prod
 
 extraEnvVars:
-  - name: WEBUI_SECRET_KEY
-    value: "key"
   - name: WEBUI_URL
     value: http://openwebui.local
   - name: K8S_FLAG
@@ -76,8 +96,17 @@ extraEnvVars:
     value: "http://searxng.ai.svc.cluster.local:8080/search?q=<query>"
   - name: RAG_WEB_SEARCH_ENGINE
     value: "searxng"
+  - name: WEBUI_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: openwebui-secrets
+        key: webui_secret
   - name: STORAGE_PROVIDER
     value: s3
+  - name: S3_REGION_NAME
+    value: us-east-1
+  - name: S3_KEY_PREFIX
+    value: openwebui
   - name: S3_BUCKET_NAME
     valueFrom:
       secretKeyRef:

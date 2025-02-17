@@ -4,7 +4,7 @@ kind: Ingress
 metadata:
   name: n8n-ingress
   annotations:
-    cert-manager.io/cluster-issuer: lets-encrypt-prod
+    cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
 spec:
   rules:
   - host: n8n.homelab.local
@@ -16,7 +16,7 @@ spec:
           service:
             name: n8n-service
             port:
-              number: 80
+              number: 443
   tls:
   - hosts:
       - n8n.homelab.local

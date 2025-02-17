@@ -3,6 +3,8 @@ version: '3'
 includes:
   kubernetes:
     taskfile: kubernetes/Taskfile.yml
+  platform:
+    taskfile: platform/Taskfile.yml
   docs:
     taskfile: docs/Taskfile.yml
 
@@ -25,6 +27,9 @@ tasks:
         vars: { CONTROL_PLANE: $MASTER_NODE_IP}
       - task: kubernetes:bootstrap-cluster
       - task: kubernetes:sync-cluster
+      - task: platform:deploy
+      - task: kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath="{.data.ca\.crt}" | base64 --decode > homelab-ca.crt
+      
 
   portainer-up:
       dir: terraform

@@ -12,7 +12,11 @@ spec:
   selector:
     app: n8n
   ports:
-  - port: 5678
-    name: http-5678
+  - port: 80
+    name: http
+    protocol: TCP
+    targetPort: 5678
+  - port: 443
+    name: https
     protocol: TCP
     targetPort: 5678

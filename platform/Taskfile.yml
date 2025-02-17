@@ -1,0 +1,14 @@
+---
+version: 3
+
+includes:
+  ai:
+    taskfile: ai/Taskfile.yml
+  automation:
+    taskfile: automation/Taskfile.yml
+
+tasks:
+  deploy:
+    cmds:
+      - ai:deploy
+      - automation:deploy
