@@ -54,6 +54,7 @@ class Pipeline:
                     ".ico",
                     "json",
                     ".ipynb",
+                    ".gitkeep"
                 ],
                 GithubRepositoryReader.FilterType.EXCLUDE,
             ),
@@ -64,7 +65,6 @@ class Pipeline:
         reader._loop = loop
 
         try:
-            # Load data from the branch
             self.documents = await asyncio.to_thread(reader.load_data, branch=branch)
             self.index = VectorStoreIndex.from_documents(self.documents)
         finally:

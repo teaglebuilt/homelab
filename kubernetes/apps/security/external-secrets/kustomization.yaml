@@ -3,5 +3,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: external-secrets
 resources:
+  - https://github.com/emberstack/kubernetes-reflector/releases/latest/download/reflector.yaml
   - aws-secret-manager.yaml
   - secret.sops.yaml

@@ -1,5 +1,5 @@
 import sys
-from news.crew import NewsCrew
+from rss.crew import NewsCrew
 
 
 def run():

@@ -1,7 +1,11 @@
 {
   "python.analysis.extraPaths": [
-    "packages/soa_observability/lib"
+    "${workspaceFolder}/platform/ai/.venv/bin/python"
   ],
+  "python.autoComplete.extraPaths": [
+    "platform/ai/.venv/lib/python3.12/site-packages"
+  ],
+  "python.analysis.autoSearchPaths": true,
   "[yaml]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
@@ -23,6 +27,7 @@
     "**/*.yaml.gotmpl"
   ],
   "files.associations": {
-    "*.gotmpl": "yaml"
+    "*.gotmpl": "yaml",
+    "*.css": "tailwindcss"
   },
 }

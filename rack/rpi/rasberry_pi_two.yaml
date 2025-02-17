@@ -1,1 +1,5 @@
-
+---
+name: sre
+playbooks:
+  init: rpi_init.yaml
+  provision_sre: rpi_provision_sre.yaml

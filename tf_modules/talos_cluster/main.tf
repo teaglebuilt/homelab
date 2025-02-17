@@ -26,7 +26,8 @@ resource "proxmox_virtual_environment_vm" "this" {
   }
 
   memory {
-    dedicated = each.value.ram_dedicated
+    dedicated   = each.value.ram_dedicated
+    floating    = each.value.ram_dedicated
   }
 
   network_device {
@@ -43,7 +44,10 @@ resource "proxmox_virtual_environment_vm" "this" {
   disk {
     datastore_id = each.value.datastore_id
     interface    = "scsi0"
-    size         = 20
+    size         = each.value.disk_size
+    iothread     = true
+    cache        = "writethrough"
+    discard      = "on"
     file_id      = proxmox_virtual_environment_download_file.this[each.key].id
   }
   

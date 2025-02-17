@@ -5,4 +5,4 @@ namespace: kube-system
 resources:
   - ip-pool.yaml
   - announcement.yaml
-  - gateway.yaml
+  - gatewayclass.yaml

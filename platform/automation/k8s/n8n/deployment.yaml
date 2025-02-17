@@ -64,34 +64,61 @@ spec:
           env:
             - name: N8N_SECURE_COOKIE
               value: "false"
-            # - name: N8N_EXTERNAL_STORAGE_S3_HOST
-            # - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_REGION
-            # - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_NAME
-            # - name: N8N_EXTERNAL_STORAGE_S3_ACCESS_KEY
-            # - name: N8N_EXTERNAL_STORAGE_S3_ACCESS_SECRET
+            - name: N8N_HOST
+              value: n8n.homelab.local
+            - name: N8N_PROTOCOL
+              value: https
+            - name: N8N_SSL_CERT
+              value: "/certs/tls.crt"
+            - name: N8N_SSL_KEY
+              value: "/certs/tls.key"
+            - name: N8N_DIAGNOSTICS_ENABLED
+              value: "false"
+            - name: N8N_ONBOARDING_FLOW_DISABLED
+              value: "true"
+            - name: N8N_VERSION_NOTIFICATIONS_ENABLED
+              value: "false"
+            - name: N8N_EXTERNAL_STORAGE_HOST
+              value: "s3.us-east-1.amazonaws.com"
+            - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_homelab_remote_state_backup
+            - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_REGION
+              value: "us-east-1"
+            - name: N8N_EXTERNAL_STORAGE_S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_access_key_id
+            - name: N8N_EXTERNAL_STORAGE_S3_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_secret_access_key
 
           volumeMounts:
             - name: credentials
               mountPath: /backup/credentials
+            - name: certificates
+              mountPath: "/certs"
+              readOnly: true
             - name: workflows
               mountPath: /backup/workflows
             - name: n8n-storage
               mountPath: /home/node/.n8n
-            # - name: shared-data
-            #   mountPath: /data/shared
       volumes:
         - name: credentials
           configMap:
             name: credentials-cm
+        - name: certificates
+          secret:
+            secretName: n8n-tls
         - name: workflows
           configMap:
             name: workflows-cm
         - name: n8n-storage
           persistentVolumeClaim:
             claimName: n8n-storage-pvc
-        # - name: workflows
-        #   persistentVolumeClaim:
-        #     claimName: n8n-storage-workflows-pvc
-        # - name: shared-data
-        #   persistentVolumeClaim:
-        #     claimName: n8n-storage-shared-pvc
+  

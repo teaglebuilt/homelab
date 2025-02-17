@@ -5,11 +5,13 @@ import requests, json, warnings
 N8N_HOST = os.environ['N8N_SERVICE']
 N8N_API_KEY = os.environ['N8N_API_KEY']
 
+
 class Pipeline:
     def __init__(self):
         self.name = "N8N Agent Pipeline"
         self.api_url = f"http://{N8N_HOST}/webhook/myflow"
         self.api_key = N8N_API_KEY
+
         self.verify_ssl = True
         self.debug = False
         # Please note that N8N do not support stream reponses
