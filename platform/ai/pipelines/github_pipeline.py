@@ -8,10 +8,12 @@ from typing import List, Union, Generator, Iterator
 import os
 import asyncio
 
-OLLAMA_SERVICE = os.environ["OLLAMA_HOST"]
+DEBUG_ENABLED: bool = os.environ["DEBUG"]
+OLLAMA_SERVICE: bool = os.environ["OLLAMA_HOST"]
+
 
 class Pipeline:
-    def __init__(self):
+    def __init__(self) -> None:
         self.documents = None
         self.index = None
 
@@ -41,7 +43,7 @@ class Pipeline:
             owner=owner,
             repo=repo,
             use_parser=False,
-            verbose=False,
+            verbose=DEBUG_ENABLED,
             filter_file_extensions=(
                 [
                     ".png",
