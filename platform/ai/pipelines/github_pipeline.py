@@ -1,7 +1,9 @@
 """
 title: Repository Training
+version: 0.0.1
 requirements: llama-index, llama-index-llms-ollama, llama-index-embeddings-ollama, llama-index-readers-github
 """
+
 from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import os
