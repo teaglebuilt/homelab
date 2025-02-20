@@ -8,6 +8,12 @@ machine:
       - interface: eth0
         addresses:
           - ${node_ip}
+        routes:
+          - network: 0.0.0.0/0
+            gateway: ${network_gateway}
+        nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}

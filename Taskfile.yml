@@ -46,6 +46,15 @@ tasks:
             -var portainer_ip=$PORTAINER_IP \
             -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
             -var portainer_password=$PORTAINER_PASSWORD
+  
+  portainer-down:
+      dir: terraform
+      cmds:
+        - |-
+          tofu destroy -auto-approve \
+            -var portainer_ip=$PORTAINER_IP \
+            -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
+            -var portainer_password=$PORTAINER_PASSWORD
 
   compose-up-*:
     summary: Used for launching docker compose stacks.

@@ -1,13 +1,13 @@
 module "lxc_container" {
   source = "../../tf_modules/lxc_container"
-  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/lxc_container?ref=main"
+  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=terraform_talos"
   hostname = "portainer"
-  
+
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
-      user        = var.proxmox_user
-      private_key = file(var.proxmox_ssh_private_key)
+      user        = "root"
+      private_key = file("~/.ssh/terraform_pve1")
       host        = var.portainer_ip
     }
   
@@ -29,8 +29,8 @@ module "lxc_container" {
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
-      user        = var.proxmox_user
-      private_key = file(var.proxmox_ssh_private_key)
+      user        = "root"
+      private_key = file("~/.ssh/terraform_pve1")
       host        = var.portainer_ip
     }
 

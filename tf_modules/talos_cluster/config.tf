@@ -18,20 +18,23 @@ data "talos_machine_configuration" "this" {
   machine_secrets  = talos_machine_secrets.this.machine_secrets
   config_patches = each.value.machine_type == "controlplane" ? [
     templatefile("${path.module}/templates/controlplane.yaml.tftpl", {
-      hostname       = each.key
-      node_name      = each.value.host_node
-      node_ip        = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
-      cluster_name   = var.cluster.proxmox_cluster
+      hostname        = each.key
+      node_name       = each.value.host_node
+      node_ip         = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
+      cluster_name    = var.cluster.proxmox_cluster
+      network_gateway = var.cluster.gateway
     }),
+    file("${path.module}/patches/controlplane/api-server-access.yaml"),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
     file("${path.module}/patches/logging.yaml"),
   ] : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
-      hostname     = each.key
-      node_name    = each.value.host_node
-      cluster_name = var.cluster.proxmox_cluster
-      node_ip      = each.value.ip
+      hostname        = each.key
+      node_name       = each.value.host_node
+      node_ip         = each.value.ip
+      cluster_name    = var.cluster.proxmox_cluster
+      network_gateway = var.cluster.gateway
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),

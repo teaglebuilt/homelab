@@ -1,6 +1,5 @@
 module "talos_cluster" {
-  source = "../../tf_modules/talos_cluster"
-  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=terraform_talos"
+  source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
 
   image = {
     version = "v1.9.1"
@@ -23,7 +22,7 @@ module "talos_cluster" {
       vm_id         = 100
       cpu           = 8
       disk_size     = 20
-      ram_dedicated = 20480
+      ram_dedicated = 10480
     }
     "mlops-work-00" = {
       host_node     = "pve2"
