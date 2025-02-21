@@ -96,11 +96,20 @@ extraEnvVars:
     value: "http://searxng.ai.svc.cluster.local:8080/search?q=<query>"
   - name: RAG_WEB_SEARCH_ENGINE
     value: "searxng"
+  - name: USE_CUDA_DOCKER
+    value: "false"
+  - name: ENABLE_IMAGE_GENERATION
+    value: "false"
   - name: WEBUI_SECRET_KEY
     valueFrom:
       secretKeyRef:
         name: openwebui-secrets
         key: webui_secret
+  - name: OPENWEBUI_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: openwebui-secrets
+        key: webui_api_key
   - name: STORAGE_PROVIDER
     value: s3
   - name: S3_REGION_NAME

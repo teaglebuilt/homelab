@@ -4,4 +4,12 @@ version: 3
 tasks:
   deploy:
     cmds:
-      - make deploy
+      - |-
+        kustomize build ./k8s --enable-helm --enable-exec | \
+          kubectl apply -f -
+
+  destroy:
+    cmds:
+      - |-
+        kustomize build ./k8s --enable-helm --enable-exec \
+          | kubectl delete -f -
