@@ -3,6 +3,8 @@ TALOSCONFIG=./generated/talosconfig
 
 include_env_vars:
 	@[ -f ../.envrc ] && set -a && . ../.envrc && set +a
+	export PROXMOX_VE_ENDPOINT=https://${PROXMOX_NODE_TWO_IP}:8006
+	export PROXMOX_VE_API_TOKEN=${PROXMOX_NODE_TWO_API_TOKEN}
 
 init:
 	$(TERRAFORM) init --upgrade

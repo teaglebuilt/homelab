@@ -1,13 +1,4 @@
-provider "proxmox" {
-  # endpoint = "https://${var.proxmox_server_ip}:8006"
-  # username = var.proxmox_user
-  # password = var.proxmox_password
-  # insecure = true
-  # ssh {
-  #   agent       = false
-  #   private_key = var.proxmox_ssh_private_key
-  # }
-}
+provider "proxmox" {}
 
 provider "kubernetes" {
   host = module.talos.kube_config.kubernetes_client_configuration.host

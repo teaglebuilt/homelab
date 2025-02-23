@@ -1,6 +1,6 @@
 module "talos_cluster" {
-  source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
-
+  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=gateway-api"
+  source = "../../tf_modules/talos_cluster"
   image = {
     version = "v1.9.1"
     update_version = "v1.9.1" # renovate: github-releases=siderolabs/talos

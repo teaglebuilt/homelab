@@ -1,11 +1,11 @@
 
 provider "proxmox" {
-  endpoint = "https://192.168.2.100:8006"
-  username = "root@pam"
-  password = "cosmo"
-  insecure = true
+  endpoint = "https://${var.proxmox_server_ip}:8006"
+  username = var.proxmox_username
+  password = var.proxmox_password
+  api_token = var.proxmox_api_token
   ssh {
     agent       = false
-    private_key = file("~/.ssh/terraform_pve1")
+    private_key = var.proxmox_ssh_private_key
   }
 }
