@@ -23,3 +23,28 @@ variable "network_gateway" {
   description = "ip address of proxmox network gateway"
   type = string
 }
+
+variable "proxmox_server_ip" {
+  description = "ip address of proxmox network gateway"
+  type = string
+}
+
+variable "proxmox_username" {
+  description = "proxmox user"
+  type = string
+}
+
+variable "proxmox_password" {
+  description = "proxmox user password"
+  type = string
+}
+
+variable "proxmox_api_token" {
+  description = "proxmox api token"
+  type = string
+}
+
+variable proxmox_ssh_private_key {
+  description = "Path to the SSH private key file"
+  type        = string
+}

@@ -13,7 +13,12 @@ plan: include_env_vars
 		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
     -var master_node_ip=${MASTER_NODE_IP} \
     -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-    -var worker_two_node_ip=${WORKER_01_NODE_IP}
+    -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+		-var proxmox_server_ip=${PROXMOX_NODE_TWO_IP} \
+		-var proxmox_username=${PROXMOX_USERNAME} \
+		-var proxmox_password=${PROXMOX_PASSWORD} \
+		-var proxmox_ssh_private_key=${PROXMOX_NODE_TWO_PRIVATE_KEY} \
+		-var proxmox_api_token=${PROXMOX_NODE_TWO_API_TOKEN}
 
 apply: include_env_vars
 	$(TERRAFORM) apply -auto-approve \
@@ -21,17 +26,27 @@ apply: include_env_vars
 		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
     -var master_node_ip=${MASTER_NODE_IP} \
     -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-    -var worker_two_node_ip=${WORKER_01_NODE_IP}
+    -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+		-var proxmox_server_ip=${PROXMOX_NODE_TWO_IP} \
+		-var proxmox_username=${PROXMOX_USERNAME} \
+		-var proxmox_password=${PROXMOX_PASSWORD} \
+		-var proxmox_ssh_private_key=${PROXMOX_NODE_TWO_PRIVATE_KEY} \
+		-var proxmox_api_token=${PROXMOX_NODE_TWO_API_TOKEN}
 
 tf_run: init plan apply
 
-tf_destroy: include_env_vars
+tf_destroy: include_env_vars init
 	$(TERRAFORM) destroy -auto-approve \
 		-var k8s_api_server_ip=${MASTER_NODE_IP} \
 		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
     -var master_node_ip=${MASTER_NODE_IP} \
     -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-    -var worker_two_node_ip=${WORKER_01_NODE_IP}
+    -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+		-var proxmox_server_ip=${PROXMOX_NODE_TWO_IP} \
+		-var proxmox_username=${PROXMOX_USERNAME} \
+		-var proxmox_password=${PROXMOX_PASSWORD} \
+		-var proxmox_ssh_private_key=${PROXMOX_NODE_TWO_PRIVATE_KEY} \
+		-var proxmox_api_token=${PROXMOX_NODE_TWO_API_TOKEN}
 
 helmfile_apply:
 	helmfile apply --skip-diff-on-install --suppress-diff .

@@ -76,10 +76,7 @@ pipelines:
 
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
 service:
-  type: LoadBalancer
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: openwebui.local
-    cert-manager.io/cluster-issuer: lets-encrypt-prod
+  type: ClusterIP
 
 extraEnvVars:
   - name: WEBUI_URL
