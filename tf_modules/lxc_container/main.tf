@@ -62,7 +62,7 @@ resource "proxmox_virtual_environment_container" "portainer" {
     connection {
       type        = "ssh"
       user        = "root"
-      private_key = file("~/.ssh/terraform_pve1")
+      private_key = var.proxmox_ssh_private_key
       host        = var.portainer_ip
     }
   
@@ -85,7 +85,7 @@ resource "proxmox_virtual_environment_container" "portainer" {
     connection {
       type        = "ssh"
       user        = "root"
-      private_key = file("~/.ssh/terraform_pve1")
+      private_key = var.proxmox_ssh_private_key
       host        = var.portainer_ip
     }
 
