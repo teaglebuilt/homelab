@@ -17,11 +17,6 @@
 While inspired by the [K8s@Home](https://k8s-at-home.com/) community, this repository does not follow the standard approach and does not only manage kubernetes related workloads.
 
 ### Communities
-<ul style="list-style-type:none;">
-  <li>
-    <img src="https://discordapp.com/api/guilds/673534664354430999/widget.png?style=banner2">
-  </li>
-  <li>
-    <img src="https://discordapp.com/api/guilds/969093165669830727/widget.png?style=banner2">
-  </li>
-</ul>
+
+<img src="https://discordapp.com/api/guilds/673534664354430999/widget.png?style=banner2">
+<img src="https://discordapp.com/api/guilds/969093165669830727/widget.png?style=banner2">
