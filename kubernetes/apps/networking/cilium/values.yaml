@@ -17,6 +17,11 @@ cgroup:
     enabled: false
   hostRoot: /sys/fs/cgroup
 
+# https://www.talos.dev/latest/talos-guides/network/host-dns/#forwarding-kube-dns-to-host-dns
+# https://docs.cilium.io/en/stable/operations/performance/tuning/#ebpf-host-routing
+bpf:
+  hostLegacyRouting: true
+
 ipam:
   mode: kubernetes
 
@@ -30,7 +35,7 @@ operator:
       cpu: 50m
       memory: 128Mi
 
-
+# Roll out cilium agent pods automatically when ConfigMap is updated.
 rollOutCiliumPods: true
 resources:
   limits:
@@ -56,9 +61,18 @@ externalIPs:
 
 enableCiliumEndpointSlice: true
 
-installCRDs: true
+loadBalancer:
+  # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#maglev-consistent-hashing
+  algorithm: maglev
+
 gatewayAPI:
   enabled: true
+
+envoy:
+  securityContext:
+    capabilities:
+      keepCapNetBindService: true
+      envoy: [ NET_ADMIN, PERFMON, BPF ]
 
 hubble:
   enabled: true
@@ -69,15 +83,15 @@ hubble:
     enabled: true
     rollOutPods: true
 
-# ingressController:
-#   enabled: true
-#   default: true
-#   loadbalancerMode: shared
-#   service:
-#     annotations:
-#       io.cilium/lb-ipam-ips: 192.168.2.195
-#     insecureNodePort: 32434
-#     secureNodePort: 31247
+ingressController:
+  enabled: false
+  default: true
+  loadbalancerMode: shared
+  service:
+    annotations:
+      io.cilium/lb-ipam-ips: 192.168.2.195
+    insecureNodePort: 32434
+    secureNodePort: 31247
 
 # mTLS
 authentication:

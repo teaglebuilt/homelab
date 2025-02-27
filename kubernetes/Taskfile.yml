@@ -8,15 +8,18 @@ includes:
 vars:
   TERRAFORM: tofu -chdir=terraform
 
+env:
+  PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
+  PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
+  PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
+  PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
+  PROXMOX_VE_SSH_AGENT: "false"
+  PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_TWO_PRIVATE_KEY}}"
+  # TF_LOG: DEBUG
+
 tasks:
   provision-cluster:
     dir: kubernetes
-    env:
-      PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
-      PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
-      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
-      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
-      PROXMOX_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
     cmds:
       - |-
         {{.TERRAFORM}} init --upgrade
@@ -27,7 +30,7 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
-          -var proxmox_ssh_private_key=${PROXMOX_SSH_PRIVATE_KEY}
+          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
       - |-
         {{.TERRAFORM}} apply -auto-approve \
           -var k8s_api_server_ip=${MASTER_NODE_IP} \
@@ -35,7 +38,19 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
-          -var proxmox_ssh_private_key=${PROXMOX_SSH_PRIVATE_KEY}
+          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
+
+  destroy-cluster:
+    dir: kubernetes
+    cmds:
+      - |-
+        {{.TERRAFORM}} destroy -auto-approve \
+          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var master_node_ip=${MASTER_NODE_IP} \
+          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
   bootstrap-cluster:
     dir: kubernetes
@@ -48,10 +63,6 @@ tasks:
     cmds:
       - make helmfile_sync
 
-  destroy-cluster:
-    dir: kubernetes
-    cmds:
-      - make tf_destroy
 
   reboot-cluster:
     dir: kubernetes

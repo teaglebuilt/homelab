@@ -1,6 +1,9 @@
 module "talos_cluster" {
   # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=gateway-api"
   source = "../../tf_modules/talos_cluster"
+
+  proxmox_ssh_private_key = var.proxmox_ssh_private_key
+
   image = {
     version = "v1.9.1"
     update_version = "v1.9.1" # renovate: github-releases=siderolabs/talos
