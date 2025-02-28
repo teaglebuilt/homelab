@@ -1,5 +1,6 @@
 <div align="center">
   <h1>Homelab</h1>
+  <img src="https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml/badge.svg">
 </div>
 
 [![Deploy Docs](https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml/badge.svg)](https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml)
@@ -14,7 +15,8 @@
   <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelabrack.png" style="width:250px;"/>
 </div>
 
-While inspired by the [K8s@Home](https://k8s-at-home.com/) community, this repository does not follow the standard approach and does not only manage kubernetes related workloads.
+While inspired by the [K8s@Home](https://k8s-at-home.com/) community, this repository does not follow the standard approach and does not only manage kubernetes related workloads. 
+You can find more information by visiting the [Docs](https://teaglebuilt.github.io/homelab/) which is in progress and under construction 🚧.
 
 ### Communities
 
