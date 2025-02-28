@@ -1,0 +1,36 @@
+services:
+  mongo:
+    image: mongo:7.0.14
+    hostname: mongodb
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - sre
+
+  graylog:
+    image: graylog/graylog:6.1.5
+    hostname: graylog
+    environment:
+      GRAYLOG_PASSWORD_SECRET: somepasswordpepper
+    # To change password: echo -n "Enter Password: " && head -1 < /dev/stdin | tr -d '\n' | sha256sum | cut -d " " -f1
+      GRAYLOG_ROOT_PASSWORD_SHA2: 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
+      GRAYLOG_HTTP_EXTERNAL_URI: "https://graylog.homelab.local/"
+      GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
+      TZ: "America/NewYork"
+      GRAYLOG_ROOT_TIMEZONE: "America/NewYork"
+    ports:
+      - 1514:1514/tcp # Syslog TCP
+      - 1514:1514/udp # Syslog UDP
+      - 5044:5044/tcp # Beats
+    restart: always
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  sre:
+    external: true
