@@ -5,11 +5,11 @@ tasks:
   deploy:
     cmds:
       - |-
-        kustomize build ./k8s --enable-helm --enable-exec | \
+        kustomize build ./ai/k8s --enable-helm --enable-exec | \
           kubectl apply -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build ./k8s --enable-helm --enable-exec \
+        kustomize build ./ai/k8s --enable-helm --enable-exec \
           | kubectl delete -f -

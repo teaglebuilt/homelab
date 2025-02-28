@@ -80,7 +80,7 @@ service:
 
 extraEnvVars:
   - name: WEBUI_URL
-    value: http://openwebui.local
+    value: http://ai.homelab.local
   - name: K8S_FLAG
     value: "true"
   - name: OLLAMA_HOST

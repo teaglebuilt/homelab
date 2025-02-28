@@ -2,12 +2,12 @@ version: v0.170.0
 dependencies:
 - name: cilium
   repository: https://helm.cilium.io
-  version: 1.17.0
+  version: 1.16.5
 - name: coredns
   repository: https://coredns.github.io/helm
   version: 1.37.3
 - name: kubelet-csr-approver
   repository: https://postfinance.github.io/kubelet-csr-approver
   version: 1.2.3
-digest: sha256:1d4acf27a0b6a989fc76d9a19cb0f136e50b4c7d01272c02790e756b4438efbd
-generated: "2025-02-27T17:12:49.259955-05:00"
+digest: sha256:e2ffeb6f1eee7029685d4ba52f87be638acbcaaefe7237c0f13cc0c9adc1ad74
+generated: "2025-02-28T16:25:15.867204-05:00"

@@ -1,4 +1,9 @@
-provider "proxmox" {}
+provider "proxmox" {
+  ssh {
+    agent       = false
+    private_key = file(var.proxmox_ssh_private_key)
+  }
+}
 
 provider "kubernetes" {
   host = module.talos.kube_config.kubernetes_client_configuration.host

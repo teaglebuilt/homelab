@@ -65,13 +65,9 @@ spec:
             - name: N8N_SECURE_COOKIE
               value: "false"
             - name: N8N_HOST
-              value: n8n.homelab.local
+              value: automation.homelab.local
             - name: N8N_PROTOCOL
               value: https
-            - name: N8N_SSL_CERT
-              value: "/certs/tls.crt"
-            - name: N8N_SSL_KEY
-              value: "/certs/tls.key"
             - name: N8N_DIAGNOSTICS_ENABLED
               value: "false"
             - name: N8N_ONBOARDING_FLOW_DISABLED
@@ -114,7 +110,7 @@ spec:
             name: credentials-cm
         - name: certificates
           secret:
-            secretName: n8n-tls
+            secretName: homelab-tls
         - name: workflows
           configMap:
             name: workflows-cm

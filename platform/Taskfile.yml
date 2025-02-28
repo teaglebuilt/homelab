@@ -8,7 +8,8 @@ includes:
     taskfile: automation/Taskfile.yml
 
 tasks:
-  deploy:
+  deploy-platform:
+    dir: platform
     cmds:
       - ai:deploy
       - automation:deploy

@@ -9,7 +9,7 @@ metadata:
 spec:
   parentRefs:
   - name: homelab-gateway
-    namespace: networking
+    namespace: kube-system
   hostnames:
     - "automation.homelab.local"
   rules:
