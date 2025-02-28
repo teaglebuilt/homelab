@@ -44,7 +44,6 @@ releases:
           - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
           - -f
           - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.1.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
-    #   - events: ["postsync"]
       - events: ["postsync"]
         showlogs: true
         command: "bash"
