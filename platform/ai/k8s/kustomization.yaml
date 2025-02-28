@@ -11,3 +11,5 @@ helmCharts:
     namespace: ai
     releaseName: open-webui
     valuesFile: openwebui-values.yaml
+
+# TODO: use sops with kustomize

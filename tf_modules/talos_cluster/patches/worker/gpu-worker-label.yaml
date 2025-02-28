@@ -1,5 +1,4 @@
 ---
 machine:
-  kubelet:
-    nodeLabels:
-      nvidia.com/gpu.present: "true"
+  nodeLabels:
+    nvidia.com/gpu.present: "true"

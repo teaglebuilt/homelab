@@ -21,6 +21,13 @@ releases:
     values:
       - installCRDs: true
     hooks:
+      - events: ["prepare", "cleanup"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/security/reflector | kubectl apply -f -
       - events: ["presync"]
         showlogs: true
         command: "bash"
