@@ -1,14 +1,13 @@
 ---
 services:
-  immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:release-cuda
-    container_name: immich-machine-learning
-    volumes:
-      - "{{ appdata_path }}/apps/immich/cache:/cache"
+  ebook2audiobookxtts:
+    image: athomasson2/ebook2audiobookxtts:huggingface
+    container_name: ebook2audiobookxtts
+    tty: true
+    stdin_open: true
     ports:
-      - 3003:3003
-    dns:
-      - 1.1.1.1
+      - 7860:7860
+    command: python app.py
     deploy:
       resources:
         reservations:
