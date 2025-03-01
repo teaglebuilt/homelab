@@ -21,6 +21,13 @@ releases:
     values:
       - installCRDs: true
     hooks:
+      - events: ["prepare", "cleanup"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/security/reflector | kubectl apply -f -
       - events: ["presync"]
         showlogs: true
         command: "bash"
@@ -59,3 +66,9 @@ releases:
           - -c
           - |
             kustomize build ../apps/security/cert-manager | kubectl apply -f -
+
+  - name: platform-gateway
+    chart: ../charts/platform
+    needs:
+      - external-dns/external-dns
+      - cert-manager/cert-manager

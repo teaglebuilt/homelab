@@ -1,5 +1,4 @@
 provider "proxmox" {
-  insecure = true
   ssh {
     agent       = false
     private_key = file(var.proxmox_ssh_private_key)

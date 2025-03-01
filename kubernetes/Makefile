@@ -4,35 +4,6 @@ TALOSCONFIG=./generated/talosconfig
 include_env_vars:
 	@[ -f ../.envrc ] && set -a && . ../.envrc && set +a
 
-init:
-	$(TERRAFORM) init --upgrade
-
-plan: include_env_vars
-	$(TERRAFORM) plan \
-		-var k8s_api_server_ip=${MASTER_NODE_IP} \
-		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-    -var master_node_ip=${MASTER_NODE_IP} \
-    -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-    -var worker_two_node_ip=${WORKER_01_NODE_IP}
-
-apply: include_env_vars
-	$(TERRAFORM) apply -auto-approve \
-		-var k8s_api_server_ip=${MASTER_NODE_IP} \
-		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-    -var master_node_ip=${MASTER_NODE_IP} \
-    -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-    -var worker_two_node_ip=${WORKER_01_NODE_IP}
-
-tf_run: init plan apply
-
-tf_destroy: include_env_vars
-	$(TERRAFORM) destroy -auto-approve \
-		-var k8s_api_server_ip=${MASTER_NODE_IP} \
-		-var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-    -var master_node_ip=${MASTER_NODE_IP} \
-    -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-    -var worker_two_node_ip=${WORKER_01_NODE_IP}
-
 helmfile_apply:
 	helmfile apply --skip-diff-on-install --suppress-diff .
 

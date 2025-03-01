@@ -1,10 +1,13 @@
 version: v0.170.0
 dependencies:
+- name: dcgm-exporter
+  repository: https://nvidia.github.io/dcgm-exporter/helm-charts
+  version: 4.0.4
 - name: node-feature-discovery
   repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
   version: 0.17.1
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.16.2
-digest: sha256:83f0255d4596f818491ba0c2519d13669f598d1b5e973849ddc45543b3b58f5e
-generated: "2025-02-09T10:47:41.760132-05:00"
+digest: sha256:9e73d2f07efc949fb93a6003e8de34c2aed38a9d77c9bde905d92ab996732ee3
+generated: "2025-02-28T15:58:09.163602-05:00"

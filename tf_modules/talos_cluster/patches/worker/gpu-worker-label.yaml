@@ -1,0 +1,4 @@
+---
+machine:
+  nodeLabels:
+    nvidia.com/gpu.present: "true"

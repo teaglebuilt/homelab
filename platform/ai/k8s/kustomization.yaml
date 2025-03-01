@@ -1,6 +1,9 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+resources:
+  - namespace.yaml
+  - httproute.yaml
 helmCharts:
   - name: open-webui
     repo: https://helm.openwebui.com/
@@ -8,3 +11,6 @@ helmCharts:
     namespace: ai
     releaseName: open-webui
     valuesFile: openwebui-values.yaml
+
+generators:
+  - secrets-generator.yaml
