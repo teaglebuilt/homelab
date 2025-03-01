@@ -1,7 +1,7 @@
 creation_rules:
   - path_regex: kubernetes/*
-    encrypted_regex: "^(data|stringData)$"
+    encrypted_regex: "^(data|stringData|apiVersion|metadata|kind|type)$"
     kms: "arn:aws:kms:us-east-1:626956831217:key/f22ea8b8-ec28-4d80-988e-7372419dbc28"
   - path_regex: platform/*
-    encrypted_regex: "^(data|stringData)$"
+    encrypted_regex: "^(data|stringData|apiVersion|metadata|kind|type)$"
     kms: "arn:aws:kms:us-east-1:626956831217:key/f22ea8b8-ec28-4d80-988e-7372419dbc28"
