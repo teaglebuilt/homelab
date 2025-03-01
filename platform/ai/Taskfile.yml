@@ -1,15 +1,16 @@
 ---
 version: 3
 
+vars:
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+
 tasks:
   deploy:
     cmds:
       - |-
-        kustomize build ./ai/k8s --enable-helm --enable-exec | \
-          kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | kubectl apply -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build ./ai/k8s --enable-helm --enable-exec \
-          | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | kubectl delete -f -

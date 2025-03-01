@@ -12,4 +12,5 @@ helmCharts:
     releaseName: open-webui
     valuesFile: openwebui-values.yaml
 
-# TODO: use sops with kustomize
+generators:
+  - secrets-generator.yaml
