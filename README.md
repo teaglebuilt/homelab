@@ -3,8 +3,6 @@
   <img src="https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml/badge.svg">
 </div>
 
-[![Deploy Docs](https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml/badge.svg)](https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml)
-
 <div align="center">
   <img src="https://img.shields.io/badge/Proxmox-E57000?style=for-the-badge&logo=proxmox&logoColor=white" />
   <img src="https://img.shields.io/badge/NVIDIA-GTX4070-76B900?style=for-the-badge&logo=nvidia&logoColor=white" />
