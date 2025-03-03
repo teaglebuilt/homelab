@@ -8,11 +8,7 @@ const config: Config = {
   title: 'Built At Home',
   tagline: 'by dillan teagle',
   favicon: 'img/favicon.ico',
-
-  // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
+  url: 'https://teaglebuilt.github.io/homelab/',
   baseUrl: '/',
   organizationName: 'teaglebuilt',
   projectName: 'homelab',

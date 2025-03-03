@@ -44,6 +44,8 @@ tasks:
     dir: kubernetes
     cmds:
       - |-
+        {{.TERRAFORM}} init --upgrade
+      - |-
         {{.TERRAFORM}} destroy -auto-approve \
           -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
