@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Variables
-NAMESPACE="cert-manager"
-SECRET_NAME="homelab-ca-secret"
+NAMESPACE="kube-system"
+SECRET_NAME="homelab-tls"
 CERT_FILE="/tmp/homelab-ca.crt"
 KEYCHAIN="login.keychain"
 MAX_WAIT=300  # Maximum wait time in seconds (5 minutes)
@@ -34,6 +34,6 @@ if [[ ! -s "$CERT_FILE" ]]; then
 fi
 
 echo "🔓 Importing certificate into macOS Keychain..."
-sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN" "$CERT_FILE"
+security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN" "$CERT_FILE"
 
 echo "🎉 Certificate successfully imported and trusted!"

@@ -6,3 +6,10 @@ tasks:
     desc: List all AI pods
     cmds:
       - kubectl get pods -A -o wide | grep -E 'nvidia|cuda'
+  
+  test_internal_dns:
+    cmds:
+      - task: switch_kube_context
+        vars: {CLUSTER_CONTEXT: '{{ .CLUSTER_CONTEXT }}'}
+        when: '{{ .SWITCH_CONTEXT }}'
+      - kubectl run -i --tty --rm debug --image=busybox --restart=Never -- nslookup {{ .DNS_HOST }}

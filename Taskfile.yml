@@ -31,7 +31,7 @@ tasks:
       - task: kubernetes:bootstrap-cluster
       - task: kubernetes:sync-cluster
       - task: platform:deploy
-      - task: kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath="{.data.ca\.crt}" | base64 --decode > homelab-ca.crt
+      - task: kubectl get secret homelab-tls -n cert-manager -o jsonpath="{.data.ca\.crt}" | base64 --decode > homelab-ca.crt
       
 
   portainer-up:
