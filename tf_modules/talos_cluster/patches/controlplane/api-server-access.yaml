@@ -7,3 +7,4 @@ machine:
         - os:admin
       allowedKubernetesNamespaces:
         - kube-system
+        - default

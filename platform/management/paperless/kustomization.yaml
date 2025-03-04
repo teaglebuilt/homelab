@@ -14,3 +14,6 @@ helmCharts:
         PAPERLESS_URL: https://document.homelab.local
         # Required in order to import signed documents
         PAPERLESS_OCR_USER_ARGS: '{"invalidate_digital_signatures": true}'
+        PAPERLESS_OCR_LANGUAGE: eng
+        PAPERLESS_REDIS: redis://redis.data.svc.cluster.local:6379/0
+  - name: paperless-
