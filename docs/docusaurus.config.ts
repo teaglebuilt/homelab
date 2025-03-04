@@ -2,14 +2,12 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
-
 const config: Config = {
   title: 'Built At Home',
   tagline: 'by dillan teagle',
   favicon: 'img/favicon.ico',
-  url: 'https://teaglebuilt.github.io/homelab/',
-  baseUrl: '/',
+  url: 'https://teaglebuilt.github.io',
+  baseUrl: '/homelab',
   organizationName: 'teaglebuilt',
   projectName: 'homelab',
   onBrokenLinks: 'throw',
