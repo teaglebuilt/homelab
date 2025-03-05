@@ -7,7 +7,6 @@ vars:
 tasks:
   deploy:
     cmds:
-      - make deploy
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/k8s | kubectl apply -f -
   destroy:

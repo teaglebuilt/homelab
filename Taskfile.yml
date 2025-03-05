@@ -18,25 +18,21 @@ tasks:
     silent: true
     cmds: [ "task -l" ]
 
-  zip_repo:
-    cmds:
-      - echo "Zipping repository..."
-      - zip -r repository.zip . -x ".task/*" "*.tfstate.*" "packages/soa_agent/.venv/*" "*/terraform/.terraform/*" ".git/*" "**/.env" "**/.envrc"
-  
-  cluster-up:
+  deploy-mlops-cluster:
+    summary: Standup kubernetes cluster and platform services
     cmds:
       - task: kubernetes:provision-cluster
       - task: kubernetes:cluster-health
         vars: { CONTROL_PLANE: $MASTER_NODE_IP}
       - task: kubernetes:bootstrap-cluster
       - task: kubernetes:sync-cluster
-      # - task: kubernetes:test-cluster
+      - task: kubernetes:test-cluster
       - task: platform:deploy
-      # - task: kubectl get secret homelab-tls -n cert-manager -o jsonpath="{.data.ca\.crt}" | base64 --decode > homelab-ca.crt
-      
+      - kubectl rollout restart deployment reflector -n kube-system
 
-  portainer-up:
+  deploy-portainer:
       dir: terraform
+      summary: Standup lxc container with portainer for container management
       cmds:
         - |-
           tofu init --upgrade
@@ -59,7 +55,7 @@ tasks:
             -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
             -var portainer_password=$PORTAINER_PASSWORD
   
-  portainer-down:
+  destroy-portainer:
       dir: terraform
       cmds:
         - |-
@@ -72,13 +68,13 @@ tasks:
             -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
             -var portainer_password=$PORTAINER_PASSWORD
 
-  compose-up-*:
-    summary: Used for launching docker compose stacks.
+  spin-up-*:
+    summary: Used for launching any platform service locally.
     vars:
       STACK: '{{index .MATCH 0}}'
-    cmds: # the first * value
+    cmds:
       - echo "Starting stack [{{.STACK}}]"
-      - docker compose up -d apps/{{.STACK}}
+      - docker compose up -d platform/{{.STACK}}
 
   serve-docs:
     cmds:
