@@ -59,16 +59,4 @@ releases:
       - ../apps/networking/coredns/values.yaml
     needs:
       - kube-system/cilium
-
-  - name: spegel
-    namespace: kube-system
-    chart: oci://ghcr.io/spegel-org/helm-charts/spegel
-    version: v0.0.28
-    createNamespace: true
-    values:
-      - ../apps/security/spegel/values.yaml
-    needs:
-      - observability/prometheus-operator-crds
-      - kube-system/cilium
-      - kube-system/coredns
   

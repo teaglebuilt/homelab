@@ -30,8 +30,9 @@ tasks:
         vars: { CONTROL_PLANE: $MASTER_NODE_IP}
       - task: kubernetes:bootstrap-cluster
       - task: kubernetes:sync-cluster
+      # - task: kubernetes:test-cluster
       - task: platform:deploy
-      - task: kubectl get secret homelab-tls -n cert-manager -o jsonpath="{.data.ca\.crt}" | base64 --decode > homelab-ca.crt
+      # - task: kubectl get secret homelab-tls -n cert-manager -o jsonpath="{.data.ca\.crt}" | base64 --decode > homelab-ca.crt
       
 
   portainer-up:
