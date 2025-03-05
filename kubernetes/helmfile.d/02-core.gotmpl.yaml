@@ -5,47 +5,17 @@ bases:
 repositories:
   - name: external-dns
     url: https://kubernetes-sigs.github.io/external-dns
-  - name: external-secrets
-    url: https://charts.external-secrets.io
   - name: jetstack
     url: https://charts.jetstack.io
   - name: nvidia
     url: https://nvidia.github.io/k8s-device-plugin
 
 releases:
-  - name: external-secrets
-    namespace: external-secrets
-    chart: external-secrets/external-secrets
-    version: 0.13.0
-    createNamespace: true
-    values:
-      - installCRDs: true
-    hooks:
-      - events: ["prepare", "cleanup"]
-        showlogs: true
-        command: "bash"
-        args:
-          - -c
-          - |
-            kustomize build ../apps/security/reflector | kubectl apply -f -
-      - events: ["presync"]
-        showlogs: true
-        command: "bash"
-        args:
-          - -c
-          - |
-            kustomize build ../apps/security/external-secrets | \
-              sops --decrypt --input-type yaml --output-type yaml \
-              ../apps/security/external-secrets/secret.sops.yaml /dev/stdin | \
-              kubectl apply -f -
-
   - name: external-dns
     namespace: external-dns
     chart: external-dns/external-dns
     version: 1.15.0
     createNamespace: true
-    needs:
-      - external-secrets/external-secrets
     values:
       - ../apps/networking/externaldns/values.yaml.gotmpl
   

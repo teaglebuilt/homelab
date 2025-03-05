@@ -65,7 +65,12 @@ tasks:
     cmds:
       - make helmfile_sync
 
-  reboot-cluster:
+  test-cluster:
+    dir: kubernetes
+    cmds:
+      - echo "executing tests"
+
+  reboot-cluster-node:
     dir: kubernetes
     cmds:
       - task: talos:reboot-node

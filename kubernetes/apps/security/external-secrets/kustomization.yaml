@@ -4,4 +4,3 @@ kind: Kustomization
 namespace: external-secrets
 resources:
   - aws-secret-manager.yaml
-  - secret.sops.yaml

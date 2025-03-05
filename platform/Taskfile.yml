@@ -8,8 +8,16 @@ includes:
     taskfile: automation/Taskfile.yml
 
 tasks:
-  deploy-platform:
+  deploy:
     dir: platform
+    summary: 'deploy all platform services running on kubernetes'
     cmds:
-      - ai:deploy
-      - automation:deploy
+      - task: ai:deploy
+      - task: automation:deploy
+
+  destroy:
+    dir: platform
+    summary: 'destroy all platform services running on kubernetes'
+    cmds:
+      - task: ai:destroy
+      - task: automation:destroy
