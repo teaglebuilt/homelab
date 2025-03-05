@@ -6,4 +6,18 @@ hooks:
     args:
       - -c
       - kustomize build ../apps/storage/local | kubectl apply -f -
-      - kustomize build ../apps/namespaces | kubectl apply -f -
+  - events: ["prepare"]
+    showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        kustomize build ../apps/security/reflector | kubectl apply -f -
+  - events: ["prepare"]
+    showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        sops --decrypt --input-type yaml --output-type yaml \
+          ../apps/secrets.enc.yaml /dev/stdin | kubectl apply -f -
