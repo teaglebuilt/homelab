@@ -1,5 +1,5 @@
 ---
-name: Deploy Docs
+name: Deploy Release
 
 on:
   push:

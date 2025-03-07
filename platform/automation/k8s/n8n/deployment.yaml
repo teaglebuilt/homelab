@@ -6,7 +6,6 @@ metadata:
   namespace: automation
   labels:
     app: n8n
-    version: v1.0
 spec:
   replicas: 1
   selector:
@@ -16,7 +15,6 @@ spec:
     metadata:
       labels:
         app: n8n
-        version: v1.0
     spec:
       securityContext:
         runAsUser: 1000
@@ -46,7 +44,8 @@ spec:
         - name: n8n
           image: ghcr.io/n8n-io/n8n:1.76.0
           ports:
-            - containerPort: 5678
+            - name: http
+              containerPort: 5678
           securityContext:
             runAsNonRoot: true
             allowPrivilegeEscalation: false

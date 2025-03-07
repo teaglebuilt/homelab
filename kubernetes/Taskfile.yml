@@ -4,6 +4,8 @@ version: 3
 includes:
   talos:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
+  kubectl:
+    taskfile: ".taskfiles/kubectl/Taskfile.yml"
 
 vars:
   TERRAFORM: tofu -chdir=terraform
@@ -69,6 +71,7 @@ tasks:
     dir: kubernetes
     cmds:
       - echo "executing tests"
+
 
   reboot-cluster-node:
     dir: kubernetes

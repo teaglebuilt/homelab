@@ -10,7 +10,7 @@ tasks:
   test-internal-dns:
     cmds:
       - kubectl run -i --tty --rm debug --image=busybox --restart=Never -- nslookup {{ .DNS_HOST }}
-      
+  
   launch-dns-debugger:
     cmds:
       - kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools

@@ -12,8 +12,6 @@ sidebar_position: 2
 
 **Unifi Max Pro Switch**
 
-**Aruba Switch**
-
 ### Servers
 
 1. **PVE2**
