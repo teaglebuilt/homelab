@@ -71,6 +71,8 @@ tasks:
     dir: kubernetes
     cmds:
       - echo "executing tests"
+      - task: kubectl:test-internal-dns
+        vars: { DNS_HOST: }
 
 
   reboot-cluster-node:
