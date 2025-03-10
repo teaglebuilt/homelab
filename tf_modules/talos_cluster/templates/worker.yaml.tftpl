@@ -8,9 +8,6 @@ machine:
       - interface: eth0
         addresses:
           - ${node_ip}
-        routes:
-          - network: 0.0.0.0/0
-            gateway: 192.168.2.1
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}
