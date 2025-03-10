@@ -72,14 +72,14 @@ tasks:
     cmds:
       - echo "executing tests"
       - task: kubectl:test-internal-dns
-        vars: { DNS_HOST: }
+        vars: { DNS_HOST: hubble-ui.kube-system.svc.cluster.local }
 
 
   reboot-cluster-node:
     dir: kubernetes
     cmds:
       - task: talos:reboot-node
-  
+
   cluster-health:
     dir: kubernetes
     cmds:
@@ -89,4 +89,3 @@ tasks:
           sleep 10
         done
         echo "Kubernetes cluster is healthy!"
-  

@@ -26,7 +26,6 @@ tasks:
         vars: { CONTROL_PLANE: $MASTER_NODE_IP}
       - task: kubernetes:bootstrap-cluster
       - task: kubernetes:sync-cluster
-      - task: kubernetes:test-cluster
       - task: platform:deploy
       - kubectl rollout restart deployment reflector -n kube-system
 
@@ -54,7 +53,7 @@ tasks:
             -var portainer_ip=$PORTAINER_IP \
             -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
             -var portainer_password=$PORTAINER_PASSWORD
-  
+
   destroy-portainer:
       dir: terraform
       cmds:
