@@ -4,7 +4,7 @@ cluster:
 
 kubeProxyReplacement: true
 kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
- # Talos specific
+
 k8sServiceHost: localhost
 k8sServicePort: 7445
 securityContext:
@@ -16,11 +16,6 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: /sys/fs/cgroup
-
-# https://www.talos.dev/latest/talos-guides/network/host-dns/#forwarding-kube-dns-to-host-dns
-# https://docs.cilium.io/en/stable/operations/performance/tuning/#ebpf-host-routing
-bpf:
-  hostLegacyRouting: true
 
 ipam:
   mode: kubernetes
@@ -60,10 +55,6 @@ externalIPs:
   enabled: true
 
 enableCiliumEndpointSlice: true
-
-loadBalancer:
-  # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#maglev-consistent-hashing
-  algorithm: maglev
 
 gatewayAPI:
   enabled: true
