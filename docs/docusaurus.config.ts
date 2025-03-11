@@ -9,6 +9,7 @@ const config: Config = {
   url: 'https://teaglebuilt.github.io',
   baseUrl: '/homelab',
   organizationName: 'teaglebuilt',
+  trailingSlash: false,
   projectName: 'homelab',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -51,6 +52,9 @@ const config: Config = {
         src: 'logo.svg',
       },
       items: [
+        {
+          type: 'docsVersionDropdown',
+        },
         {
           type: 'docSidebar',
           sidebarId: 'sidebar',

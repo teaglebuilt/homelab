@@ -5,35 +5,35 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'docs/**'
+      - 'rack/**'
+      - 'kubernetes/**'
+      - 'platform/**'
+      - 'tf_modules/**'
+      - 'terraform/**'
 
 jobs:
-  create_release:
+  create-release:
+    name: Create Release Version
     runs-on: ubuntu-latest
     steps:
-      - name: create release
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm install -g semantic-release
+      - name: Run Semantic Release
+        id: semantic
         env:
-          GITHUB_TOKEN: ${{ .secrets.GITHUB_TOKEN }}
-        run: |
-          previous_tag="$(gh release list --limit 1 | awk '{ print $1 }')"
-          previous_major="${previous_tag%%\.*}"
-          previous_minor="${previous_tag#*.}"
-          previous_minor="${previous_minor%.*}"
-          previous_patch="${previous_tag##*.}"
-          # Determine next release tag
-          next_major_minor="$(date +'%Y').$(date +'%-m')"
-          if [[ "${previous_major}.${previous_minor}" == "${next_major_minor}" ]]; then
-              echo "Month release already exists for year, incrementing patch number by 1"
-              next_patch="$((previous_patch + 1))"
-          else
-              echo "Month release does not exist for year, setting patch number to 0"
-              next_patch="0"
-          fi
-
-          release_tag="${next_major_minor}.${next_patch}"
-          gh release create "${release_tag}" \
-              --repo="${GITHUB_REPOSITORY}" \
-              --title="${release_tag}" \
-              --generate-notes
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          npx semantic-release > semantic_release_output.txt
+          VERSION=$(grep -oP '(?<=v)[0-9]+\.[0-9]+\.[0-9]+' semantic_release_output.txt)
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
   deploy-docs:
     name: Deploy Docs
@@ -54,6 +54,8 @@ jobs:
           node-version: 18
       - name: Install dependencies
         run: npm install --prefix docs
+      - name: Version Docs
+        run: npm run docusaurus docs:version ${{ steps.semantic.outputs.newRelease.version }} --prefix docs
       - name: Build website
         run: npm run build --prefix docs
       - name: Upload Build Artifact

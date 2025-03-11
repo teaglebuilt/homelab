@@ -17,15 +17,21 @@ tasks:
 
   dashboard:
     desc: Open Talos dashboard
-    dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl --talosconfig=./generated/talosconfig dashboard -n {{.NODE}}
+      - talosctl dashboard -n {{.NODE}}
 
-  dashboard:
-    desc: Open Talos dashboard
+  -*:
+    desc: use `-` before command to execute. Examples, [-proceses, -pcap, -netstat]
+    vars:
+      COMMAND: '{{index .MATCH 0}}'
+    cmds:
+      - talosctl {{.COMMAND}} -n {{.NODE}}
+
+  fetch-kubeconfig:
+    desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl --talosconfig=./generated/talosconfig netstat -n {{.NODE}}
+      - talosctl --talosconfig ./generated/talosconfig kubeconfig ./generated
 
   reset-cluster:
     desc: Reset all the Talos nodes
@@ -42,4 +48,4 @@ tasks:
     desc: Reboot a node
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl reboot --nodes {{.NODE_IP}}
+      - talosctl reboot --nodes {{.NODE}}

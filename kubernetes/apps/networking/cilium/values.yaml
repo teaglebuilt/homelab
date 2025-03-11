@@ -45,7 +45,7 @@ resources:
 
 # Increase rate limit when doing L2 announcements
 k8sClientRateLimit:
-  qps: 20
+  qps: 50
   burst: 100
 
 l2announcements:
@@ -58,6 +58,8 @@ enableCiliumEndpointSlice: true
 
 gatewayAPI:
   enabled: true
+  hostNetwork:
+    enabled: true
 
 envoy:
   securityContext:
