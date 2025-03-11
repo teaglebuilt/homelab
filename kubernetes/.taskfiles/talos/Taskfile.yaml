@@ -17,51 +17,21 @@ tasks:
 
   dashboard:
     desc: Open Talos dashboard
-    dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl --talosconfig=./generated/talosconfig dashboard -n 192.168.2.195
+      - talosctl dashboard -n {{.NODE}}
 
-  generate-config:
-    desc: Generate Talos config
-    dir: "{{.CLUSTER_DIR}}"
+  -*:
+    desc: use `-` before command to execute. Examples, [-proceses, -pcap, -netstat]
+    vars:
+      COMMAND: '{{index .MATCH 0}}'
     cmds:
-      - talosctl --talosconfig ./generated/talosconfig gen config --force mlops https://192.168.2.195:6443 --output-dir generated
-      # - talhelper genconfig -o generated
-    # preconditions:
-    #   - test -f talconfig.yaml
-
-  generate-secret:
-    desc: Generate Talos secret
-    prompt: This will overwrite the existing secret ... continue?
-    dir: "{{.CLUSTER_DIR}}"
-    cmds:
-      - talhelper gensecret > talsecret.sops.yaml
-      - sops --encrypt --in-place talsecret.sops.yaml
-    preconditions:
-      - test -f talsecret.sops.yaml
-
-  apply-config:
-    desc: Apply Talos config to the nodes
-    dir: "{{.CLUSTER_DIR}}"
-    cmds:
-      - talosctl apply-config --insecure --nodes {{.NODE_IP}} --file=./generated/{{.NODE_FILE}}
-      # - test -f talconfig.yaml
+      - talosctl {{.COMMAND}} -n {{.NODE}}
 
   fetch-kubeconfig:
     desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"
     cmds:
       - talosctl --talosconfig ./generated/talosconfig kubeconfig ./generated
-
-  bootstrap-etcd:
-    desc: Bootstrap etcd cluster
-    dir: "{{.CLUSTER_DIR}}"
-    cmds:
-      - talosctl config endpoint {{.CONTROL_PLANE_IP}}
-      - talosctl config node {{.CONTROL_PLANE_IP}}
-      - talosctl bootstrap
-    preconditions:
-      - talosctl config info >/dev/null 2>&1
 
   reset-cluster:
     desc: Reset all the Talos nodes
@@ -78,4 +48,4 @@ tasks:
     desc: Reboot a node
     dir: "{{.CLUSTER_DIR}}"
     cmds:
-      - talosctl reboot --nodes {{.NODE_IP}}
+      - talosctl reboot --nodes {{.NODE}}
