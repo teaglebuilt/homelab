@@ -1,0 +1,36 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: homelab-gateway
+  namespace: kube-system
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "homelab.local,*.homelab.local"
+spec:
+  gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      io.cilium/lb-ipam-ips: 192.168.2.210
+  listeners:
+  - name: https-gateway
+    hostname: "*homelab.local"
+    protocol: HTTPS
+    port: 443
+    tls:
+      certificateRefs:
+      - kind: Secret
+        name: homelab-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: https-gateway-service
+    hostname: "*.homelab.local"
+    protocol: HTTPS
+    port: 443
+    tls:
+      certificateRefs:
+      - kind: Secret
+        name: homelab-tls
+    allowedRoutes:
+      namespaces:
+        from: All
