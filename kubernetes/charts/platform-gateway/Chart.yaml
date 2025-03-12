@@ -1,0 +1,7 @@
+---
+apiVersion: v2
+name: platform-gateway
+description: Helm Chart for homelab gateway
+type: application
+version: '1.0.0'
+appVersion: 'v1.0.0'
