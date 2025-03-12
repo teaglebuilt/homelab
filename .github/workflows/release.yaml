@@ -1,5 +1,5 @@
 ---
-name: Release Workflow
+name: Release
 
 on:
   push:
