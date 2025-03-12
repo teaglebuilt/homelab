@@ -18,3 +18,4 @@ area/virtual-machine:
 area/documentation:
   - changed-files:
       - any-glob-to-any-file: docs/**/*
+

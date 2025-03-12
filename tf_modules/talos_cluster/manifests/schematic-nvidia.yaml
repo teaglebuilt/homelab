@@ -1,6 +1,8 @@
 customization:
   extraKernelArgs:
-    - net.ifnames=0
+    - intel_iommu=on
+    - iommu=pt
+    - net.ifnames=1
   systemExtensions:
     officialExtensions:
       - siderolabs/intel-ucode

@@ -4,6 +4,8 @@ version: 3
 includes:
   talos:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
+  test:
+    taskfile: .taskfiles/test/Taskfile.yaml
 
 vars:
   TERRAFORM: tofu -chdir=terraform
@@ -69,12 +71,15 @@ tasks:
     dir: kubernetes
     cmds:
       - echo "executing tests"
+      - task: test:dns
+        vars: { DNS_HOST: hubble-ui.kube-system.svc.cluster.local }
+      - task: test:cni
 
   reboot-cluster-node:
     dir: kubernetes
     cmds:
       - task: talos:reboot-node
-  
+
   cluster-health:
     dir: kubernetes
     cmds:
@@ -84,4 +89,3 @@ tasks:
           sleep 10
         done
         echo "Kubernetes cluster is healthy!"
-  
