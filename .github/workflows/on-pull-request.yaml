@@ -1,0 +1,14 @@
+name: Pull Request Workflow
+
+on: [pull_request]
+
+jobs:
+  create_pr_labels:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          repo-token: "${{ secrets.GH_PAT }}"
