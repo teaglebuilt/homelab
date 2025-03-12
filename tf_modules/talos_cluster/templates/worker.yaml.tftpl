@@ -2,6 +2,9 @@ machine:
   kubelet:
     extraArgs:
       rotate-server-certificates: true
+    nodeIP:
+      validSubnets:
+        - 192.168.2.0/24
   network:
     hostname: ${hostname}
     interfaces:
@@ -11,8 +14,8 @@ machine:
         routes:
           - network: 0.0.0.0/0
             gateway: ${network_gateway}
-    nameservers:
-      - 192.168.1.1
+        nameservers:
+          - 192.168.1.1
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}

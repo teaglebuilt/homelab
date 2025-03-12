@@ -2,6 +2,12 @@ machine:
   certSANs:
     - ${hostname}
     - ${node_ip}
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: true
+    nodeIP:
+      validSubnets:
+        - 192.168.2.0/24
   network:
     hostname: ${hostname}
     interfaces:
@@ -11,14 +17,17 @@ machine:
         routes:
           - network: 0.0.0.0/0
             gateway: ${network_gateway}
-    nameservers:
-      - 192.168.1.1
+        nameservers:
+          - 192.168.1.1
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}
 
 cluster:
-  allowSchedulingOnControlPlanes: false
+  allowSchedulingOnControlPlanes: true
+  controllerManager:
+    extraArgs:
+      bind-address: 0.0.0.0
   network:
     cni:
       name: none
@@ -26,6 +35,9 @@ cluster:
     disabled: true
   proxy:
     disabled: true
+  scheduler:
+    extraArgs:
+      bind-address: 0.0.0.0
   extraManifests:
     - https://raw.githubusercontent.com/alex1989hu/kubelet-serving-cert-approver/main/deploy/standalone-install.yaml
     - https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
