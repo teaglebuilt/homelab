@@ -20,6 +20,9 @@ cgroup:
 ipam:
   mode: kubernetes
 
+bpf:
+  hostLegacyRouting: false
+
 operator:
   rollOutPods: true
   resources:
@@ -40,26 +43,22 @@ resources:
     cpu: 200m
     memory: 512Mi
 
-#debug:
-#  enabled: true
-
 # Increase rate limit when doing L2 announcements
 k8sClientRateLimit:
-  qps: 50
+  qps: 20
   burst: 100
 
 l2announcements:
   enabled: true
 
+loadBalancer:
+  algorithm: maglev
+
 externalIPs:
   enabled: true
 
-enableCiliumEndpointSlice: true
-
 gatewayAPI:
   enabled: true
-  hostNetwork:
-    enabled: true
 
 envoy:
   securityContext:

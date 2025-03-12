@@ -21,13 +21,16 @@
   },
   "go-template.languages": [
     "gotmpl",
+    "tftpl",
     "yaml",
   ],
   "go-template.patterns": [
-    "**/*.yaml.gotmpl"
+    "**/*.yaml.gotmpl",
+    "**/*.yaml.tftpl"
   ],
   "files.associations": {
     "*.gotmpl": "yaml",
+    "*.tftpl": "yaml",
     "*.css": "tailwindcss"
   },
 }

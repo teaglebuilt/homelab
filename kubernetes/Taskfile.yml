@@ -4,8 +4,8 @@ version: 3
 includes:
   talos:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
-  kubectl:
-    taskfile: ".taskfiles/kubectl/Taskfile.yml"
+  test:
+    taskfile: .taskfiles/test/Taskfile.yaml
 
 vars:
   TERRAFORM: tofu -chdir=terraform
@@ -71,9 +71,9 @@ tasks:
     dir: kubernetes
     cmds:
       - echo "executing tests"
-      - task: kubectl:test-internal-dns
+      - task: test:dns
         vars: { DNS_HOST: hubble-ui.kube-system.svc.cluster.local }
-
+      - task: test:cni
 
   reboot-cluster-node:
     dir: kubernetes

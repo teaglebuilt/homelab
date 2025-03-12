@@ -27,6 +27,16 @@ tasks:
     cmds:
       - talosctl {{.COMMAND}} -n {{.NODE}}
 
+  read-*:
+    vars:
+      FILE: '{{index .MATCH 0}}'
+    cmds:
+      - talosctl read {{.FILE}}
+
+  watch-logs:
+    cmds:
+      - talosctl dmesg --follow --tail -n {{.NODE}}
+
   fetch-kubeconfig:
     desc: Fetch kubeconfig from Talos controllers
     dir: "{{.CLUSTER_DIR}}"

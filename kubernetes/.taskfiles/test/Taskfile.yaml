@@ -1,0 +1,20 @@
+---
+version: 3
+
+includes:
+  kubectl:
+    taskfile: ../kubectl/Taskfile.yml
+
+tasks:
+  cni:
+    cmds:
+      - kubectl create namespace cilium-test
+      - kubectl label namespace cilium-test pod-security.kubernetes.io/enforce=privileged
+      - cilium connectivity test --collect-sysdump-on-failure --junit-file tests/reports/cni-test.xml
+
+  dns:
+    cmds:
+      - kubectl run -i --tty --rm debug --image=busybox --restart=Never -- ping  1.1.1.1
+      - kubectl run -i --tty --rm debug --image=busybox --restart=Never -- ping  "{{.PROXMOX_NETWORK_GATEWAY}}"
+      - kubectl run -i --tty --rm debug --image=busybox --restart=Never -- ping  "{{.PROXMOX_NETWORK_GATEWAY}}"
+      - kubectl run -i --tty --rm debug --image=busybox --restart=Never -- nslookup  {{.DNS_HOST}}
