@@ -22,13 +22,13 @@ jobs:
           node-version: 21.7.3
       - name: Install dependencies
         run: |-
-          npm install --prefix docs
+          npm --prefix docs install
       - name: Run Semantic Release
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
-          npm run release --prefix docs
+          npm --prefix docs run release
 
   deploy-docs:
     name: Deploy Docs
@@ -48,11 +48,11 @@ jobs:
         with:
           node-version: 21.7.3
       - name: Install dependencies
-        run: npm install --prefix docs
+        run: npm --prefix docs install
       - name: Version Docs
         run: npm run docusaurus docs:version ${{ steps.semantic.outputs.newRelease.version }} --prefix docs
       - name: Build website
-        run: npm run build --prefix docs
+        run: npm --prefix docs run build
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
