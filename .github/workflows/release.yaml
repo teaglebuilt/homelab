@@ -8,6 +8,10 @@ jobs:
   create-release:
     name: Create Release Version
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
     # if: github.event.pull_request.merged == true
     steps:
       - name: Checkout
@@ -18,15 +22,13 @@ jobs:
           node-version: 18
       - name: Install dependencies
         run: |-
-          npm install -g semantic-release && npm install --prefix docs
+          npm install --prefix docs
       - name: Run Semantic Release
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
-          npx semantic-release > semantic_release_output.txt
-          VERSION=$(grep -oP '(?<=v)[0-9]+\.[0-9]+\.[0-9]+' semantic_release_output.txt)
-          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          npm run release --prefix docs
 
   deploy-docs:
     name: Deploy Docs
