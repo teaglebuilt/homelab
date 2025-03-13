@@ -2,21 +2,22 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'rack/**'
-      - 'kubernetes/**'
-      - 'platform/**'
-      - 'tf_modules/**'
-      - 'terraform/**'
+  pull_request:
+    types: [ closed ]
+  paths:
+    - 'docs/**'
+    - 'rack/**'
+    - 'kubernetes/**'
+    - 'platform/**'
+    - 'tf_modules/**'
+    - 'terraform/**'
+  workflow_dispatch:
 
 jobs:
   create-release:
     name: Create Release Version
     runs-on: ubuntu-latest
+    # if: github.event.pull_request.merged == true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,7 +62,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: ./docs
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
