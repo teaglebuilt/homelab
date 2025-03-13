@@ -54,7 +54,7 @@ tasks:
             -var portainer_ip=$PORTAINER_IP \
             -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
             -var portainer_password=$PORTAINER_PASSWORD
-  
+
   destroy-portainer:
       dir: terraform
       cmds:

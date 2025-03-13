@@ -3,15 +3,15 @@ resource "talos_image_factory_schematic" "this" {
     {
       customization = {
         systemExtensions = {
-          officialExtensions = concat(
-            [
-              "siderolabs/qemu-guest-agent"
-            ],
-            anytrue([for _, v in var.nodes : v.igpu == true && v.machine_type == "worker"]) ? [
-              "siderolabs/nvidia-container-toolkit-production",
-              "siderolabs/nonfree-kmod-nvidia-production"
-            ] : []
-          )
+          officialExtensions = distinct(flatten([
+            for k, v in var.nodes : concat(
+              ["siderolabs/qemu-guest-agent"],
+              v.machine_type == "worker" && v.igpu == true ? [
+                "siderolabs/nvidia-container-toolkit-production",
+                "siderolabs/nonfree-kmod-nvidia-production"
+              ] : []
+            )
+          ]))
         }
       }
     }

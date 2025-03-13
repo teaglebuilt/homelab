@@ -13,7 +13,7 @@ env:
 tasks:
   info:
     cmds:
-      - talosctl --talosconfig=./generated/talosconfig config info
+      - talosctl config info
 
   dashboard:
     desc: Open Talos dashboard
@@ -26,6 +26,24 @@ tasks:
       COMMAND: '{{index .MATCH 0}}'
     cmds:
       - talosctl {{.COMMAND}} -n {{.NODE}}
+
+  read-*:
+    vars:
+      FILE: '{{index .MATCH 0}}'
+    cmds:
+      - talosctl read {{.FILE}}
+
+  watch-logs:
+    cmds:
+      - talosctl dmesg --follow -n {{.NODE}}
+
+  tail-logs:
+    cmds:
+      - talosctl dmesg --follow --tail -n {{.NODE}}
+
+  machineconfig:
+    cmds:
+      - talosctl get machineconfig -n {{.NODE}} -o yaml
 
   fetch-kubeconfig:
     desc: Fetch kubeconfig from Talos controllers

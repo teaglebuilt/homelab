@@ -17,13 +17,13 @@ cgroup:
     enabled: false
   hostRoot: /sys/fs/cgroup
 
-# https://www.talos.dev/latest/talos-guides/network/host-dns/#forwarding-kube-dns-to-host-dns
-# https://docs.cilium.io/en/stable/operations/performance/tuning/#ebpf-host-routing
-bpf:
-  hostLegacyRouting: true
-
 ipam:
   mode: kubernetes
+loadBalancer:
+  # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#maglev-consistent-hashing
+  algorithm: maglev
+bpf: # forwardKubeDNSToHost=false if masquerade is true
+  masquerade: false
 
 operator:
   rollOutPods: true
@@ -34,7 +34,6 @@ operator:
     requests:
       cpu: 50m
       memory: 128Mi
-
 # Roll out cilium agent pods automatically when ConfigMap is updated.
 rollOutCiliumPods: true
 resources:
@@ -45,27 +44,21 @@ resources:
     cpu: 200m
     memory: 512Mi
 
-#debug:
-#  enabled: true
-
 # Increase rate limit when doing L2 announcements
 k8sClientRateLimit:
   qps: 20
   burst: 100
-
 l2announcements:
   enabled: true
-
 externalIPs:
   enabled: true
-
-enableCiliumEndpointSlice: true
-
-loadBalancer:
-  # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#maglev-consistent-hashing
-  algorithm: maglev
-
+externalWorkloads:
+  enabled: true
 gatewayAPI:
+  enabled: true
+nodePort:
+  enabled: true
+endpointRoutes:
   enabled: true
 
 envoy:
@@ -83,17 +76,6 @@ hubble:
     enabled: true
     rollOutPods: true
 
-ingressController:
-  enabled: false
-  default: true
-  loadbalancerMode: shared
-  service:
-    # annotations:
-    #   io.cilium/lb-ipam-ips: 192.168.X.X
-    insecureNodePort: 32434
-    secureNodePort: 31247
-
-# mTLS
 authentication:
   enabled: false
   mutual:

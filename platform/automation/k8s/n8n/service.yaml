@@ -4,7 +4,7 @@ metadata:
   name: n8n-service
   namespace: automation
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: n8n
   ports:

@@ -53,7 +53,19 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docsVersionDropdown',
+          type: "docsVersionDropdown",
+          position: "left",
+          dropdownActiveClassDisabled: true,
+          dropdownItemsAfter: [
+            {
+              type: "html",
+              value: '<hr class="dropdown-separator">',
+            },
+            {
+              to: "/versions",
+              label: "All versions",
+            },
+          ],
         },
         {
           type: 'docSidebar',
