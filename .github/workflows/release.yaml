@@ -2,15 +2,6 @@
 name: Release
 
 on:
-  pull_request:
-    types: [ closed ]
-  paths:
-    - 'docs/**'
-    - 'rack/**'
-    - 'kubernetes/**'
-    - 'platform/**'
-    - 'tf_modules/**'
-    - 'terraform/**'
   workflow_dispatch:
 
 jobs:
