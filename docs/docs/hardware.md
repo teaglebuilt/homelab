@@ -2,8 +2,6 @@
 sidebar_position: 2
 ---
 
-## Hardware
-
 ### Network
 
 1. `Router`: [Dream Machine Pro](https://store.ui.com/us/en/category/cloud-gateways-large-scale/products/udm-pro)
