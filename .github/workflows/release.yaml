@@ -58,7 +58,7 @@ jobs:
       - name: Build website
         run: npm --prefix docs run build
       - name: Upload Build Artifact
-        uses: actions/deploy-pages@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs/build
       - name: Deploy to GitHub Pages
