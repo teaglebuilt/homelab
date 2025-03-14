@@ -18,7 +18,7 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/externaldns/values.yaml.gotmpl
-  
+
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager
@@ -38,7 +38,7 @@ releases:
             kustomize build ../apps/security/cert-manager | kubectl apply -f -
 
   - name: platform-gateway
-    chart: ../charts/platform
+    chart: ../charts/platform-gateway
     needs:
       - external-dns/external-dns
       - cert-manager/cert-manager
