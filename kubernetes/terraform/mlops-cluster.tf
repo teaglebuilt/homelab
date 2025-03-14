@@ -11,7 +11,6 @@ module "talos_cluster" {
 
   cluster = {
     name            = "mlops"
-    endpoint        = var.k8s_api_server_ip
     gateway         = var.network_gateway
     talos_version   = "v1.9.1"
     proxmox_cluster = "mlops"
@@ -21,7 +20,6 @@ module "talos_cluster" {
     "mlops-ctrl-00" = {
       host_node     = "pve2"
       machine_type  = "controlplane"
-      ip            = var.master_node_ip
       vm_id         = 100
       cpu           = 8
       disk_size     = 20
@@ -30,7 +28,6 @@ module "talos_cluster" {
     "mlops-work-00" = {
       host_node     = "pve2"
       machine_type  = "worker"
-      ip            = var.worker_one_node_ip
       vm_id         = 102
       cpu           = 8
       disk_size     = 30
@@ -48,7 +45,6 @@ module "talos_cluster" {
     "mlops-work-01" = {
       host_node     = "pve2"
       machine_type  = "worker"
-      ip            = var.worker_two_node_ip
       vm_id         = 103
       cpu           = 8
       disk_size     = 20
@@ -56,4 +52,3 @@ module "talos_cluster" {
     }
   }
 }
-

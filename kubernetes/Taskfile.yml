@@ -25,19 +25,11 @@ tasks:
         {{.TERRAFORM}} init --upgrade
       - |-
         {{.TERRAFORM}} plan \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
       - |-
         {{.TERRAFORM}} apply -auto-approve \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
   destroy-cluster:
@@ -47,11 +39,7 @@ tasks:
         {{.TERRAFORM}} init --upgrade
       - |-
         {{.TERRAFORM}} destroy -auto-approve \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
   bootstrap-cluster:
@@ -74,7 +62,7 @@ tasks:
     dir: kubernetes
     cmds:
       - task: talos:reboot-node
-  
+
   cluster-health:
     dir: kubernetes
     cmds:
@@ -84,4 +72,3 @@ tasks:
           sleep 10
         done
         echo "Kubernetes cluster is healthy!"
-  

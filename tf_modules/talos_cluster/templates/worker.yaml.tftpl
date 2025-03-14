@@ -1,13 +1,9 @@
 machine:
-  kubelet:
-    extraArgs:
-      rotate-server-certificates: true
   network:
     hostname: ${hostname}
     interfaces:
       - interface: eth0
-        addresses:
-          - ${node_ip}
+        dhcp: true
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}
