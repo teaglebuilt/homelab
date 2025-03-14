@@ -2,15 +2,18 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
+const organizationName = "teaglebuilt";
+const projectName = "homelab";
+
 const config: Config = {
   title: 'Built At Home',
   tagline: 'by dillan teagle',
   favicon: 'img/favicon.ico',
-  url: 'https://teaglebuilt.github.io',
-  baseUrl: '/homelab',
-  organizationName: 'teaglebuilt',
+  url: `https://${organizationName}.github.io`,
+  baseUrl: `/${projectName}/`,
   trailingSlash: true,
-  projectName: 'homelab',
+  organizationName,
+  projectName,
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   i18n: {
