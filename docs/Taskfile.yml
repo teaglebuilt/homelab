@@ -6,3 +6,8 @@ tasks:
     dir: docs
     cmds:
       - npm run start
+
+  release:
+    dir: docs
+    cmds:
+      - npm run release

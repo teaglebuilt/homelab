@@ -9,7 +9,7 @@ const config: Config = {
   url: 'https://teaglebuilt.github.io',
   baseUrl: '/homelab',
   organizationName: 'teaglebuilt',
-  trailingSlash: false,
+  trailingSlash: true,
   projectName: 'homelab',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
