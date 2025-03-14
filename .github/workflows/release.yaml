@@ -2,38 +2,37 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'rack/**'
-      - 'kubernetes/**'
-      - 'platform/**'
-      - 'tf_modules/**'
-      - 'terraform/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   create-release:
     name: Create Release Version
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    # if: github.event.pull_request.merged == true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 21.7.3
       - name: Install dependencies
-        run: npm install -g semantic-release
+        run: |-
+          npm --prefix docs install
       - name: Run Semantic Release
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
-          npx semantic-release > semantic_release_output.txt
-          VERSION=$(grep -oP '(?<=v)[0-9]+\.[0-9]+\.[0-9]+' semantic_release_output.txt)
-          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          npm --prefix docs run release
 
   deploy-docs:
     name: Deploy Docs
@@ -51,17 +50,17 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 21.7.3
       - name: Install dependencies
-        run: npm install --prefix docs
+        run: npm --prefix docs install
       - name: Version Docs
-        run: npm run docusaurus docs:version ${{ steps.semantic.outputs.newRelease.version }} --prefix docs
+        run: npm --prefix docs run docusaurus docs:version ${{ github.event.inputs.version }}
       - name: Build website
-        run: npm run build --prefix docs
+        run: npm --prefix docs run build
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: ./docs
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
