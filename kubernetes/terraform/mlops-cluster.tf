@@ -1,6 +1,6 @@
 module "talos_cluster" {
-  source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
-  # source = "../../tf_modules/talos_cluster"
+  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
+  source = "../../tf_modules/talos_cluster"
 
   proxmox_ssh_private_key = var.proxmox_ssh_private_key
 
@@ -12,6 +12,7 @@ module "talos_cluster" {
   cluster = {
     name            = "mlops"
     gateway         = var.network_gateway
+    vip             = var.control_plane_ip
     talos_version   = "v1.9.1"
     proxmox_cluster = "mlops"
   }

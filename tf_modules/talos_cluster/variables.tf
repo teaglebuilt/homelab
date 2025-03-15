@@ -14,6 +14,7 @@ variable "cluster" {
   description = "Cluster configuration"
   type = object({
     name            = string
+    vip             = string
     gateway         = string
     talos_version   = string
     proxmox_cluster = string

@@ -10,7 +10,6 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   on_boot           = true
   started           = true
-  # stop_on_destroy   = true
 
   machine           = "q35"
   scsi_hardware     = "virtio-scsi-single"
@@ -50,11 +49,11 @@ resource "proxmox_virtual_environment_vm" "this" {
     discard      = "on"
     file_id      = proxmox_virtual_environment_download_file.this[each.key].id
   }
-  
+
   initialization {
     ip_config {
       ipv4 {
-        address = "${each.value.ip}/24"
+        address = "dhcp"
         gateway = var.cluster.gateway
       }
     }

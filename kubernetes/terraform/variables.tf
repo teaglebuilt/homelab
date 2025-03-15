@@ -1,3 +1,7 @@
+variable "control_plane_ip" {
+  description = "ip address of virtual control plane"
+  type = string
+}
 
 variable "network_gateway" {
   description = "ip address of proxmox network gateway"

@@ -15,7 +15,6 @@ env:
   PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
   PROXMOX_VE_SSH_AGENT: "false"
   PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_TWO_PRIVATE_KEY}}"
-  # TF_LOG: DEBUG
 
 tasks:
   provision-cluster:
@@ -25,10 +24,12 @@ tasks:
         {{.TERRAFORM}} init --upgrade
       - |-
         {{.TERRAFORM}} plan \
+          -var control_plane_ip=${MLOPS_CONTROL_PLANE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
+          -var proxmox_ssh_private_key=$PROXMOX_NODE_TWO_PRIVATE_KEY
       - |-
         {{.TERRAFORM}} apply -auto-approve \
+          -var control_plane_ip=${MLOPS_CONTROL_PLANE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
@@ -39,6 +40,7 @@ tasks:
         {{.TERRAFORM}} init --upgrade
       - |-
         {{.TERRAFORM}} destroy -auto-approve \
+          -var control_plane_ip=${MLOPS_CONTROL_PLANE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
