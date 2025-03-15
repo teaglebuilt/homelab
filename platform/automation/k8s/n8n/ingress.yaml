@@ -1,0 +1,23 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
+spec:
+  rules:
+  - host: n8n.homelab.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: n8n-service
+            port:
+              number: 443
+  tls:
+  - hosts:
+      - n8n.homelab.local
+    secretName: n8n-tls
