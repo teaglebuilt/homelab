@@ -34,9 +34,3 @@ releases:
           - -c
           - |
             kustomize build ../apps/security/cert-manager | kubectl apply -f -
-
-  # - name: platform-gateway
-  #   chart: ../charts/platform-gateway
-  #   needs:
-  #     - external-dns/external-dns
-  #     - cert-manager/cert-manager
