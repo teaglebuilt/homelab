@@ -7,8 +7,6 @@ repositories:
     url: https://kubernetes-sigs.github.io/external-dns
   - name: jetstack
     url: https://charts.jetstack.io
-  - name: nvidia
-    url: https://nvidia.github.io/k8s-device-plugin
 
 releases:
   - name: external-dns
@@ -18,7 +16,7 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/externaldns/values.yaml.gotmpl
-  
+
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager
@@ -37,8 +35,8 @@ releases:
           - |
             kustomize build ../apps/security/cert-manager | kubectl apply -f -
 
-  - name: platform-gateway
-    chart: ../charts/platform
-    needs:
-      - external-dns/external-dns
-      - cert-manager/cert-manager
+  # - name: platform-gateway
+  #   chart: ../charts/platform-gateway
+  #   needs:
+  #     - external-dns/external-dns
+  #     - cert-manager/cert-manager
