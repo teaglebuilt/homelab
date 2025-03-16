@@ -18,6 +18,15 @@ tasks:
     silent: true
     cmds: [ "task -l" ]
 
+  default:
+    silent: true
+    cmd: task --list
+
+  noop:
+    internal: true
+    silent: true
+    cmd: noop() { :; }
+
   deploy-mlops-cluster:
     summary: Standup kubernetes cluster and platform services
     cmds:
@@ -54,7 +63,7 @@ tasks:
             -var portainer_ip=$PORTAINER_IP \
             -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
             -var portainer_password=$PORTAINER_PASSWORD
-  
+
   destroy-portainer:
       dir: terraform
       cmds:

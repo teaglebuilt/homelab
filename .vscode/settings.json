@@ -11,7 +11,13 @@
     "editor.tabSize": 2,
     "editor.autoIndent": "advanced",
     "diffEditor.ignoreTrimWhitespace": false,
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+  },
+  "[terraform]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "editor.defaultFormatter": "hashicorp.terraform"
   },
   "[python]": {
     "diffEditor.ignoreTrimWhitespace": false,
@@ -28,6 +34,12 @@
   ],
   "files.associations": {
     "*.gotmpl": "yaml",
-    "*.css": "tailwindcss"
+    "*.tftpl": "yaml",
+    "*.tf": "terraform",
+    "*.tfvars": "terraform",
+    "*.hcl": "terraform",
+    "*.pkrvars.hcl": "hcl",
+    "*.pkrtpl.hcl": "hcl",
+    "*.pkr.hcl": "hcl"
   },
 }
