@@ -35,7 +35,6 @@
   "files.associations": {
     "*.gotmpl": "yaml",
     "*.tftpl": "yaml",
-    "*.tf": "terraform",
     "*.tfvars": "terraform",
     "*.hcl": "terraform",
     "*.pkrvars.hcl": "hcl",
