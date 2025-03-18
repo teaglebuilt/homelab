@@ -6,6 +6,7 @@
 - Service mesh and BGP routing enabled
 - Strict mTLS enforcement
 - GPU powered node within nvidia-runtime
+- Envoy AI Gateway is used as the replacement for MCP (Model Context Protocol)
 
 ## References
 
