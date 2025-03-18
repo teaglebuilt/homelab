@@ -50,7 +50,7 @@ resource "proxmox_virtual_environment_vm" "this" {
     discard      = "on"
     file_id      = proxmox_virtual_environment_download_file.this[each.key].id
   }
-  
+
   initialization {
     ip_config {
       ipv4 {
@@ -63,12 +63,11 @@ resource "proxmox_virtual_environment_vm" "this" {
   dynamic "hostpci" {
     for_each = each.value.igpu ? [1] : []
     content {
-      # Passthrough iGPU
-      device  = "hostpci0"
-      mapping = "nvidia_4070_super"
-      pcie    = true
-      rombar  = true
-      xvga    = false
+      device        = "hostpci0"
+      mapping       = "nvidia_4070_super"
+      pcie          = true
+      rombar        = true
+      primary       = true
     }
   }
 }

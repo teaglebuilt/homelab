@@ -1,6 +1,6 @@
 module "talos_cluster" {
-  source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
-  # source = "../../tf_modules/talos_cluster"
+  # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
+  source = "../../tf_modules/talos_cluster"
 
   proxmox_ssh_private_key = var.proxmox_ssh_private_key
 
@@ -25,7 +25,7 @@ module "talos_cluster" {
       vm_id         = 100
       cpu           = 8
       disk_size     = 20
-      ram_dedicated = 10480
+      ram_dedicated = 8480
     }
     "mlops-work-00" = {
       host_node     = "pve2"
@@ -52,8 +52,7 @@ module "talos_cluster" {
       vm_id         = 103
       cpu           = 8
       disk_size     = 20
-      ram_dedicated = 20480
+      ram_dedicated = 14480
     }
   }
 }
-

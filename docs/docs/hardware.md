@@ -2,6 +2,8 @@
 sidebar_position: 2
 ---
 
+What is in the rack?
+
 ### Network
 
 1. `Router`: [Dream Machine Pro](https://store.ui.com/us/en/category/cloud-gateways-large-scale/products/udm-pro)

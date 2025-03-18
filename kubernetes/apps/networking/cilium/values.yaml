@@ -3,7 +3,8 @@ cluster:
   id: 1
 
 kubeProxyReplacement: true
-kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+# kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+
  # Talos specific
 k8sServiceHost: localhost
 k8sServicePort: 7445
