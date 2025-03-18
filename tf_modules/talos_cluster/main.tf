@@ -67,7 +67,6 @@ resource "proxmox_virtual_environment_vm" "this" {
       mapping       = "nvidia_4070_super"
       pcie          = true
       rombar        = true
-      primary       = true
     }
   }
 }
