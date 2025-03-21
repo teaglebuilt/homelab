@@ -17,32 +17,60 @@ variable "cluster" {
     endpoint        = string
     gateway         = string
     talos_version   = string
-    proxmox_cluster = string
   })
 }
 
-variable "nodes" {
-  description = "Configuration for cluster nodes"
-  type = map(object({
-    host_node     = string
-    machine_type  = string
-    datastore_id = optional(string, "local-lvm")
-    ip            = string
-    vm_id         = number
-    cpu           = number
-    disk_size     = number
-    ram_dedicated = number
-    update = optional(bool, false)
-    igpu = optional(bool, false)
-    pci = optional(object({
+variable proxmox_host_node {
+  description = "proxmox node host dns"
+  type        = string
+}
+
+variable machine_type {
+  description = "proxmox node host dns"
+  type        = string
+}
+
+variable cpu {
+  type = string
+}
+
+variable ram_dedicated {
+  type = string
+}
+
+variable disk_size {
+  type = number
+}
+
+variable vm_id {
+  type = string
+}
+
+variable ip {
+  type = string
+}
+
+variable igpu {
+  type        = bool
+  description = "description"
+}
+
+variable pci {
+  description = "configuration for any pcie device on passthrough mode (GPU)"
+  type = optional(object({
       name         = string
       id           = string
       iommu_group  = number
       node         = string
       path         = string
       subsystem_id = string
-    }))
   }))
+}
+
+variable datastore_id {
+  type        = string
+  default     = "local-lvm"
+  description = "description"
 }
 
 variable proxmox_ssh_private_key {
