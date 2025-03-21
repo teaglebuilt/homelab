@@ -22,6 +22,8 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-01
       initContainers:
         - name: n8n-import
           image: ghcr.io/n8n-io/n8n:1.76.0

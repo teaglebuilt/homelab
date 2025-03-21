@@ -27,7 +27,7 @@ data "talos_machine_configuration" "this" {
     file("${path.module}/patches/controlplane/api-server-access.yaml"),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
-    file("${path.module}/patches/logging.yaml"),
+    file("${path.module}/patches/kubelet.yaml")
   ] : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname        = each.key
@@ -38,7 +38,7 @@ data "talos_machine_configuration" "this" {
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
-    file("${path.module}/patches/logging.yaml"),
+    file("${path.module}/patches/kubelet.yaml")
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/gpu-worker-label.yaml"),

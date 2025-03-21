@@ -10,7 +10,6 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   on_boot           = true
   started           = true
-  # stop_on_destroy   = true
 
   machine           = "q35"
   scsi_hardware     = "virtio-scsi-single"
@@ -27,7 +26,7 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   memory {
     dedicated   = each.value.ram_dedicated
-    floating    = each.value.ram_dedicated
+    floating    = each.value.ram_dedicated / 2
   }
 
   network_device {
@@ -68,5 +67,12 @@ resource "proxmox_virtual_environment_vm" "this" {
       pcie          = true
       rombar        = true
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+      description
+    ]
   }
 }

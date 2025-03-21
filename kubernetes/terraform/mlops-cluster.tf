@@ -23,9 +23,9 @@ module "talos_cluster" {
       machine_type  = "controlplane"
       ip            = var.master_node_ip
       vm_id         = 100
-      cpu           = 8
+      cpu           = 4
       disk_size     = 20
-      ram_dedicated = 8480
+      ram_dedicated = 5096
     }
     "mlops-work-00" = {
       host_node     = "pve2"
@@ -34,12 +34,12 @@ module "talos_cluster" {
       vm_id         = 102
       cpu           = 8
       disk_size     = 30
-      ram_dedicated = 20480
+      ram_dedicated = 14336 # 4096 + 10240 can combine mem when moving other nodes to pve
       igpu          = true
       pci           = {
         id = "10de:2783"
         name = "nvidia_4070_super"
-        iommu_group = 20
+        iommu_group = 23
         node = "pve2"
         path = "0000:2e:00.0"
         subsystem_id = "10de:18fe"
@@ -50,9 +50,9 @@ module "talos_cluster" {
       machine_type  = "worker"
       ip            = var.worker_two_node_ip
       vm_id         = 103
-      cpu           = 8
+      cpu           = 6
       disk_size     = 20
-      ram_dedicated = 14480
+      ram_dedicated = 8120
     }
   }
 }

@@ -21,9 +21,15 @@ ollama:
       cpu: 200m
       memory: 1Gi
       nvidia.com/gpu: 1
+      # ephemeral-storage: "5Gi"
     limits:
       memory: 8Gi
       nvidia.com/gpu: 1
+      # ephemeral-storage: "10Gi"
+  service:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: ollama.homelab.local
   ollama:
     gpu:
       enabled: true
@@ -38,6 +44,8 @@ ollama:
         - nomic-embed-text
     insecure: true
 
+nodeSelector:
+  kubernetes.io/hostname: mlops-work-01
 podSecurityContext:
   fsGroupChangePolicy: Always
   fsGroup: 1001
@@ -53,7 +61,7 @@ containerSecurityContext:
 persistence:
   enabled: true
 pipelines:
-  enabled: true
+  enabled: false
   extraEnvVars:
     - name: DEBUG
       value: "true"
@@ -79,7 +87,7 @@ service:
   type: LoadBalancer
   annotations:
     external-dns.alpha.kubernetes.io/hostname: openwebui.homelab.local
-    cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
+    # cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
 
 extraEnvVars:
   - name: WEBUI_URL
