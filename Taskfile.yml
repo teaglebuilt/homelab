@@ -84,7 +84,3 @@ tasks:
     cmds:
       - echo "Starting stack [{{.STACK}}]"
       - docker compose up -d platform/{{.STACK}}
-
-  serve-docs:
-    cmds:
-      - task: docs:serve

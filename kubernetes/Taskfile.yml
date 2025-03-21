@@ -11,10 +11,10 @@ vars:
 env:
   PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
   PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
-  PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
   PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
   PROXMOX_VE_SSH_AGENT: "false"
   PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_TWO_PRIVATE_KEY}}"
+  # PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
   # TF_LOG: DEBUG
 
 tasks:
@@ -74,7 +74,7 @@ tasks:
     dir: kubernetes
     cmds:
       - task: talos:reboot-node
-  
+
   cluster-health:
     dir: kubernetes
     cmds:
@@ -84,4 +84,3 @@ tasks:
           sleep 10
         done
         echo "Kubernetes cluster is healthy!"
-  

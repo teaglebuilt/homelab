@@ -1,4 +1,4 @@
-module "talos_cluster" {
+ module "talos_cluster" {
   # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
   source = "../../tf_modules/talos_cluster"
 
@@ -19,7 +19,7 @@ module "talos_cluster" {
 
   nodes = {
     "mlops-ctrl-00" = {
-      host_node     = "pve2"
+      host_node     = "pve1"
       machine_type  = "controlplane"
       ip            = var.master_node_ip
       vm_id         = 100
@@ -46,7 +46,7 @@ module "talos_cluster" {
       }
     }
     "mlops-work-01" = {
-      host_node     = "pve2"
+      host_node     = "pve1"
       machine_type  = "worker"
       ip            = var.worker_two_node_ip
       vm_id         = 103
