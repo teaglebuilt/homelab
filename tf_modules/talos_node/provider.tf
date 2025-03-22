@@ -1,5 +1,6 @@
 provider "proxmox" {
-  endpoint = "https://{var.host_node}:8006"
+  endpoint = "https://${var.proxmox_host_node}:8006"
+  api_token = var.api_token
   ssh {
     agent       = false
     private_key = file(var.proxmox_ssh_private_key)

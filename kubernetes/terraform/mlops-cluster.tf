@@ -1,6 +1,6 @@
 
 
-module "talos_node" {
+module "mlops-ctrl-00" {
   # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
   source = "../../tf_modules/talos_node"
 
@@ -13,6 +13,8 @@ module "talos_node" {
   disk_size                       = 20
   ram_dedicated                   = 8096
   igpu                            = false
+
+  api_token                       = var.proxmox_node_one_api_token
   proxmox_ssh_private_key         = var.proxmox_ssh_private_key
 
   image = {
@@ -28,7 +30,7 @@ module "talos_node" {
   }
 }
 
-module "talos_node" {
+module "mlops-work-00" {
   # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
   source = "../../tf_modules/talos_node"
 
@@ -49,6 +51,7 @@ module "talos_node" {
     path = "0000:2e:00.0"
     subsystem_id = "10de:18fe"
   }
+  api_token                       = var.proxmox_node_two_api_token
   proxmox_ssh_private_key         = var.proxmox_ssh_private_key
 
   image = {
@@ -64,7 +67,7 @@ module "talos_node" {
   }
 }
 
-module "talos_node" {
+module "mlops-work-01" {
   # source = "git::https://github.com/teaglebuilt/homelab.git//tf_modules/talos_cluster?ref=main"
   source = "../../tf_modules/talos_node"
 
@@ -77,6 +80,8 @@ module "talos_node" {
   disk_size                       = 20
   ram_dedicated                   = 10120
   igpu                            = false
+
+  api_token                       = var.proxmox_node_one_api_token
   proxmox_ssh_private_key         = var.proxmox_ssh_private_key
 
   image = {

@@ -30,6 +30,8 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var proxmox_node_one_api_token=${PROXMOX_NODE_ONE_API_TOKEN} \
+          -var proxmox_node_two_api_token=${PROXMOX_NODE_TWO_API_TOKEN} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
       - |-
         {{.TERRAFORM}} apply -auto-approve \
@@ -38,6 +40,8 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var proxmox_node_one_api_token=${PROXMOX_NODE_ONE_API_TOKEN} \
+          -var proxmox_node_two_api_token=${PROXMOX_NODE_TWO_API_TOKEN} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
   destroy-cluster:
@@ -52,6 +56,8 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var proxmox_node_one_api_token=${PROXMOX_NODE_ONE_API_TOKEN} \
+          -var proxmox_node_two_api_token=${PROXMOX_NODE_TWO_API_TOKEN} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
 
   bootstrap-cluster:

@@ -5,7 +5,7 @@ resource "talos_machine_secrets" "machine_secrets" {
 data "talos_client_configuration" "machine_client_configuration" {
   cluster_name         = var.cluster.name
   client_configuration = talos_machine_secrets.machine_secrets.client_configuration
-  endpoints            = [var.ip if var.machine_type == "controlplane"]
+  endpoints            = var.machine_type == "controlplane" ? [var.ip] : []
 }
 
 data "talos_machine_configuration" "machine_config" {
@@ -19,7 +19,7 @@ data "talos_machine_configuration" "machine_config" {
       hostname        = var.node_name
       node_name       = var.proxmox_host_node
       node_ip         = var.ip
-      cluster_name    = var.cluster.proxmox_cluster
+      cluster_name    = var.cluster.name
       network_gateway = var.cluster.gateway
     }),
     file("${path.module}/patches/controlplane/api-server-access.yaml"),
@@ -31,7 +31,7 @@ data "talos_machine_configuration" "machine_config" {
       hostname        = var.node_name
       node_name       = var.proxmox_host_node
       node_ip         = var.ip
-      cluster_name    = var.cluster.proxmox_cluster
+      cluster_name    = var.cluster.name
       network_gateway = var.cluster.gateway
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
@@ -49,7 +49,7 @@ resource "talos_machine_configuration_apply" "this" {
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.machine_config.machine_configuration
   lifecycle {
-    replace_triggered_by = [proxmox_virtual_environment_vm.this[each.key]]
+    replace_triggered_by = [proxmox_virtual_environment_vm.this]
   }
 }
 

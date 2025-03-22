@@ -28,3 +28,13 @@ variable proxmox_ssh_private_key {
   description = "Path to the SSH private key file"
   type        = string
 }
+
+variable proxmox_node_one_api_token {
+  description = "api token for proxmox node one"
+  type        = string
+}
+
+variable proxmox_node_two_api_token {
+  description = "api token for proxmox node two"
+  type        = string
+}

@@ -60,16 +60,17 @@ variable igpu {
   description = "description"
 }
 
-variable pci {
-  description = "configuration for any pcie device on passthrough mode (GPU)"
-  type = optional(object({
-      name         = string
-      id           = string
-      iommu_group  = number
-      node         = string
-      path         = string
-      subsystem_id = string
-  }))
+variable "pci" {
+  description = "Configuration for any PCIe device in passthrough mode (GPU)"
+  type = object({
+    name         = string
+    id           = string
+    iommu_group  = number
+    node         = string
+    path         = string
+    subsystem_id = string
+  })
+  default = null
 }
 
 variable datastore_id {
@@ -81,4 +82,8 @@ variable datastore_id {
 variable proxmox_ssh_private_key {
   description = "Path to the SSH private key file"
   type        = string
+}
+
+variable api_token {
+  type = string
 }
