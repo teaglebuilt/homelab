@@ -20,6 +20,11 @@ variable "cluster" {
   })
 }
 
+variable node_name {
+  description = "proxmox node host dns"
+  type        = string
+}
+
 variable proxmox_host_node {
   description = "proxmox node host dns"
   type        = string
