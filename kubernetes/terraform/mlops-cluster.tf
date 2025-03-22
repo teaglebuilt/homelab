@@ -8,7 +8,7 @@ module "mlops-ctrl-00" {
   machine_type                    = "controlplane"
   proxmox_host_node               = "pve1"
   ip                              = var.master_node_ip
-  vm_id                           = 100
+  vm_id                           = 200
   cpu                             = 4
   disk_size                       = 20
   ram_dedicated                   = 8096
@@ -38,7 +38,7 @@ module "mlops-work-00" {
   machine_type                    = "worker"
   proxmox_host_node               = "pve2"
   ip                              = var.worker_one_node_ip
-  vm_id                           = 102
+  vm_id                           = 202
   cpu                             = 8
   disk_size                       = 30
   ram_dedicated                   = 24336
@@ -75,7 +75,7 @@ module "mlops-work-01" {
   machine_type                    = "worker"
   proxmox_host_node               = "pve1"
   ip                              = var.worker_two_node_ip
-  vm_id                           = 103
+  vm_id                           = 203
   cpu                             = 8
   disk_size                       = 20
   ram_dedicated                   = 10120

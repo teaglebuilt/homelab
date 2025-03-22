@@ -6,6 +6,7 @@ data "talos_client_configuration" "machine_client_configuration" {
   cluster_name         = var.cluster.name
   client_configuration = talos_machine_secrets.machine_secrets.client_configuration
   endpoints            = var.machine_type == "controlplane" ? [var.ip] : []
+  nodes                = var.machine_type == "controlplane" ? [var.ip] : [] # do we need other nodes here?
 }
 
 data "talos_machine_configuration" "machine_config" {
