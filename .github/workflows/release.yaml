@@ -55,7 +55,7 @@ jobs:
         run: npm --prefix docs install
       - name: Version Docs
         run: npm --prefix docs run docusaurus docs:version ${{ github.event.inputs.version }}
-      - name: Build website
+      - name: Build Docs
         run: npm --prefix docs run build
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
