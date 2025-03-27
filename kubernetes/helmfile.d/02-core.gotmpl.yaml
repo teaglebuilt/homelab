@@ -34,3 +34,9 @@ releases:
           - -c
           - |
             kustomize build ../apps/security/cert-manager | kubectl apply -f -
+
+  - name: homelab-gateway
+    chart: ../charts/homelab-gateway
+    needs:
+      - external-dns/external-dns
+      - cert-manager/cert-manager

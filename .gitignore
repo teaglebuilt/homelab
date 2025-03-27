@@ -24,4 +24,4 @@ env
 terraform.tfvars
 .task
 generated
-**/charts
+**/k8s/charts

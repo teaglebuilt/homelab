@@ -10,4 +10,4 @@ spec:
   backendRef:
     name: open-webui-ollama
     kind: Service
-    port: 80
+    port: 11434
