@@ -1,0 +1,30 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ai-platform-gateway
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
+spec:
+  gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      io.cilium/lb-ipam-ips: 192.168.2.220
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: All
+  # - name: https-gateway
+  #   hostname: "*.homelab.local"
+  #   protocol: HTTPS
+  #   port: 443
+  #   tls:
+  #     certificateRefs:
+  #     - kind: Secret
+  #       name: homelab-tls
+  #   allowedRoutes:
+  #     namespaces:
+  #       from: All

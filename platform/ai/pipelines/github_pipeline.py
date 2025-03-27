@@ -85,7 +85,7 @@ class Pipeline:
 
         print(messages)
         print(user_message)
-
+        print(model_id, "model_id")
         query_engine = self.index.as_query_engine(streaming=True)
         response = query_engine.query(user_message)
 

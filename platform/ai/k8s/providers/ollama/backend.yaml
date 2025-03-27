@@ -1,0 +1,13 @@
+---
+apiVersion: aigateway.envoyproxy.io/v1alpha1
+kind: AIServiceBackend
+metadata:
+  name: ollama-backend
+  namespace: ai
+spec:
+  schema:
+    name: OpenAI
+  backendRef:
+    name: open-webui-ollama
+    kind: Service
+    port: 80
