@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck shell=bash disable=2128
 
 # Variables
 NAMESPACE="kube-system"

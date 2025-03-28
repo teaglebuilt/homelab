@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Homelab</h1>
-  <img src="https://github.com/teaglebuilt/homelab/actions/workflows/deploy-release.yaml/badge.svg">
+  <img src="https://github.com/teaglebuilt/homelab/actions/workflows/release.yaml/badge.svg">
 </div>
 
 <div align="center">

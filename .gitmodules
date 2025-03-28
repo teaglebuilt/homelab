@@ -1,0 +1,6 @@
+[submodule "platform_ai"]
+  path = platform/ai
+  url = https://github.com/teaglebuilt/platform_ai.git
+# [submodule "platform_automation"]
+#   path = platform/automation
+#   url = https://github.com/teaglebuilt/platform_automation.git

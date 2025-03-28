@@ -26,10 +26,10 @@ ollama:
       memory: 8Gi
       nvidia.com/gpu: 1
       # ephemeral-storage: "10Gi"
-  service:
-    type: LoadBalancer
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: ollama.homelab.local
+  # service:
+  #   type: LoadBalancer
+  #   annotations:
+  #     external-dns.alpha.kubernetes.io/hostname: ollama.homelab.local
   ollama:
     gpu:
       enabled: true
@@ -87,7 +87,6 @@ service:
   type: LoadBalancer
   annotations:
     external-dns.alpha.kubernetes.io/hostname: openwebui.homelab.local
-    # cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
 
 extraEnvVars:
   - name: WEBUI_URL
