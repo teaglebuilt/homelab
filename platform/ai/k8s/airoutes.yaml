@@ -8,7 +8,7 @@ spec:
   schema:
     name: OpenAI
   targetRefs:
-  - name: ai-platform-gateway
+  - name: homelab-gateway
     kind: Gateway
     group: gateway.networking.k8s.io
   rules:
