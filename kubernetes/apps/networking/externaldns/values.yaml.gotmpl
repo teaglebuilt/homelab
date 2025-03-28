@@ -37,3 +37,5 @@ sources: ["ingress", "service", "gateway-httproute"]
 txtOwnerId: default
 txtPrefix: k8s.
 domainFilters: ["local"]
+nodeSelector:
+  kubernetes.io/hostname: mlops-work-01

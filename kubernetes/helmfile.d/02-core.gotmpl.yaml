@@ -26,6 +26,14 @@ releases:
     values:
       - crds:
           enabled: true
+        nodeSelector:
+          kubernetes.io/hostname: mlops-work-01
+        cainjector:
+          nodeSelector:
+            kubernetes.io/hostname: mlops-work-01
+        webhook:
+          nodeSelector:
+            kubernetes.io/hostname: mlops-work-01
     hooks:
       - events: ["postsync"]
         showlogs: true

@@ -3,12 +3,18 @@
   hosts: proxmox
   become: true
   tasks:
+    # 3. Identify GPU PCI IDs
+    - name: Get GPU PCI IDs
+      command: lspci -nn | grep NVIDIA
+      register: gpu_pci_ids
+      changed_when: false
+
     # 1. Enable IOMMU in GRUB
     - name: Ensure IOMMU is enabled in GRUB
       lineinfile:
         path: /etc/default/grub
         regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
-        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"'
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction video=efifb:off ids={{ gpu_pci_ids.stdout_lines | map('regex_search', '([0-9a-f]{4}:[0-9a-f]{4})') | select('defined') | join(",") }}"'
       notify:
         - Update GRUB
 
@@ -21,22 +27,16 @@
           blacklist nvidia
 
     - name: Update initramfs
-      command: update-initramfs -u
+      command: update-initramfs -u -k all
       notify:
         - Reboot Host
-
-    # 3. Identify GPU PCI IDs
-    - name: Get GPU PCI IDs
-      command: lspci -nn | grep NVIDIA
-      register: gpu_pci_ids
-      changed_when: false
 
     # 4. Configure vfio-pci for GPU
     - name: Configure vfio-pci with GPU PCI IDs
       copy:
         dest: /etc/modprobe.d/vfio.conf
         content: |
-          options vfio-pci ids={{ gpu_pci_ids.stdout_lines | map('regex_search', '([0-9a-f]{4}:[0-9a-f]{4})') | select('defined') | join(",") }}
+          options vfio-pci ids={{ gpu_pci_ids.stdout_lines | map('regex_search', '([0-9a-f]{4}:[0-9a-f]{4})') | select('defined') | join(",") }} disable_vga=1
       notify:
         - Update Initramfs
 
@@ -45,19 +45,12 @@
       command: find /sys/kernel/iommu_groups/ -type l
       register: iommu_groups
       changed_when: false
-
-    # 6. Configure VM for GPU passthrough
-    - name: Add GPU passthrough to VM configuration
-      lineinfile:
-        path: /etc/pve/qemu-server/{{ vm_id }}.conf
-        line: "hostpci0: {{ gpu_pci_ids.stdout_lines | map('regex_search', '^[0-9a-f:.]+') | first }},pcie=1"
-
   handlers:
     - name: Update GRUB
       command: update-grub
 
     - name: Update Initramfs
-      command: update-initramfs -u
+      command: update-initramfs -u -k all
 
     - name: Reboot Host
       reboot:

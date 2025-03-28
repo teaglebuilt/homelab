@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,12 +6,16 @@ metadata:
   namespace: automation
   annotations:
     external-dns.alpha.kubernetes.io/hostname: n8n.homelab.local
-    cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
 spec:
   type: LoadBalancer
   selector:
     app: n8n
   ports:
-  - port: 5678
-    targetPort: 5678
-    protocol: TCP
+    - port: 80
+      name: http
+      protocol: TCP
+      targetPort: 5678
+    - port: 443
+      name: https
+      protocol: TCP
+      targetPort: 5678

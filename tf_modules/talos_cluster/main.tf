@@ -26,7 +26,7 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   memory {
     dedicated   = each.value.ram_dedicated
-    floating    = each.value.ram_dedicated
+    floating    = each.value.ram_dedicated / 2
   }
 
   network_device {
@@ -67,5 +67,12 @@ resource "proxmox_virtual_environment_vm" "this" {
       pcie          = true
       rombar        = true
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+      description
+    ]
   }
 }

@@ -2,6 +2,8 @@
 sidebar_position: 2
 ---
 
+![Rack](https://raw.githubusercontent.com/teaglebuilt/homelab/main/docs/static/img/rack.jpg)
+
 What is in the rack?
 
 ### Network

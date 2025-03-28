@@ -1,8 +1,8 @@
 ---
 area/bootstrap:
   - changed-files:
-      - any-glob-to-any-file: */.taskfiles/**/*
-      - any-glob-to-any-file: Taskfile*
+      - any-glob-to-any-file: '**/.taskfiles/*'
+      - any-glob-to-any-file: '**/Taskfile.yaml'
 area/platform:
   - changed-files:
       - any-glob-to-any-file: platform/**/*

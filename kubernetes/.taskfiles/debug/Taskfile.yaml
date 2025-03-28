@@ -15,3 +15,7 @@ tasks:
   check-hosts:
     cmds:
       - kubectl exec debug -- cat /etc/hosts | tail -1
+
+  check-gpu:
+    cmds:
+      - talosctl get extensions -n {{.NODE}}
