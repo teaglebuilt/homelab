@@ -19,6 +19,6 @@ resource "proxmox_virtual_environment_hardware_mapping_pci" "pci" {
   mediated_devices = false
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
