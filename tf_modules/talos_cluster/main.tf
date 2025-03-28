@@ -10,7 +10,6 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   on_boot           = true
   started           = true
-  # stop_on_destroy   = true
 
   machine           = "q35"
   scsi_hardware     = "virtio-scsi-single"
@@ -67,7 +66,6 @@ resource "proxmox_virtual_environment_vm" "this" {
       mapping       = "nvidia_4070_super"
       pcie          = true
       rombar        = true
-      primary       = true
     }
   }
 }

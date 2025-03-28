@@ -1,15 +1,9 @@
-data "proxmox_virtual_environment_hardware_mapping_pci" "existing" {
-  for_each = { for k, v in var.nodes : k => v if v.pci != null }
-  name     = each.value.pci.name
-}
-
 resource "proxmox_virtual_environment_hardware_mapping_pci" "pci" {
-  for_each = { 
-    for k, v in var.nodes : k => v 
-    if v.pci != null && 
-    try(data.proxmox_virtual_environment_hardware_mapping_pci.existing[k].name, "") == ""
+  for_each = {
+    for k, v in var.nodes : k => v
+    if v.pci != null
   }
-  
+
   comment  = each.value.pci.name
   name     = each.value.pci.name
   map = [

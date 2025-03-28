@@ -25,3 +25,4 @@ terraform.tfvars
 .task
 generated
 **/k8s/charts
+kubernetes/apps/**/charts
