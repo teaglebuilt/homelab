@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: kube-system
 resources:
   - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
-  - https://github.com/envoyproxy/gateway/tree/main/charts/gateway-helm/crds/generated/gateway.envoyproxy.io_httproutefilters.yaml
+  - https://github.com/envoyproxy/gateway/releases/download/v1.2.8/install.yaml
   - ip-pool.yaml
   - announcement.yaml
   - gatewayclass.yaml
