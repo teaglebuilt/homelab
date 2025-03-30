@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: kube-system
 resources:
   - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
+  - https://github.com/envoyproxy/gateway/tree/main/charts/gateway-helm/crds/generated/gateway.envoyproxy.io_httproutefilters.yaml
   - ip-pool.yaml
   - announcement.yaml
   - gatewayclass.yaml
@@ -11,6 +12,11 @@ helmCharts:
   - name: ai-gateway-helm
     repo: oci://docker.io/envoyproxy
     version: v0.0.0-latest
-    namespace: ai
+    namespace: kube-system
     releaseName: ai-gateway
     includeCRDs: true
+    valuesInline:
+      controller:
+        serviceAccount:
+          create: true
+          name: ai-gateway-controller

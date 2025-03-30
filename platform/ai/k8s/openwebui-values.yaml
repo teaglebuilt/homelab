@@ -26,10 +26,6 @@ ollama:
       memory: 8Gi
       nvidia.com/gpu: 1
       # ephemeral-storage: "10Gi"
-  # service:
-  #   type: LoadBalancer
-  #   annotations:
-  #     external-dns.alpha.kubernetes.io/hostname: ollama.homelab.local
   ollama:
     gpu:
       enabled: true
@@ -83,14 +79,10 @@ pipelines:
           key: github_token
 
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
-service:
-  type: LoadBalancer
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: openwebui.homelab.local
 
 extraEnvVars:
   - name: WEBUI_URL
-    value: https://openwebui.homelab.local
+    value: http://openwebui.homelab.local
   - name: K8S_FLAG
     value: "true"
   - name: OLLAMA_HOST

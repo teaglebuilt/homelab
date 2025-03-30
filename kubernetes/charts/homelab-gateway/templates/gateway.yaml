@@ -4,6 +4,8 @@ kind: Gateway
 metadata:
   name: homelab-gateway
   namespace: kube-system
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: homelab.local
 spec:
   gatewayClassName: cilium
   listeners:

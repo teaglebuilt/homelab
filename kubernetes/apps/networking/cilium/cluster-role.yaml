@@ -1,0 +1,20 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ai-gateway-controller
+rules:
+  - apiGroups: ["gateway.envoyproxy.io"]
+    resources: [
+      "aiservicebackends",
+      "aigatewayroutes",
+      "backendsecuritypolicies",
+      "gateways",
+      "httproutes",
+      "gatewayclasses",
+      "tlsroutes"
+    ]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["aigateway.envoyproxy.io"]
+    resources: ["aiservicebackends", "aigatewayroutes", "backendsecuritypolicies"]
+    verbs: ["get", "list", "watch"]
