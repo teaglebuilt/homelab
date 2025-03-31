@@ -16,15 +16,15 @@ ollama:
     readOnlyRootFilesystem: false
     capabilities: { drop: ["ALL"] }
     seccompProfile: { type: RuntimeDefault }
-  ingress:
-    enabled: true
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: ollama.homelab.local
-    hosts:
-      - host: ollama.homelab.local
-        paths:
-          - path: /
-            pathType: Prefix
+  # ingress:
+  #   enabled: true
+  #   annotations:
+  #     external-dns.alpha.kubernetes.io/hostname: ollama.homelab.local
+  #   hosts:
+  #     - host: ollama.homelab.local
+  #       paths:
+  #         - path: /
+  #           pathType: Prefix
   resources:
     requests:
       cpu: 200m

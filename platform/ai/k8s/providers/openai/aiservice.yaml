@@ -1,0 +1,17 @@
+---
+apiVersion: aigateway.envoyproxy.io/v1alpha1
+kind: AIServiceBackend
+metadata:
+  name: openai-backend-service
+  namespace: ai
+spec:
+  schema:
+    name: OpenAI
+  backendRef:
+    name: openai-backend
+    kind: Backend
+    group: gateway.envoyproxy.io
+  backendSecurityPolicyRef:
+    name: openai-apikey
+    kind: BackendSecurityPolicy
+    group: aigateway.envoyproxy.io

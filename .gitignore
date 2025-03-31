@@ -26,3 +26,4 @@ terraform.tfvars
 generated
 **/k8s/charts
 kubernetes/apps/**/charts
+kubernetes/charts/homelab-gateway/charts

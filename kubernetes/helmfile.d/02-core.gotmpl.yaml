@@ -45,6 +45,7 @@ releases:
 
   - name: homelab-gateway
     chart: ../charts/homelab-gateway
+    namespace: kube-system
     needs:
       - external-dns/external-dns
       - cert-manager/cert-manager

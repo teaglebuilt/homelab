@@ -4,7 +4,8 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - providers
-  - httproutes.yaml
+  - openwebui-httproute.yaml
+  - ollama-httproute.yaml
   - airoutes.yaml
 
 helmCharts:
