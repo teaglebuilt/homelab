@@ -13,10 +13,10 @@ spec:
     group: gateway.networking.k8s.io
   rules:
   - matches:
-    - headers:
-      - type: Exact
-        name: x-ai-eg-model
-        value: llama3:latest
+    # - headers:
+    #   - type: Exact
+    #     name: x-ai-eg-model
+    #     value: llama3:latest
     backendRefs:
     - name: ollama-backend-service
   # - matches:

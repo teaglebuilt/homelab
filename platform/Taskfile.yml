@@ -6,6 +6,8 @@ includes:
     taskfile: ai/Taskfile.yml
   automation:
     taskfile: automation/Taskfile.yml
+  observability:
+    taskfile: observability/Taskfile.yml
 
 tasks:
   deploy:
@@ -14,6 +16,7 @@ tasks:
     cmds:
       - task: ai:deploy
       - task: automation:deploy
+      - task: observability:deploy
 
   destroy:
     dir: platform
@@ -21,3 +24,4 @@ tasks:
     cmds:
       - task: ai:destroy
       - task: automation:destroy
+      - task: observability:destroy

@@ -1,0 +1,10 @@
+apiVersion: v2
+appVersion: 1.12.2
+description: A Helm chart for OpenLIT
+icon: https://avatars.githubusercontent.com/u/149867240?s=200&v=4
+maintainers:
+- email: patcher9@openlit.io
+  name: patcher9
+name: openlit
+type: application
+version: 1.12.2
