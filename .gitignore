@@ -27,3 +27,4 @@ generated
 **/k8s/charts
 kubernetes/apps/**/charts
 kubernetes/charts/homelab-gateway/charts
+platform/observability/k8s/tracing/charts
