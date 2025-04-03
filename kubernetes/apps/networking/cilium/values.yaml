@@ -67,16 +67,29 @@ loadBalancer:
   algorithm: maglev
 
 gatewayAPI:
-  enabled: true
+  enabled: false
 
-envoy:
-  securityContext:
-    capabilities:
-      keepCapNetBindService: true
-      envoy: [ NET_ADMIN, PERFMON, BPF ]
+# envoy:
+#   securityContext:
+#     capabilities:
+#       keepCapNetBindService: true
+#       envoy: [ NET_ADMIN, PERFMON, BPF ]
+
+bandwidthManager:
+  enabled: true
 
 hubble:
   enabled: true
+  metrics:
+    enabled:
+      - dns:query
+      - drop
+      - tcp
+      - flow
+      - icmp
+      - http
+    serviceMonitor:
+      enabled: true
   relay:
     enabled: true
     rollOutPods: true

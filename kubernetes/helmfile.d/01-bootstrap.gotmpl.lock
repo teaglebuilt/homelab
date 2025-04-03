@@ -2,9 +2,9 @@ version: v0.170.0
 dependencies:
 - name: cilium
   repository: https://helm.cilium.io
-  version: 1.16.5
+  version: 1.17.2
 - name: coredns
   repository: https://coredns.github.io/helm
   version: 1.37.3
-digest: sha256:c3a4e4ac148b00300a187925a20abeb172ecaf87672a2c20902ad14b59269eb5
-generated: "2025-03-20T15:54:50.395905-04:00"
+digest: sha256:59a9f80531ec3f8279f7ac5580b808b76e7db37d14b0f8d5c9d9650361449756
+generated: "2025-04-02T16:58:46.522807-04:00"

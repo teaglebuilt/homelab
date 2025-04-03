@@ -1,0 +1,6 @@
+---
+gateway-helm:
+  config:
+    envoyGateway:
+      extensionApis:
+        enableBackend: true

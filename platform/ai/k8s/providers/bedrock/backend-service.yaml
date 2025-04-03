@@ -1,0 +1,17 @@
+---
+apiVersion: aigateway.envoyproxy.io/v1alpha1
+kind: AIServiceBackend
+metadata:
+  name: aws-bedrock-service
+  namespace: ai
+spec:
+  schema:
+    name: AWSBedrock
+  backendRef:
+    name: aws-bedrock-backend
+    kind: Backend
+    group: gateway.envoyproxy.io
+  backendSecurityPolicyRef:
+    name: aws-bedrock-backend-security-policy
+    kind: BackendSecurityPolicy
+    group: aigateway.envoyproxy.io
