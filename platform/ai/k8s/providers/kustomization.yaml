@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ollama
   - openai
+  - bedrock

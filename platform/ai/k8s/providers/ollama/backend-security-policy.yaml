@@ -2,7 +2,7 @@
 apiVersion: aigateway.envoyproxy.io/v1alpha1
 kind: BackendSecurityPolicy
 metadata:
-  name: ollama-backend-apikey
+  name: ollama-backend-security-policy
   namespace: ai
 spec:
   type: APIKey

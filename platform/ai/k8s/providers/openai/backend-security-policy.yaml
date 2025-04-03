@@ -2,7 +2,7 @@
 apiVersion: aigateway.envoyproxy.io/v1alpha1
 kind: BackendSecurityPolicy
 metadata:
-  name: openai-apikey
+  name: openai-backend-security-policy
   namespace: ai
 spec:
   type: APIKey

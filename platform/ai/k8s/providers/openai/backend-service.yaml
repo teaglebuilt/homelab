@@ -12,6 +12,6 @@ spec:
     kind: Backend
     group: gateway.envoyproxy.io
   backendSecurityPolicyRef:
-    name: openai-apikey
+    name: openai-backend-security-policy
     kind: BackendSecurityPolicy
     group: aigateway.envoyproxy.io
