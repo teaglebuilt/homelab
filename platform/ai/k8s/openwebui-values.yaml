@@ -80,9 +80,12 @@ pipelines:
 
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
 
+service:
+  port: 443
+
 extraEnvVars:
   - name: WEBUI_URL
-    value: http://openwebui.homelab.local
+    value: https://openwebui.homelab.internal
   - name: K8S_FLAG
     value: "true"
   - name: OLLAMA_HOST

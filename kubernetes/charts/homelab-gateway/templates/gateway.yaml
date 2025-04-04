@@ -4,14 +4,18 @@ kind: Gateway
 metadata:
   name: homelab-gateway
   namespace: kube-system
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: homelab.internal
 spec:
   gatewayClassName: envoy
   listeners:
-  - name: http
-    protocol: HTTP
-    port: 80
+  - name: https
+    port: 443
+    protocol: HTTPS
+    hostname: "*.homelab.internal"
+    tls:
+      certificateRefs:
+      - kind: Secret
+        group: ""
+        name: homelab-tls
     allowedRoutes:
       namespaces:
         from: All
