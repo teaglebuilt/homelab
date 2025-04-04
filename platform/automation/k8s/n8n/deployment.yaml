@@ -67,7 +67,7 @@ spec:
             - name: N8N_SECURE_COOKIE
               value: "false"
             - name: N8N_HOST
-              value: n8n.homelab.local
+              value: n8n.homelab.internal
             - name: N8N_PROTOCOL
               value: https
             - name: N8N_SSL_CERT

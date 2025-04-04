@@ -5,13 +5,13 @@ metadata:
   name: hubble-ui-route
   namespace: kube-system
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "hubble.homelab.local"
+    external-dns.alpha.kubernetes.io/hostname: hubble.homelab.internal
 spec:
   parentRefs:
   - name: homelab-gateway
     namespace: kube-system
   hostnames:
-    - "hubble.homelab.local"
+    - hubble.homelab.internal
   rules:
   - matches:
     - path:

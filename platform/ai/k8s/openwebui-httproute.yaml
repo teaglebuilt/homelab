@@ -5,13 +5,13 @@ metadata:
   name: open-webui-route
   namespace: ai
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "openwebui.homelab.local"
+    external-dns.alpha.kubernetes.io/hostname: openwebui.homelab.internal
 spec:
   parentRefs:
   - name: homelab-gateway
     namespace: kube-system
   hostnames:
-    - "openwebui.homelab.local"
+    - openwebui.homelab.internal
   rules:
   - matches:
     - path:

@@ -3,9 +3,9 @@ feeds:
   - name: "reddit"
     route: "reddit"
   - name: "Hacker News"
-    url: "https://rsshub.local:1200/hackernews/frontpage"
+    url: "https://${DOMAIN}:1200/hackernews/frontpage"
     actions:
       - type: webhook
-        endpoint: "https://myapp.local/webhook"
+        endpoint: "https://myapp.${DOMAIN}/webhook"
       - type: slack
         webhook_url: "https://hooks.slack.com/services/YOUR_SLACK_WEBHOOK"

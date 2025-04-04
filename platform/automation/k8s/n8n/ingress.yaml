@@ -7,7 +7,7 @@ metadata:
     cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
 spec:
   rules:
-  - host: n8n.homelab.local
+  - host: n8n.homelab.internal
     http:
       paths:
       - path: /
@@ -19,5 +19,5 @@ spec:
               number: 443
   tls:
   - hosts:
-      - n8n.homelab.local
+      - n8n.homelab.internal
     secretName: n8n-tls

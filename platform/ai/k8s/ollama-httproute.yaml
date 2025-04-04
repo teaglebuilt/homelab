@@ -5,13 +5,13 @@ metadata:
   name: ollama-http-route
   namespace: ai
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "ollama.homelab.local"
+    external-dns.alpha.kubernetes.io/hostname: "ollama.homelab.internal"
 spec:
   parentRefs:
   - name: homelab-gateway
     namespace: kube-system
   hostnames:
-    - "ollama.homelab.local"
+    - "ollama.homelab.internal"
   rules:
   - matches:
     - path:

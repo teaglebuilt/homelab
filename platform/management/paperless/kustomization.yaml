@@ -11,6 +11,6 @@ helmCharts:
       env:
         TZ: America/NewYork
         PAPERLESS_CONSUMER_POLLING: "60"
-        PAPERLESS_URL: https://document.homelab.local
+        PAPERLESS_URL: https://document.homelab.internal
         # Required in order to import signed documents
         PAPERLESS_OCR_USER_ARGS: '{"invalidate_digital_signatures": true}'
