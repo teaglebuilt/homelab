@@ -1,0 +1,4 @@
+---
+machine:
+  nodeLabels:
+    kwasm.sh/kwasm-node: "true"

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: default-resource-quotas
+  namespace: ai
+spec:
+  hard:
+    limits.cpu: "2"
+    limits.memory: 8Gi
+    limits.ephemeral-storage: 2Gi
+    requests.cpu: "1"
+    requests.memory: 4Gi
+    requests.ephemeral-storage: 1Gi
