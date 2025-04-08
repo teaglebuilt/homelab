@@ -7,8 +7,8 @@ repositories:
     url: https://helm.cilium.io
   - name: coredns
     url: https://coredns.github.io/helm
-  - name: csi-driver-nfs
-    url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+  # - name: csi-driver-nfs
+  #   url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
 
 releases:
   - name: prometheus-operator-crds
@@ -45,10 +45,10 @@ releases:
     needs:
       - kube-system/cilium
 
-  - name: csi-driver-nfs
-    namespace: kube-system
-    chart: csi-driver-nfs/csi-driver-nfs
-    version: 4.11.0
+  # - name: csi-driver-nfs
+  #   namespace: kube-system
+  #   chart: csi-driver-nfs/csi-driver-nfs
+  #   version: 4.11.0
     # hooks:
     #   - events: ["postsync"]
     #     showlogs: true

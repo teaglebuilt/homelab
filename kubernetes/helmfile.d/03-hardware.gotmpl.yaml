@@ -44,6 +44,27 @@ releases:
   - name: dcgm-exporter
     chart: gpu-helm-charts/dcgm-exporter
     namespace: kube-system
+    values:
+      - nodeSelector:
+          nvidia.com/gpu.present: 'true'
+        serviceMonitor:
+          enabled: true
+        service:
+          enable: true
+          type: LoadBalancer
+          annotations:
+            external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
+        extraEnv:
+          - name: DCGM_EXPORTER_COLLECTORS
+            value: /etc/dcgm-exporter/dcp-metrics-included.csv
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: all
+          - name: NVIDIA_MIG_CONFIG_DEVICES
+            value: all
+          - name: NVIDIA_MIG_MONITOR_DEVICES
+            value: all
+          - name: NVIDIA_DRIVER_CAPABILITIES
+            value: all
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator

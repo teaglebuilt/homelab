@@ -13,10 +13,17 @@ spec:
   hostnames:
     - hubble.homelab.internal
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: "/"
-    backendRefs:
-    - name: hubble-ui
-      port: 80
+    - matches:
+      - path:
+          type: PathPrefix
+          value: "/"
+      backendRefs:
+      - name: hubble-ui
+        port: 80
+    - matches:
+      - path:
+          type: PathPrefix
+          value: "/metrics"
+      backendRefs:
+      - name: hubble-metrics
+        port: 9965
