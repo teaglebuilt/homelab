@@ -6,6 +6,8 @@ shopt: [globstar]
 includes:
   kubernetes:
     taskfile: kubernetes/Taskfile.yml
+  containers:
+    taskfile: containers/Taskfile.yml
   platform:
     taskfile: platform/Taskfile.yml
   docs:
@@ -38,44 +40,6 @@ tasks:
       - task: kubernetes:test-cluster
       - task: platform:deploy
       - kubectl rollout restart deployment reflector -n kube-system
-
-  deploy-portainer:
-      dir: terraform
-      summary: Standup lxc container with portainer for container management
-      cmds:
-        - |-
-          tofu init --upgrade
-        - |-
-          tofu plan \
-            -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
-            -var proxmox_username=$PROXMOX_USERNAME \
-            -var proxmox_password=$PROXMOX_PASSWORD \
-            -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-            -var portainer_ip=$PORTAINER_IP \
-            -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-            -var portainer_password=$PORTAINER_PASSWORD
-        - |-
-          tofu apply -auto-approve \
-            -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
-            -var proxmox_username=$PROXMOX_USERNAME \
-            -var proxmox_password=$PROXMOX_PASSWORD \
-            -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-            -var portainer_ip=$PORTAINER_IP \
-            -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-            -var portainer_password=$PORTAINER_PASSWORD
-
-  destroy-portainer:
-      dir: terraform
-      cmds:
-        - |-
-          tofu destroy -auto-approve \
-            -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
-            -var proxmox_username=$PROXMOX_USERNAME \
-            -var proxmox_password=$PROXMOX_PASSWORD \
-            -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-            -var portainer_ip=$PORTAINER_IP \
-            -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-            -var portainer_password=$PORTAINER_PASSWORD
 
   spin-up-*:
     summary: Used for launching any platform service locally.

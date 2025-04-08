@@ -11,8 +11,8 @@ resource "proxmox_virtual_environment_file" "ubuntu_container_template" {
 resource "proxmox_virtual_environment_container" "portainer" {
   node_name = "pve"
   start_on_boot = "true"
-  unprivileged = false
-  vm_id = var.vm_id
+  unprivileged = true
+  vm_id = 105
 
   cpu {
     cores = 1
@@ -42,7 +42,7 @@ resource "proxmox_virtual_environment_container" "portainer" {
   }
 
   initialization {
-    hostname = var.hostname
+    hostname = "portainer"
     ip_config {
       ipv4 {
         address = "${var.portainer_ip}/24"
@@ -62,10 +62,10 @@ resource "proxmox_virtual_environment_container" "portainer" {
     connection {
       type        = "ssh"
       user        = "root"
-      private_key = var.proxmox_ssh_private_key
+      private_key = file(var.proxmox_ssh_private_key)
       host        = var.portainer_ip
     }
-  
+
     inline = [
       "sudo apt update && sudo apt install -y apt-transport-https ca-certificates curl software-properties-common git direnv",
       # Add Docker’s official GPG key
@@ -85,7 +85,7 @@ resource "proxmox_virtual_environment_container" "portainer" {
     connection {
       type        = "ssh"
       user        = "root"
-      private_key = var.proxmox_ssh_private_key
+      private_key = file(var.proxmox_ssh_private_key)
       host        = var.portainer_ip
     }
 

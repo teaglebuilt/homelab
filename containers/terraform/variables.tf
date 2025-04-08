@@ -3,16 +3,6 @@ variable "proxmox_server_ip" {
   type = string
 }
 
-variable "proxmox_user" {
-  description = "proxmox user"
-  type = string
-}
-
-variable "proxmox_password" {
-  description = "proxmox user password"
-  type = string
-}
-
 variable proxmox_ssh_public_key {
   description = "Path to the SSH public key file"
   type        = string
