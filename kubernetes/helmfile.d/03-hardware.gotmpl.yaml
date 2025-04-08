@@ -1,0 +1,79 @@
+---
+bases:
+  - ../defaults.yaml
+
+repositories:
+  - name: nfd
+    url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+  - name: nvidia
+    url: https://nvidia.github.io/k8s-device-plugin
+  - name: gpu-helm-charts
+    url: https://nvidia.github.io/dcgm-exporter/helm-charts
+  - name: kwasm
+    url: http://kwasm.sh/kwasm-operator/
+
+releases:
+  - name: node-feature-discovery
+    chart: nfd/node-feature-discovery
+    version: 0.17.1
+    namespace: kube-system
+
+  - name: nvidia-device-plugin
+    namespace: kube-system
+    chart: nvidia/nvidia-device-plugin
+    version: 0.16.2
+    needs:
+      - kube-system/node-feature-discovery
+    values:
+      - runtimeClassName: nvidia
+      - devicePlugin:
+          enabled: true
+        gfd:
+          enabled: true
+        nfd:
+          enabled: false
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/hardware/nvidia | kubectl apply -f -
+
+  - name: dcgm-exporter
+    chart: gpu-helm-charts/dcgm-exporter
+    namespace: kube-system
+
+  - name: kwasm-operator
+    chart: kwasm/kwasm-operator
+    version: 0.2.3
+    namespace: kube-system
+    values:
+      - kwasmOperator:
+          installerImage: ghcr.io/spinframework/containerd-shim-spin/node-installer:v0.19.0
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - -f
+          - https://github.com/spinframework/spin-operator/releases/download/v0.5.0/spin-operator.crds.yaml
+          - -f
+          - https://github.com/spinframework/spin-operator/releases/download/v0.5.0/spin-operator.runtime-class.yaml
+
+  - name: spin-operator
+    chart: oci://ghcr.io/spinframework/charts/spin-operator
+    version: 0.5.0
+    namespace: kube-system
+    needs:
+      - kube-system/kwasm-operator
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/hardware/wasm | kubectl apply -f -
