@@ -1,38 +1,4 @@
 services:
-  loki:
-    container_name: loki
-    image: grafana/loki:3.4.2
-    restart: unless-stopped
-    command: "-config.file=/etc/loki/config.yaml"
-    ports:
-      - 3100:3100
-    volumes:
-      - ./config/config.yaml:/etc/loki/config.yaml:ro
-      - data_loki:/loki:rw
-
-  influxdb2:
-    image: influxdb:2
-    ports:
-      - 8086:8086
-    environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-admin-username
-      DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/secrets/influxdb2-admin-password
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/secrets/influxdb2-admin-token
-      DOCKER_INFLUXDB_INIT_ORG: docs
-      DOCKER_INFLUXDB_INIT_BUCKET: home
-    secrets:
-      - influxdb2-admin-username
-      - influxdb2-admin-password
-      - influxdb2-admin-token
-    volumes:
-      - type: volume
-        source: influxdb2-data
-        target: /var/lib/influxdb2
-      - type: volume
-        source: influxdb2-config
-        target: /etc/influxdb2
-
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -43,18 +9,51 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=grafana
     volumes:
-      - ./grafana:/etc/grafana/provisioning/datasources
+      - ./grafana:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
 
-secrets:
-  influxdb2-admin-username:
-    file: ~/.env.influxdb2-admin-username
-  influxdb2-admin-password:
-    file: ~/.env.influxdb2-admin-password
-  influxdb2-admin-token:
-    file: ~/.env.influxdb2-admin-token
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  # loki:
+  #   container_name: loki
+  #   image: grafana/loki:3.4.2
+  #   restart: unless-stopped
+  #   command: "-config.file=/etc/loki/config.yaml"
+  #   ports:
+  #     - 3100:3100
+  #   volumes:
+  #     - ./config/config.yaml:/etc/loki/config.yaml:ro
+  #     - data_loki:/loki:rw
+
+  # influxdb2:
+  #   image: influxdb:2
+  #   ports:
+  #     - 8086:8086
+  #   environment:
+  #     DOCKER_INFLUXDB_INIT_MODE: setup
+  #     DOCKER_INFLUXDB_INIT_USERNAME_FILE: ${INFLUXDB_ADMIN_USERNAME}
+  #     DOCKER_INFLUXDB_INIT_PASSWORD_FILE: ${INFLUXDB_ADMIN_PASSWORD}
+  #     DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: ${INFLUXDB_ADMIN_TOKEN}
+  #     DOCKER_INFLUXDB_INIT_ORG: docs
+  #     DOCKER_INFLUXDB_INIT_BUCKET: home
+  #   volumes:
+  #     - type: volume
+  #       source: influxdb2-data
+  #       target: /var/lib/influxdb2
+  #     - type: volume
+  #       source: influxdb2-config
+  #       target: /etc/influxdb2
 
 volumes:
-  influxdb2-data:
-  influxdb2-config:
-  data_loki:
-    driver: local
+  grafana-data:
+  # influxdb2-data:
+  # influxdb2-config:
+  # data_loki:
+  #   driver: local

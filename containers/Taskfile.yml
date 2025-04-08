@@ -1,0 +1,44 @@
+---
+version: 3
+
+tasks:
+  deploy-portainer:
+    dir: terraform
+    summary: Standup lxc container with portainer for container management
+    env:
+      PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
+      PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_AGENT: "false"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    cmds:
+      - |-
+        tofu init --upgrade
+      - |-
+        tofu plan \
+          -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
+          -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
+          -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
+          -var portainer_ip=$PORTAINER_IP \
+          -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
+          -var portainer_password=$PORTAINER_PASSWORD
+      - |-
+        tofu apply -auto-approve \
+          -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
+          -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
+          -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
+          -var portainer_ip=$PORTAINER_IP \
+          -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
+          -var portainer_password=$PORTAINER_PASSWORD
+
+  destroy-portainer:
+    dir: terraform
+    cmds:
+      - |-
+        tofu destroy -auto-approve \
+          -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
+          -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
+          -var portainer_ip=$PORTAINER_IP \
+          -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
+          -var portainer_password=$PORTAINER_PASSWORD

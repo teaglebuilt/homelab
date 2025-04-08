@@ -1,0 +1,9 @@
+---
+manager:
+  auto_arpa: true
+  include_meta: False
+  max_workers: 5
+
+processors:
+  ownership:
+    class: octodns.processor.ownership.OwnershipProcessor
