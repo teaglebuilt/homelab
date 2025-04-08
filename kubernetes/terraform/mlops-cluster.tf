@@ -34,7 +34,7 @@ module "talos_cluster" {
       vm_id         = 102
       cpu           = 8
       disk_size     = 30
-      ram_dedicated = 14336 # 4096 + 10240 can combine mem when moving other nodes to pve
+      ram_dedicated = 10240 # 4096 + 10240 can combine mem when moving other nodes to pve
       igpu          = true
       pci           = {
         id = "10de:2783"
