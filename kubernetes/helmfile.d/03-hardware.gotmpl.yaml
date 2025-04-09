@@ -44,23 +44,25 @@ releases:
 
   - name: dcgm-exporter
     chart: gpu-helm-charts/dcgm-exporter
-    version: 4.1.0
+    namespace: kube-system
     needs:
       - kube-system/nvidia-device-plugin
     values:
       - nodeSelector:
           nvidia.com/gpu.present: 'true'
+        runtimeClassName: nvidia
+        hostNetwork: true
         resources:
           limits:
             nvidia.com/gpu: 1
         serviceMonitor:
           interval: 15s
           honorLabels: true
-        # service:
-        #   enable: true
-        #   type: LoadBalancer
-        #   annotations:
-        #     external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
+        service:
+          enable: true
+          type: LoadBalancer
+          annotations:
+            external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
         # extraEnv:
         #   - name: NVIDIA_VISIBLE_DEVICES
         #     value: all
@@ -78,6 +80,13 @@ releases:
     values:
       - kwasmOperator:
           installerImage: ghcr.io/spinframework/containerd-shim-spin/node-installer:v0.19.0
+
+  - name: spin-operator
+    chart: oci://ghcr.io/spinframework/charts/spin-operator
+    version: 0.5.0
+    namespace: kube-system
+    needs:
+      - kube-system/kwasm-operator
     hooks:
       - events: ["presync"]
         showlogs: true
@@ -88,14 +97,6 @@ releases:
           - https://github.com/spinframework/spin-operator/releases/download/v0.5.0/spin-operator.crds.yaml
           - -f
           - https://github.com/spinframework/spin-operator/releases/download/v0.5.0/spin-operator.runtime-class.yaml
-
-  - name: spin-operator
-    chart: oci://ghcr.io/spinframework/charts/spin-operator
-    version: 0.5.0
-    namespace: kube-system
-    needs:
-      - kube-system/kwasm-operator
-    hooks:
       - events: ["postsync"]
         showlogs: true
         command: "bash"
