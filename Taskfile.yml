@@ -39,7 +39,6 @@ tasks:
       - task: kubernetes:sync-cluster
       - task: kubernetes:test-cluster
       - task: platform:deploy
-      - kubectl rollout restart deployment reflector -n kube-system
 
   spin-up-*:
     summary: Used for launching any platform service locally.

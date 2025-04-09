@@ -14,6 +14,7 @@ tasks:
     cmds:
       - task: ai:deploy
       - task: automation:deploy
+      - kubectl rollout restart deployment reflector -n kube-system
 
   destroy:
     dir: platform
