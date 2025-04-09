@@ -26,6 +26,15 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
+  llm_cost_evaluator:
+    image: teaglebuilt/llm_cost_evaluator:v1.0.0
+    container_name: llm_cost_evaluator
+    restart: unless-stopped
+    env:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - 9943:9443
+
   # loki:
   #   container_name: loki
   #   image: grafana/loki:3.4.2
