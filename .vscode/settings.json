@@ -1,11 +1,19 @@
 {
   "python.analysis.extraPaths": [
+    "packages/network_client/lib",
     "${workspaceFolder}/platform/ai/.venv/bin/python"
   ],
   "python.autoComplete.extraPaths": [
     "platform/ai/.venv/lib/python3.12/site-packages"
   ],
+  "poetryMonorepo.appendExtraPaths": true,
   "python.analysis.autoSearchPaths": true,
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnType": true,
+    "editor.wordBasedSuggestions": "off",
+    "editor.tabSize": 4
+  },
   "[yaml]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
@@ -18,12 +26,6 @@
     "editor.tabSize": 2,
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "hashicorp.terraform"
-  },
-  "[python]": {
-    "diffEditor.ignoreTrimWhitespace": false,
-    "editor.formatOnType": true,
-    "editor.wordBasedSuggestions": "off",
-    "editor.tabSize": 4
   },
   "go-template.languages": [
     "gotmpl",

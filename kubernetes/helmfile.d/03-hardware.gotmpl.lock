@@ -6,11 +6,8 @@ dependencies:
 - name: kwasm-operator
   repository: http://kwasm.sh/kwasm-operator/
   version: 0.2.3
-- name: node-feature-discovery
-  repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
-  version: 0.17.1
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.16.2
-digest: sha256:96740cfb4ddc2fa68ff111a0942fe05398d951139aa7f1a113b738b205171880
-generated: "2025-04-08T17:17:28.149107-04:00"
+  version: 0.17.1
+digest: sha256:09e9317ed867b998fe12a0ddefb64ac8da624b96b11ea47776762c673bf7491f
+generated: "2025-04-09T14:05:52.852808-04:00"
