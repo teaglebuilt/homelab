@@ -35,8 +35,8 @@ ollama:
         - llama3
         - codellama
         - llama2-uncensored
-        - deepseek-r1
-        - nomic-embed-text
+        # - deepseek-r1
+        # - nomic-embed-text
     insecure: true
 
 requests:
@@ -84,9 +84,6 @@ pipelines:
           key: github_token
 
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
-
-service:
-  port: 443
 
 extraEnvVars:
   - name: WEBUI_URL
