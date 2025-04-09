@@ -38,7 +38,8 @@ data "talos_machine_configuration" "this" {
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
-    file("${path.module}/patches/kubelet.yaml")
+    file("${path.module}/patches/kubelet.yaml"),
+    file("${path.module}/patches/worker/wasm-worker-label.yaml")
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/gpu-worker-label.yaml"),

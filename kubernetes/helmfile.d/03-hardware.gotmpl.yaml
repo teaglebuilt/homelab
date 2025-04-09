@@ -3,8 +3,6 @@ bases:
   - ../defaults.yaml
 
 repositories:
-  - name: nfd
-    url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
   - name: nvidia
     url: https://nvidia.github.io/k8s-device-plugin
   - name: gpu-helm-charts
@@ -25,6 +23,16 @@ releases:
           enabled: true
         nfd:
           enabled: true
+      # - config:
+      #     map:
+      #       default: |-
+      #         version: v1
+      #         sharing:
+      #           timeSlicing:
+      #             renameByDefault: false
+      #             resources:
+      #               - name: nvidia.com/gpu
+      #                 replicas: 4
     hooks:
       - events: ["presync"]
         showlogs: true
@@ -36,9 +44,9 @@ releases:
 
   - name: dcgm-exporter
     chart: gpu-helm-charts/dcgm-exporter
-    namespace: kube-system
+    version: 4.1.0
     needs:
-      - nvidia-device-plugin
+      - kube-system/nvidia-device-plugin
     values:
       - nodeSelector:
           nvidia.com/gpu.present: 'true'

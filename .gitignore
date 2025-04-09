@@ -27,3 +27,14 @@ generated
 **/k8s/charts
 kubernetes/apps/**/charts
 kubernetes/charts/homelab-gateway/charts
+
+.DS_Store
+.pytest_cache
+__pycache__
+dist/
+.venv
+.mypy_cache
+.ruff_cache
+chroma.sqlite3
+.idea
+*.pkl
