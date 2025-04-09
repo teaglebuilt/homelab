@@ -13,17 +13,10 @@ repositories:
     url: http://kwasm.sh/kwasm-operator/
 
 releases:
-  - name: node-feature-discovery
-    chart: nfd/node-feature-discovery
-    version: 0.17.1
-    namespace: kube-system
-
   - name: nvidia-device-plugin
     namespace: kube-system
     chart: nvidia/nvidia-device-plugin
-    version: 0.16.2
-    needs:
-      - kube-system/node-feature-discovery
+    version: 0.17.1
     values:
       - runtimeClassName: nvidia
       - devicePlugin:
@@ -31,7 +24,7 @@ releases:
         gfd:
           enabled: true
         nfd:
-          enabled: false
+          enabled: true
     hooks:
       - events: ["presync"]
         showlogs: true
@@ -44,27 +37,31 @@ releases:
   - name: dcgm-exporter
     chart: gpu-helm-charts/dcgm-exporter
     namespace: kube-system
+    needs:
+      - nvidia-device-plugin
     values:
       - nodeSelector:
           nvidia.com/gpu.present: 'true'
+        resources:
+          limits:
+            nvidia.com/gpu: 1
         serviceMonitor:
-          enabled: true
-        service:
-          enable: true
-          type: LoadBalancer
-          annotations:
-            external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
-        extraEnv:
-          - name: DCGM_EXPORTER_COLLECTORS
-            value: /etc/dcgm-exporter/dcp-metrics-included.csv
-          - name: NVIDIA_VISIBLE_DEVICES
-            value: all
-          - name: NVIDIA_MIG_CONFIG_DEVICES
-            value: all
-          - name: NVIDIA_MIG_MONITOR_DEVICES
-            value: all
-          - name: NVIDIA_DRIVER_CAPABILITIES
-            value: all
+          interval: 15s
+          honorLabels: true
+        # service:
+        #   enable: true
+        #   type: LoadBalancer
+        #   annotations:
+        #     external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
+        # extraEnv:
+        #   - name: NVIDIA_VISIBLE_DEVICES
+        #     value: all
+        #   - name: NVIDIA_MIG_CONFIG_DEVICES
+        #     value: all
+        #   - name: NVIDIA_MIG_MONITOR_DEVICES
+        #     value: all
+        #   - name: NVIDIA_DRIVER_CAPABILITIES
+        #     value: all
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator
