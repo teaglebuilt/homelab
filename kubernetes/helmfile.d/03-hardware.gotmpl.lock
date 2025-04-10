@@ -6,8 +6,11 @@ dependencies:
 - name: kwasm-operator
   repository: http://kwasm.sh/kwasm-operator/
   version: 0.2.3
+- name: metrics-server
+  repository: https://kubernetes-sigs.github.io/metrics-server/
+  version: 3.8.3
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.17.1
-digest: sha256:09e9317ed867b998fe12a0ddefb64ac8da624b96b11ea47776762c673bf7491f
-generated: "2025-04-09T14:05:52.852808-04:00"
+digest: sha256:a488aacfa00c472fd471f8878aa65626880db839e2463bd3910c1658fd215cfe
+generated: "2025-04-10T12:24:08.457803-04:00"

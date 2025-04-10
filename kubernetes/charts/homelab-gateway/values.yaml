@@ -1,8 +1,8 @@
 ---
 gateway-helm:
   config:
-    backendTlsConfig:
-      clientCertificateRef: homelab-tls
+    # backendTlsConfig:
+    #   clientCertificateRef: homelab-tls
     envoyGateway:
       extensionApis:
         enableBackend: true

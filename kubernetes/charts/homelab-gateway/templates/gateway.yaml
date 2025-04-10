@@ -4,8 +4,10 @@ kind: Gateway
 metadata:
   name: homelab-gateway
   namespace: kube-system
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: homelab.internal
 spec:
-  gatewayClassName: envoy
+  gatewayClassName: cilium
   listeners:
   - name: http
     protocol: HTTP
@@ -18,6 +20,7 @@ spec:
     protocol: HTTPS
     hostname: "*.homelab.internal"
     tls:
+      mode: Terminate
       certificateRefs:
       - kind: Secret
         group: ""

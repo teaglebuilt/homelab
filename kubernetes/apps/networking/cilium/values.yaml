@@ -67,7 +67,7 @@ loadBalancer:
   algorithm: maglev
 
 gatewayAPI:
-  enabled: false
+  enabled: true
 
 # envoy:
 #   securityContext:
