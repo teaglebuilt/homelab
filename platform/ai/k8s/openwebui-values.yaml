@@ -3,7 +3,7 @@ ollama:
   enabled: true
   runtimeClassName: "nvidia"
   nodeSelector:
-    kubernetes.io/hostname: mlops-work-00
+    nvidia.com/gpu.present: "true"
   podSecurityContext:
     fsGroupChangePolicy: Always
     fsGroup: 1001

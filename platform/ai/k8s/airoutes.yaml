@@ -3,7 +3,7 @@ apiVersion: aigateway.envoyproxy.io/v1alpha1
 kind: AIGatewayRoute
 metadata:
   name: ai-gateway-routes
-  namespace: ai
+  namespace: default
 spec:
   schema:
     name: OpenAI
