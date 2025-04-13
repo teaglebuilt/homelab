@@ -9,6 +9,8 @@ repositories:
     url: https://nvidia.github.io/dcgm-exporter/helm-charts
   - name: kwasm
     url: http://kwasm.sh/kwasm-operator/
+  - name: metrics-server
+    url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
   - name: nvidia-device-plugin
@@ -52,9 +54,6 @@ releases:
           nvidia.com/gpu.present: 'true'
         runtimeClassName: nvidia
         hostNetwork: true
-        resources:
-          limits:
-            nvidia.com/gpu: 1
         serviceMonitor:
           interval: 15s
           honorLabels: true
@@ -63,15 +62,6 @@ releases:
           type: LoadBalancer
           annotations:
             external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
-        # extraEnv:
-        #   - name: NVIDIA_VISIBLE_DEVICES
-        #     value: all
-        #   - name: NVIDIA_MIG_CONFIG_DEVICES
-        #     value: all
-        #   - name: NVIDIA_MIG_MONITOR_DEVICES
-        #     value: all
-        #   - name: NVIDIA_DRIVER_CAPABILITIES
-        #     value: all
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator
@@ -104,3 +94,21 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/wasm | kubectl apply -f -
+
+  - name: metrics-server
+    chart: metrics-server/metrics-server
+    namespace: kube-system
+    version: 3.8.3
+    values:
+      - apiService:
+          create: true
+        metrics:
+          enabled: true
+        hostNetwork:
+          enabled: true
+        args:
+          - --cert-dir=/tmp
+          - --kubelet-use-node-status-port
+          - --kubelet-insecure-tls
+          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
+          - --metric-resolution=60s

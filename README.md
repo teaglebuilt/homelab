@@ -1,6 +1,11 @@
 <div align="center">
   <h1>Homelab</h1>
   <img src="https://github.com/teaglebuilt/homelab/actions/workflows/release.yaml/badge.svg">
+  <img src="https://badgen.net/badge/UniFi/USW Agg,UAP,USW Max Pro,UDM Pro?list=|&icon=https://docs.golift.io/svg/ubiquiti_color.svg&color=0099ee">
+</div>
+
+<div align="center">
+  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelabrack.png" style="width:250px;"/>
 </div>
 
 <div align="center">
@@ -11,9 +16,6 @@
   <img src="https://img.shields.io/badge/Raspberry%20Pi-A22846?style=for-the-badge&logo=Raspberry%20Pi&logoColor=white" />
   <img src="https://img.shields.io/badge/Wireshark-1679A7?style=for-the-badge&logo=Wireshark&logoColor=white" />
   <img src="https://img.shields.io/badge/Portainer-13BEF9?style=for-the-badge&logo=portainer&logoColor=white" />
-</div>
-<div align="center">
-  <img src="https://github.com/teaglebuilt/homelab/blob/main/docs/static/img/homelabrack.png" style="width:250px;"/>
 </div>
 
 While inspired by the [K8s@Home](https://k8s-at-home.com/) community, this repository does not follow the standard approach and does not only manage kubernetes related workloads.

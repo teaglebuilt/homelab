@@ -24,9 +24,12 @@ env
 terraform.tfvars
 .task
 generated
+
 **/k8s/charts
 kubernetes/apps/**/charts
 kubernetes/charts/homelab-gateway/charts
+platform/ai/k8s/integrations/openwebui/charts
+platform/ai/k8s/llm-providers/ollama/charts
 
 .DS_Store
 .pytest_cache

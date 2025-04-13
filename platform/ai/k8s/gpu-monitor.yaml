@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-ebpf-monitor
+spec:
+  selector:
+    matchLabels:
+      app: gpu-ebpf-monitor
+  template:
+    spec:
+      hostPID: true
+      hostNetwork: true
+      containers:
+      - name: monitor
+        image: your-registry/gpu-ebpf-monitor:latest
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - BPF
+            - ADMIN
+        volumeMounts:
+        - mountPath: /sys/fs/cgroup
+          name: cgroup
+        - mountPath: /sys/kernel/debug
+          name: debug
+      volumes:
+      - name: cgroup
+        hostPath:
+          path: /sys/fs/cgroup
+      - name: debug
+        hostPath:
+          path: /sys/kernel/debug
