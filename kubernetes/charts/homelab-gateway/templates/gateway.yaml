@@ -20,7 +20,6 @@ spec:
     protocol: HTTPS
     hostname: "*.homelab.internal"
     tls:
-      mode: Terminate
       certificateRefs:
       - kind: Secret
         group: ""
