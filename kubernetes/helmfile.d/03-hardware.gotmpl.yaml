@@ -54,9 +54,6 @@ releases:
           nvidia.com/gpu.present: 'true'
         runtimeClassName: nvidia
         hostNetwork: true
-        resources:
-          limits:
-            nvidia.com/gpu: 1
         serviceMonitor:
           interval: 15s
           honorLabels: true

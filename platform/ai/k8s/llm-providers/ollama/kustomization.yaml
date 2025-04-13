@@ -23,7 +23,7 @@ helmCharts:
 
       runtimeClassName: nvidia
       nodeSelector:
-        kubernetes.io/hostname: mlops-work-00
+        nvidia.com/gpu.present: "true"
       persistentVolume:
         enabled: true
         accessModes:
