@@ -8,6 +8,6 @@ spec:
   schema:
     name: OpenAI
   backendRef:
-    name: open-webui-ollama
+    name: ollama
     kind: Service
     port: 11434

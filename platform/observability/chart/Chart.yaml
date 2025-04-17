@@ -1,0 +1,7 @@
+---
+apiVersion: v2
+name: gpu-monitor
+description: Helm Chart for monitoring gpu
+type: application
+version: '1.0.0'
+appVersion: 'v1.0.0'

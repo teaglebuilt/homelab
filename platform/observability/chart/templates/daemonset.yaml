@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-ebpf-monitor
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: gpu-ebpf-monitor
+  template:
+    metadata:
+      labels:
+        app: gpu-ebpf-monitor
+    spec:
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      hostPID: true
+      containers:
+        - name: ebpf-monitor
+          image: alpine:3.18
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -ex
+
+              apk add --no-cache \
+                clang llvm bpftool libbpf-dev \
+                linux-headers build-base jq
+
+              clang -target bpf -O2 -Wall \
+                -c /ebpf-src/gpu_monitor.bpf.c \
+                -o /ebpf-build/gpu_monitor.bpf.o
+
+              rm -rf /sys/fs/bpf/gpu_monitor
+              bpftool prog loadall /ebpf-build/gpu_monitor.bpf.o /sys/fs/bpf/gpu_monitor
+              bpftool prog attach pinned /sys/fs/bpf/gpu_monitor tracepoint pci:pci_dev_probe
+
+              echo "Watching pinned BPF programs and trace output..."
+              while true; do
+                echo "[eBPF] Programs pinned:"
+                bpftool prog show pinned /sys/fs/bpf/gpu_monitor -j | jq || true
+                sleep 15
+              done
+          securityContext:
+            privileged: false
+            capabilities:
+              add: ["BPF", "SYS_ADMIN", "SYS_RESOURCE", "PERFMON", "NET_ADMIN"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: ebpf-src
+              mountPath: /ebpf-src
+              readOnly: true
+            - name: ebpf-build
+              mountPath: /ebpf-build
+            - name: sys-fs-bpf
+              mountPath: /sys/fs/bpf
+            - name: debugfs
+              mountPath: /sys/kernel/debug
+            - name: cuda-devices
+              mountPath: /dev/nvidiactl
+            - name: nvidia-uvm
+              mountPath: /dev/nvidia-uvm
+            - name: nvidia0
+              mountPath: /dev/nvidia0
+      volumes:
+        - name: ebpf-src
+          configMap:
+            name: gpu-monitor-ebpf
+        - name: ebpf-build
+          emptyDir: {}
+        - name: sys-fs-bpf
+          hostPath:
+            path: /sys/fs/bpf
+            type: Directory
+        - name: debugfs
+          hostPath:
+            path: /sys/kernel/debug
+            type: Directory
+        - name: cuda-devices
+          hostPath:
+            path: /dev/nvidiactl
+        - name: nvidia-uvm
+          hostPath:
+            path: /dev/nvidia-uvm
+        - name: nvidia0
+          hostPath:
+            path: /dev/nvidia0

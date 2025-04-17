@@ -1,3 +1,4 @@
+import os
 from typing import List, Union, Generator, Iterator, Optional
 from pprint import pprint
 import requests, json, warnings

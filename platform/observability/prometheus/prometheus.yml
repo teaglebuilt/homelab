@@ -13,3 +13,15 @@ scrape_configs:
   - job_name: 'dcgm'
     static_configs:
       - targets: ['dcgm.homelab.internal:9400']
+  - job_name: 'hubble'
+    scheme: https
+    static_configs:
+      - targets: ['hubble.homelab.internal']
+    tls_config:
+      insecure_skip_verify: true
+  - job_name: 'ai_platform_metrics'
+    scheme: https
+    static_configs:
+      - targets: ['ai.homelab.internal']
+    tls_config:
+      insecure_skip_verify: true

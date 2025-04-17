@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-ebpf-monitor
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: gpu-ebpf-monitor
+  template:
+    metadata:
+      labels:
+        app: gpu-ebpf-monitor
+    spec:
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      hostPID: true
+      hostNetwork: true
+      # Required for Talos' security model
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: ebpf-monitor
+        image: quay.io/bpftools/bpftrace:latest
+        securityContext:
+          privileged: false
+          capabilities:
+            add: ["BPF", "PERFMON", "SYS_RESOURCE"]
+          readOnlyRootFilesystem: true
+        command: ["/usr/bin/bpftrace"]
+        args:
+          - -e
+          - |
+            #include <linux/sched.h>
+
+            // Trace GPU-related syscalls
+            tracepoint:syscalls:sys_enter_ioctl {
+                $fd = args->fd;
+                // Match NVIDIA device files (major 195)
+                if ($fd > 0) {
+                    $dev = (uint64)buf($fd, 8);
+                    if ($dev & 0xFFFF000000000000 == 0x0000000000000000) {
+                        $major = ($dev >> 8) & 0xFF;
+                        if ($major == 195) {
+                            @gpu_ioctl[comm, args->cmd] = count();
+                        }
+                    }
+                }
+            }
+
+            // Trace process GPU memory usage
+            kprobe:nvidia_get_mem_state {
+                @gpu_mem[comm, pid] = hist(arg1);
+            }
+
+            // Print every 10 seconds
+            interval:s:10 {
+                printf("\nGPU Monitoring Report:\n");
+                print(@gpu_ioctl);
+                print(@gpu_mem);
+                clear(@gpu_ioctl);
+                clear(@gpu_mem);
+            }
+        volumeMounts:
+        - name: kernel-headers
+          mountPath: /usr/src
+          readOnly: true
+        - name: debugfs
+          mountPath: /sys/kernel/debug
+          readOnly: true
+      volumes:
+      - name: kernel-headers
+        hostPath:
+          path: /usr/src
+      - name: debugfs
+        hostPath:
+          path: /sys/kernel/debug

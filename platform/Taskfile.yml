@@ -6,6 +6,8 @@ includes:
     taskfile: ai/Taskfile.yml
   automation:
     taskfile: automation/Taskfile.yml
+  observability:
+    taskfile: observability/Taskfile.yml
 
 tasks:
   deploy:

@@ -1,0 +1,19 @@
+---
+prometheusConfigReloader:
+  enabled: true
+  admissionWebhooks:
+    enabled: false
+  tls:
+    enabled: false
+  tlsProxy:
+    enabled: false
+  kubeletService:
+    enabled: false
+  createCustomResource: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 50Mi

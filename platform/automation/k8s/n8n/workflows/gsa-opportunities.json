@@ -1,0 +1,221 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "cronExpression": "0 * * * *"
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "page",
+              "value": 1
+            }
+          ]
+        }
+      },
+      "name": "Initialize Pagination",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.sam.gov/opportunities/v2/search",
+        "options": {
+          "queryParametersJson": "{ \"api_key\": \"YOUR_SAM_GOV_API_KEY\", \"page\": {{$json.page}}, \"limit\": 5, \"naicsCode\": \"541512, 541511, 541513, 541519\", \"setAside\": \"true\" }",
+          "responseFormat": "json"
+        }
+      },
+      "name": "Fetch Opportunities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "title",
+              "value": "{{$json.results[0].title}}"
+            },
+            {
+              "name": "link",
+              "value": "{{$json.results[0].url}}"
+            },
+            {
+              "name": "description",
+              "value": "{{$json.results[0].description}}"
+            },
+            {
+              "name": "pubDate",
+              "value": "{{$json.results[0].date}}"
+            }
+          ]
+        }
+      },
+      "name": "Extract Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "items": [
+          {
+            "title": "{{$json.title}}",
+            "link": "{{$json.link}}",
+            "description": "{{$json.description}}",
+            "pubDate": "{{$json.pubDate}}"
+          }
+        ],
+        "feedFilePath": "/data/feeds/sam-gov-opportunities.xml"
+      },
+      "name": "Update RSS Feed",
+      "type": "n8n-nodes-base.rssFeedWrite",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "{{$json.page}}",
+              "operation": "smaller",
+              "value2": "5"
+            }
+          ]
+        }
+      },
+      "name": "Check More Pages",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        600,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "page",
+              "value": "={{$json.page + 1}}"
+            }
+          ]
+        }
+      },
+      "name": "Increase Page Number",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        800,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Initialize Pagination",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Pagination": {
+      "main": [
+        [
+          {
+            "node": "Fetch Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Update RSS Feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update RSS Feed": {
+      "main": [
+        [
+          {
+            "node": "Check More Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check More Pages": {
+      "main": [
+        [
+          {
+            "node": "Increase Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increase Page Number": {
+      "main": [
+        [
+          {
+            "node": "Fetch Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
