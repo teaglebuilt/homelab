@@ -1,6 +1,8 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+resources:
+  - httproute.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: https://prometheus-community.github.io/helm-charts
@@ -11,10 +13,6 @@ helmCharts:
       - configs/prometheus.yaml
       - configs/prometheus-operator.yaml
     valuesInline:
-      prometheus:
-        agentMode: false
-        nodeSelector:
-          kubernetes.io/hostname: mlops-work-01
       nodeExporter:
         enabled: false
       kubeApiServer:
