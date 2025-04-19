@@ -12,29 +12,6 @@ services:
       - ./grafana:/etc/grafana/provisioning
       - grafana-data:/var/lib/grafana
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    restart: unless-stopped
-    ports:
-      - 9090:9090
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-      - --web.console.libraries=/usr/share/prometheus/console_libraries
-      - --web.console.templates=/usr/share/prometheus/consoles
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-
-  llm_cost_evaluator:
-    image: teaglebuilt/llm_cost_evaluator:v1.0.0
-    container_name: llm_cost_evaluator
-    restart: unless-stopped
-    env:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-    ports:
-      - 9943:9443
-
   # loki:
   #   container_name: loki
   #   image: grafana/loki:3.4.2

@@ -3,6 +3,6 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: https://prometheus.homelab.internal
+    url: http://prometheus.homelab.internal
     jsonData:
       tlsSkipVerify: true

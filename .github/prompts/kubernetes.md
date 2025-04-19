@@ -22,6 +22,15 @@
 
 ## Storage Configuration
 
-- UNAS Pro + Proxmox CSI for persistence
-- Define appropriate StorageClasses
-- Implement backup strategies
+* Test and decide on kubernetes storage configuration
+  - NFS SCI / External Subdir Provisioner
+    Provisioning storage on the NAS Server by kubernetes defined resources..(AKA persistent volume claims)
+    ```
+    (UNAS Pro)  --->  (PVC) <--- (Deployment)
+    ```
+  - UNAS Pro + Proxmox CSI for persistence
+    Mount storage from UNAS to proxmox with and use a proxmox csi to attach storage to the cluster.
+    ```
+    (UNAS Pro)  --->  (Proxmox) <--- (PVC)  <--- (Deployment)
+    ```
+* Implement backup strategies

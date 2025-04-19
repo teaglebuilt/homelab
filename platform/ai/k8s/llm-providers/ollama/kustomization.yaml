@@ -17,7 +17,8 @@ helmCharts:
           number: 1
         models:
           pull:
-            - deepseek-coder-v2
+            - qwen2.5-coder
+            - firefunction-v2
         insecure: true
 
       runtimeClassName: nvidia
@@ -25,8 +26,10 @@ helmCharts:
         nvidia.com/gpu.present: "true"
       persistentVolume:
         enabled: true
+        storageClass: nfs-ephemeral
         accessModes:
           - ReadWriteOnce
+        size: 200Gi
       requests:
         cpu: 60m
         memory: 256Mi
