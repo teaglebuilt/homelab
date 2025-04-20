@@ -1,20 +1,19 @@
 ---
 prometheus:
   enabled: true
-  monitor:
+  serviceMonitor:
     enabled: false
   agentMode: false
   nodeSelector:
     kubernetes.io/hostname: mlops-work-01
+  service:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: prometheus.homelab.internal
   prometheusSpec:
     nodeSelector:
       kubernetes.io/hostname: mlops-work-01
-    remoteWrite:
-      - url: http://192.168.2.10:3000
     additionalScrapeConfigs:
-      - job_name: 'dcgm'
-        static_configs:
-          - targets: ['dcgm']
       - job_name: 'kubernetes-endpoints'
         scrape_interval: 30s
         kubernetes_sd_configs:
