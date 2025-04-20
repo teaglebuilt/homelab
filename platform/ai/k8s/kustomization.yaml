@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - gateway.yaml
+  - ai-platform-storage.yaml
   - llm-providers
   - integrations
   - airoutes.yaml

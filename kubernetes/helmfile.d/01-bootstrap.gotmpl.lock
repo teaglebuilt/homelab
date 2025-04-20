@@ -2,12 +2,12 @@ version: v0.170.0
 dependencies:
 - name: cilium
   repository: https://helm.cilium.io
-  version: 1.17.2
+  version: 1.17.3
 - name: coredns
   repository: https://coredns.github.io/helm
   version: 1.37.3
-- name: nfs-subdir-external-provisioner
-  repository: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
-  version: 4.0.18
-digest: sha256:f0279957edb8ea5c805eda9fc749a43ad2b91189f57db6c15bef4ce1c38c0e96
-generated: "2025-04-19T16:10:48.552227-04:00"
+- name: csi-driver-nfs
+  repository: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+  version: 4.11.0
+digest: sha256:8ee78a86262deb154b019caa9966b395a8b2b0d12493057156ffb64ab9898515
+generated: "2025-04-19T16:45:42.536403-04:00"

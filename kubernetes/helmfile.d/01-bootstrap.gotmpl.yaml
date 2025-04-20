@@ -7,20 +7,20 @@ repositories:
     url: https://helm.cilium.io
   - name: coredns
     url: https://coredns.github.io/helm
-  - name: nfs-subdir-external-provisioner
-    url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+  - name: csi-driver-nfs
+    url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
 
 releases:
   - name: prometheus-operator-crds
     namespace: observability
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
-    version: 17.0.2
+    version: 17.0.2 # 19.0.1
     createNamespace: true
 
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: 1.17.2
+    version: 1.17.3
     createNamespace: true
     values:
       - ../apps/networking/cilium/values.yaml
@@ -45,14 +45,17 @@ releases:
     needs:
       - kube-system/cilium
 
-  - name: nfs-subdir-external-provisioner
+  - name: csi-driver-nfs
     namespace: kube-system
-    chart: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
-    version: 4.0.18
+    chart: csi-driver-nfs/csi-driver-nfs
+    version: 4.11.0
     values:
-      - nfs:
-          server: unas.internal
-          path: /var/nfs/shared/ai_storage
-        storageClass:
-          name: nfs-ephemeral
-          defaultClass: false
+      - enableFSGroupPolicy: true
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build --enable-exec --enable-helm ../apps/storage/nfs | kubectl apply -f -
