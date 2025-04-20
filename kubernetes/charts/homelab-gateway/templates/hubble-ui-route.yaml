@@ -20,10 +20,10 @@ spec:
       backendRefs:
       - name: hubble-ui
         port: 80
-    - matches:
-      - path:
-          type: PathPrefix
-          value: "/metrics"
-      backendRefs:
-      - name: hubble-metrics
-        port: 9965
+    # - matches:
+    #   - path:
+    #       type: PathPrefix
+    #       value: "/metrics"
+    #   backendRefs:
+    #   - name: hubble-metrics
+    #     port: 9965

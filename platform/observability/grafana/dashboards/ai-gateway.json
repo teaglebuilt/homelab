@@ -1,0 +1,383 @@
+{
+ "annotations": {
+   "list": [
+     {
+       "builtIn": 1,
+       "datasource": {
+         "type": "grafana",
+         "uid": "-- Grafana --"
+       },
+       "enable": true,
+       "hide": true,
+       "iconColor": "rgba(0, 211, 255, 1)",
+       "name": "Annotations & Alerts",
+       "target": {
+         "limit": 100,
+         "matchAny": false,
+         "tags": [],
+         "type": "dashboard"
+       },
+       "type": "dashboard"
+     }
+   ]
+ },
+ "editable": true,
+ "fiscalYearStartMonth": 0,
+ "graphTooltip": 0,
+ "id": 17,
+ "links": [],
+ "panels": [
+   {
+     "datasource": {
+       "type": "prometheus",
+       "uid": "febzoy4cplt6oe"
+     },
+     "fieldConfig": {
+       "defaults": {
+         "color": {
+           "mode": "palette-classic"
+         },
+         "custom": {
+           "axisBorderShow": false,
+           "axisCenteredZero": false,
+           "axisColorMode": "text",
+           "axisLabel": "Seconds",
+           "axisPlacement": "auto",
+           "barAlignment": 0,
+           "barWidthFactor": 0.6,
+           "drawStyle": "line",
+           "fillOpacity": 20,
+           "gradientMode": "none",
+           "hideFrom": {
+             "legend": false,
+             "tooltip": false,
+             "viz": false
+           },
+           "insertNulls": false,
+           "lineInterpolation": "smooth",
+           "lineWidth": 2,
+           "pointSize": 5,
+           "scaleDistribution": {
+             "type": "linear"
+           },
+           "showPoints": "never",
+           "spanNulls": false,
+           "stacking": {
+             "group": "A",
+             "mode": "none"
+           },
+           "thresholdsStyle": {
+             "mode": "off"
+           }
+         },
+         "mappings": [],
+         "thresholds": {
+           "mode": "absolute",
+           "steps": [
+             {
+               "color": "green",
+               "value": null
+             },
+             {
+               "color": "red",
+               "value": 80
+             }
+           ]
+         },
+         "unit": "s"
+       },
+       "overrides": []
+     },
+     "gridPos": {
+       "h": 8,
+       "w": 12,
+       "x": 0,
+       "y": 0
+     },
+     "id": 1,
+     "options": {
+       "legend": {
+         "calcs": [
+           "mean",
+           "max",
+           "p95"
+         ],
+         "displayMode": "table",
+         "placement": "bottom",
+         "showLegend": true
+       },
+       "tooltip": {
+         "hideZeros": false,
+         "mode": "single",
+         "sort": "none"
+       }
+     },
+     "pluginVersion": "11.5.1",
+     "targets": [
+       {
+         "datasource": {
+           "type": "prometheus",
+           "uid": "febzoy4cplt6oe"
+         },
+         "editorMode": "code",
+         "expr": "histogram_quantile(0.95, sum(rate(aigateway_backend_request_duration_seconds_bucket{status=\"success\"}[5m])) by (le, model))",
+         "legendFormat": "p95 {{model}}",
+         "range": true,
+         "refId": "A"
+       }
+     ],
+     "title": "Backend Latency by Model (p95)",
+     "type": "timeseries"
+   },
+   {
+     "datasource": {
+       "type": "prometheus",
+       "uid": "febzoy4cplt6oe"
+     },
+     "fieldConfig": {
+       "defaults": {
+         "color": {
+           "mode": "palette-classic"
+         },
+         "custom": {
+           "axisBorderShow": false,
+           "axisCenteredZero": false,
+           "axisColorMode": "text",
+           "axisLabel": "Total Tokens",
+           "axisPlacement": "auto",
+           "barAlignment": 0,
+           "barWidthFactor": 0.6,
+           "drawStyle": "line",
+           "fillOpacity": 20,
+           "gradientMode": "none",
+           "hideFrom": {
+             "legend": false,
+             "tooltip": false,
+             "viz": false
+           },
+           "insertNulls": false,
+           "lineInterpolation": "smooth",
+           "lineWidth": 2,
+           "pointSize": 5,
+           "scaleDistribution": {
+             "type": "linear"
+           },
+           "showPoints": "never",
+           "spanNulls": false,
+           "stacking": {
+             "group": "A",
+             "mode": "none"
+           },
+           "thresholdsStyle": {
+             "mode": "off"
+           }
+         },
+         "mappings": [],
+         "thresholds": {
+           "mode": "absolute",
+           "steps": [
+             {
+               "color": "green",
+               "value": null
+             }
+           ]
+         },
+         "unit": "none"
+       },
+       "overrides": []
+     },
+     "gridPos": {
+       "h": 8,
+       "w": 12,
+       "x": 12,
+       "y": 0
+     },
+     "id": 3,
+     "options": {
+       "legend": {
+         "calcs": [
+           "mean",
+           "max"
+         ],
+         "displayMode": "table",
+         "placement": "bottom",
+         "showLegend": true
+       },
+       "tooltip": {
+         "hideZeros": false,
+         "mode": "single",
+         "sort": "none"
+       }
+     },
+     "pluginVersion": "11.5.1",
+     "targets": [
+       {
+         "datasource": {
+           "type": "prometheus",
+           "uid": "febzoy4cplt6oe"
+         },
+         "editorMode": "code",
+         "expr": "sum(aigateway_model_tokens_total{type = \"total\"}) by (model)",
+         "legendFormat": "{{model}} - {{status}}",
+         "range": true,
+         "refId": "A"
+       }
+     ],
+     "title": "Total Tokens by Model",
+     "type": "timeseries"
+   },
+   {
+     "datasource": {
+       "type": "prometheus",
+       "uid": "febzoy4cplt6oe"
+     },
+     "fieldConfig": {
+       "defaults": {
+         "color": {
+           "mode": "palette-classic"
+         },
+         "custom": {
+           "hideFrom": {
+             "legend": false,
+             "tooltip": false,
+             "viz": false
+           }
+         },
+         "mappings": []
+       },
+       "overrides": []
+     },
+     "gridPos": {
+       "h": 8,
+       "w": 12,
+       "x": 0,
+       "y": 8
+     },
+     "id": 5,
+     "options": {
+       "displayLabels": [
+         "percent"
+       ],
+       "legend": {
+         "displayMode": "list",
+         "placement": "right",
+         "showLegend": true,
+         "values": []
+       },
+       "pieType": "donut",
+       "reduceOptions": {
+         "calcs": [
+           "lastNotNull"
+         ],
+         "fields": "",
+         "values": false
+       },
+       "tooltip": {
+         "hideZeros": false,
+         "mode": "single",
+         "sort": "none"
+       }
+     },
+     "pluginVersion": "11.5.1",
+     "targets": [
+       {
+         "datasource": {
+           "type": "prometheus",
+           "uid": "febzoy4cplt6oe"
+         },
+         "editorMode": "code",
+         "expr": "sum(rate(aigateway_requests_total{status=\"success\"}[10m])) by (model)",
+         "legendFormat": "{{model}}",
+         "range": true,
+         "refId": "A"
+       }
+     ],
+     "title": "Request Distribution by Model",
+     "type": "piechart"
+   },
+   {
+     "datasource": {
+       "type": "prometheus",
+       "uid": "febzoy4cplt6oe"
+     },
+     "fieldConfig": {
+       "defaults": {
+         "color": {
+           "mode": "thresholds"
+         },
+         "mappings": [],
+         "thresholds": {
+           "mode": "absolute",
+           "steps": [
+             {
+               "color": "green",
+               "value": null
+             }
+           ]
+         },
+         "unit": "s"
+       },
+       "overrides": []
+     },
+     "gridPos": {
+       "h": 8,
+       "w": 12,
+       "x": 12,
+       "y": 8
+     },
+     "id": 6,
+     "options": {
+       "colorMode": "value",
+       "graphMode": "area",
+       "justifyMode": "auto",
+       "orientation": "auto",
+       "percentChangeColorMode": "standard",
+       "reduceOptions": {
+         "calcs": [
+           "lastNotNull"
+         ],
+         "fields": "",
+         "values": false
+       },
+       "showPercentChange": false,
+       "textMode": "auto",
+       "wideLayout": true
+     },
+     "pluginVersion": "11.5.1",
+     "targets": [
+       {
+         "datasource": {
+           "type": "prometheus",
+           "uid": "febzoy4cplt6oe"
+         },
+         "editorMode": "code",
+         "expr": "sum(rate(aigateway_backend_request_duration_seconds_bucket{status=\"success\"}[60m])) by (backend)",
+         "legendFormat": "__auto",
+         "range": true,
+         "refId": "A"
+       }
+     ],
+     "title": "Latency by Backends",
+     "type": "stat"
+   }
+ ],
+ "preload": false,
+ "refresh": "10s",
+ "schemaVersion": 40,
+ "tags": [
+   "ai-gateway"
+ ],
+ "templating": {
+   "list": []
+ },
+ "time": {
+   "from": "now-1h",
+   "to": "now"
+ },
+ "timepicker": {},
+ "timezone": "",
+ "title": "AI Gateway Metrics",
+ "uid": "ai-gateway-metrics",
+ "version": 6,
+ "weekStart": ""
+}

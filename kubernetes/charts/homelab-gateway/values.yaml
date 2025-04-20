@@ -6,3 +6,7 @@ gateway-helm:
     envoyGateway:
       extensionApis:
         enableBackend: true
+
+ai-gateway-helm:
+  controller:
+    enableInferenceExtension: true

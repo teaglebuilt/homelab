@@ -4,6 +4,9 @@ kind: Gateway
 metadata:
   name: ai-gateway
   namespace: ai
+  # annotations:
+  #   cert-manager.io/cluster-issuer: internal-ca-cluster-issuer
+  #   external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal
 spec:
   gatewayClassName: envoy
   listeners:

@@ -2,9 +2,40 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 helmCharts:
-  - name: prometheus
+  - name: kube-prometheus-stack
     repo: https://prometheus-community.github.io/helm-charts
-    version: 27.8.0
+    version: 61.7.1
     namespace: observability
     releaseName: prometheus-community
-    # valuesInline:
+    additionalValuesFiles:
+      - configs/prometheus.yaml
+      - configs/prometheus-operator.yaml
+    valuesInline:
+      nodeExporter:
+        enabled: false
+      kubeApiServer:
+        enabled: false
+      kubernetesServiceMonitors:
+        enabled: false
+      coreDns:
+        enabled: false
+      kubeDns:
+        enabled: false
+      crds:
+        enabled: false
+      alertmanager:
+        enabled: false
+      grafana:
+        enabled: false
+      kubeEtcd:
+        enabled: false
+      kubeControllerManager:
+        enabled: false
+      kubeScheduler:
+        enabled: false
+      kubeStateMetrics:
+        enabled: false
+      kubeProxy:
+        enabled: false
+      kubelet:
+        enabled: false

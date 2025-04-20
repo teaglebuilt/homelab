@@ -2,7 +2,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - backend-service.yaml
+  - ollama-pvc.yaml
   - ollama-httproute.yaml
 helmCharts:
   - name: ollama
@@ -18,16 +18,15 @@ helmCharts:
           number: 1
         models:
           pull:
-            - deepseek-coder-v2
+            - qwen2.5-coder
+            - firefunction-v2
         insecure: true
-
       runtimeClassName: nvidia
       nodeSelector:
         nvidia.com/gpu.present: "true"
       persistentVolume:
         enabled: true
-        accessModes:
-          - ReadWriteOnce
+        existingClaim: ollama-pvc
       requests:
         cpu: 60m
         memory: 256Mi

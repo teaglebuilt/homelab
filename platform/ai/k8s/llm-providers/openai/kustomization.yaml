@@ -4,4 +4,5 @@ kind: Kustomization
 resources:
   - backend.yaml
   - backend-service.yaml
+  - backend-tls-policy.yaml
   - backend-security-policy.yaml

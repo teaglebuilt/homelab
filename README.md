@@ -25,3 +25,11 @@ You can find more information by visiting the [Docs](https://teaglebuilt.github.
 
 <img src="https://discordapp.com/api/guilds/673534664354430999/widget.png?style=banner2">
 <img src="https://discordapp.com/api/guilds/969093165669830727/widget.png?style=banner2">
+
+
+helm install nfs-storage nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+  --namespace kube-system \
+  --set nfs.server=192.168.2.10 \
+  --set nfs.path=/var/nfs/shared/ai_storage \
+  --set storageClass.name=nfs-ephemeral \
+  --set storageClass.defaultClass=false

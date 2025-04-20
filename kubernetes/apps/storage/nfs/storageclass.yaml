@@ -6,12 +6,9 @@ metadata:
 provisioner: nfs.csi.k8s.io
 parameters:
   server: unas.internal
-  share: /
-  # csi.storage.k8s.io/provisioner-secret is only needed for providing mountOptions in DeleteVolume
-  # csi.storage.k8s.io/provisioner-secret-name: "mount-options"
-  # csi.storage.k8s.io/provisioner-secret-namespace: "default"
-reclaimPolicy: Delete
+  share: /var/nfs/shared/ai_platform_data
+reclaimPolicy: Retain
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
 mountOptions:
-  - nfsvers=4.1
+  - nfsvers=4

@@ -57,11 +57,6 @@ releases:
         serviceMonitor:
           interval: 15s
           honorLabels: true
-        service:
-          enable: true
-          type: LoadBalancer
-          annotations:
-            external-dns.alpha.kubernetes.io/hostname: dcgm.homelab.internal
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator

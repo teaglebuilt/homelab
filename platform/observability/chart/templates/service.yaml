@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gpu-ebpf-monitor
+  namespace: kube-system
+spec:
+  selector:
+    app: gpu-ebpf-monitor
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,14 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: ollama-pvc
+  namespace: ai
+spec:
+  storageClassName: nfs-csi
+  volumeName: ai-platform-storage
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 200Gi

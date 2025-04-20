@@ -1,6 +1,9 @@
 ---
 version: 3
 
+vars:
+  DEBUG_TASK_PATH: '{{.ROOT_DIR}}/kubernetes/.taskfiles/debug'
+
 tasks:
   ping-pod:
     desc: check if pod is reachable
@@ -19,3 +22,7 @@ tasks:
   check-gpu:
     cmds:
       - talosctl get extensions -n {{.NODE}}
+
+  monitor-gpu:
+    cmds:
+      - kubectl apply -f {{.DEBUG_TASK_PATH}}/monitor-gpu.yaml

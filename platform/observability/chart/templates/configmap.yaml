@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gpu-monitor-ebpf
+  namespace: kube-system
+data:
+  gpu_monitor.bpf.c: |
+{{ .Files.Get "files/gpu_monitor.bpf.c" | indent 4 }}
