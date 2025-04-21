@@ -60,7 +60,11 @@ l2announcements:
 externalIPs:
   enabled: true
 
-enableCiliumEndpointSlice: true
+ciliumEndpointSlice:
+  enabled: false
+
+endpointRoutes:
+  enabled: true
 
 loadBalancer:
   # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#maglev-consistent-hashing
@@ -68,12 +72,18 @@ loadBalancer:
 
 gatewayAPI:
   enabled: true
+  enableAlpn: true
+  gatewayClass:
+    create: 'false'
 
-# envoy:
-#   securityContext:
-#     capabilities:
-#       keepCapNetBindService: true
-#       envoy: [ NET_ADMIN, PERFMON, BPF ]
+envoy:
+  prometheus:
+    serviceMonitor:
+      enabled: true
+  securityContext:
+    capabilities:
+      keepCapNetBindService: true
+      envoy: [ NET_ADMIN, PERFMON, BPF ]
 
 bandwidthManager:
   enabled: true

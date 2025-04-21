@@ -5,6 +5,9 @@ ollama:
 persistence:
   enabled: true
 
+service:
+  port: 80
+
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
 
 extraEnvVars:

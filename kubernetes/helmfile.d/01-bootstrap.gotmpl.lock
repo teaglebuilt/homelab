@@ -2,12 +2,12 @@ version: v0.170.0
 dependencies:
 - name: cilium
   repository: https://helm.cilium.io
-  version: 1.17.3
+  version: 1.17.2
 - name: coredns
   repository: https://coredns.github.io/helm
   version: 1.37.3
 - name: csi-driver-nfs
   repository: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
   version: 4.11.0
-digest: sha256:25fae39afe46cb56bf0ed05cbb4fce54d3345cafc428fac6700dc0f14f298eb9
-generated: "2025-04-21T09:37:48.81567-04:00"
+digest: sha256:2cc738abb86ba3ed81cffb5af556efd7e18008bf8926a9ca0a9eab774eb2d971
+generated: "2025-04-21T14:23:43.206913-04:00"

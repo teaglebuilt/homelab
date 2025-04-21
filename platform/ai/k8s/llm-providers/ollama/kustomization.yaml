@@ -21,6 +21,7 @@ helmCharts:
             - qwen2.5-coder
             - firefunction-v2
         insecure: true
+      hostNetwork: true
       runtimeClassName: nvidia
       nodeSelector:
         nvidia.com/gpu.present: "true"

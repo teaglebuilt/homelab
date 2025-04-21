@@ -1,0 +1,15 @@
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: openwebui-tlsroute
+  namespace: ai
+spec:
+  parentRefs:
+    - name: homelab-gateway
+  hostnames:
+    - openwebui.homelab.internal
+  rules:
+    - backendRefs:
+        - name: open-webui
+          port: 443
