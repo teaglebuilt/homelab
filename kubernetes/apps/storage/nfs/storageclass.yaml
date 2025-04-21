@@ -7,8 +7,9 @@ provisioner: nfs.csi.k8s.io
 parameters:
   server: unas.internal
   share: /var/nfs/shared/ai_platform_data
-reclaimPolicy: Retain
+reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
 mountOptions:
+  - nolock
   - nfsvers=4

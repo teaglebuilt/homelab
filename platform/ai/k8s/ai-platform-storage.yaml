@@ -12,9 +12,12 @@ spec:
   accessModes:
     - ReadWriteMany
   storageClassName: nfs-csi
+  mountOptions:
+    - nolock
   csi:
     driver: nfs.csi.k8s.io
     volumeHandle: ollama
     volumeAttributes:
       server: unas.internal
-      share: /var/nfs/shared/ai_platform_data/ollama
+      share: /var/nfs/shared/ai_platform_data
+    readOnly: false

@@ -27,23 +27,27 @@ helmCharts:
       persistentVolume:
         enabled: true
         existingClaim: ollama-pvc
+        storageClass: nfs-csi
+        accessModes:
+          - ReadWriteMany
+        size: 200Gi
       requests:
         cpu: 60m
         memory: 256Mi
         nvidia.com/gpu: 1
       limits:
         cpu: 600m
-        memory: 1Gi
+        memory: 4Gi
         nvidia.com/gpu: 1
       podSecurityContext:
         fsGroupChangePolicy: Always
-        fsGroup: 1001
+        fsGroup: 988
       containerSecurityContext:
-        runAsUser: 1001
-        runAsGroup: 1001
+        runAsUser: 977
+        runAsGroup: 988
         runAsNonRoot: true
-        privileged: false
-        allowPrivilegeEscalation: false
+        privileged: true
+        allowPrivilegeEscalation: true
         readOnlyRootFilesystem: false
         capabilities: { drop: ["ALL"] }
         seccompProfile: { type: RuntimeDefault }
