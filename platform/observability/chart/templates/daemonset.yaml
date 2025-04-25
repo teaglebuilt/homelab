@@ -14,7 +14,13 @@ spec:
     spec:
       nodeSelector:
         nvidia.com/gpu.present: "true"
-      hostPID: true
+      hostPID: false
+      initContainers:
+        - name: init-set-rlimit
+          image: busybox
+          command: ["sh", "-c", "ulimit -l 1073741824"]
+          securityContext:
+            privileged: true
       containers:
         - name: ebpf-monitor
           image: alpine:3.18
@@ -31,20 +37,19 @@ spec:
                 -c /ebpf-src/gpu_monitor.bpf.c \
                 -o /ebpf-build/gpu_monitor.bpf.o
 
-              rm -rf /sys/fs/bpf/gpu_monitor
-              bpftool prog loadall /ebpf-build/gpu_monitor.bpf.o /sys/fs/bpf/gpu_monitor
-              bpftool prog attach pinned /sys/fs/bpf/gpu_monitor tracepoint pci:pci_dev_probe
+              # bpftool prog loadall /ebpf-build/gpu_monitor.bpf.o /sys/fs/bpf/gpu_monitor
+              # bpftool prog attach pinned /sys/fs/bpf/gpu_monitor tracepoint pci:pci_dev_probe
 
               echo "Watching pinned BPF programs and trace output..."
               while true; do
                 echo "[eBPF] Programs pinned:"
-                bpftool prog show pinned /sys/fs/bpf/gpu_monitor -j | jq || true
+                bpftool prog show
                 sleep 15
               done
           securityContext:
-            privileged: false
+            privileged: true
             capabilities:
-              add: ["BPF", "SYS_ADMIN", "SYS_RESOURCE", "PERFMON", "NET_ADMIN"]
+              add: ["BPF", "SYS_ADMIN", "SYS_RESOURCE", "PERFMON", "NET_ADMIN", "CAP_BPF", "CAP_SYS_ADMIN", "CAP_NET_ADMIN"]
             seccompProfile:
               type: RuntimeDefault
           volumeMounts:
@@ -53,8 +58,12 @@ spec:
               readOnly: true
             - name: ebpf-build
               mountPath: /ebpf-build
+            - mountPath: /sys
+              name: sys
+              readOnly: true
             - name: sys-fs-bpf
               mountPath: /sys/fs/bpf
+              readOnly: false
             - name: debugfs
               mountPath: /sys/kernel/debug
             - name: cuda-devices
@@ -69,10 +78,13 @@ spec:
             name: gpu-monitor-ebpf
         - name: ebpf-build
           emptyDir: {}
+        - name: sys
+          hostPath:
+            path: /sys
         - name: sys-fs-bpf
           hostPath:
             path: /sys/fs/bpf
-            type: Directory
+            # type: Directory
         - name: debugfs
           hostPath:
             path: /sys/kernel/debug
