@@ -42,9 +42,12 @@ spec:
 
               echo "Watching pinned BPF programs and trace output..."
               while true; do
+                echo "listing btf information"
+                bpftool btf list
+
                 echo "[eBPF] Programs pinned:"
-                bpftool prog show
-                sleep 15
+                bpftool prog show name trace_pci_dev_p
+                sleep 60
               done
           securityContext:
             privileged: true
