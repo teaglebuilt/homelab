@@ -32,6 +32,7 @@ platform/ai/k8s/integrations/openwebui/charts
 platform/ai/k8s/llm-providers/ollama/charts
 platform/*/*/charts/*
 
+e2e.log
 
 .DS_Store
 .pytest_cache
