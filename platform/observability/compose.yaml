@@ -24,68 +24,52 @@ services:
       - 8086:8086
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME_FILE: ${INFLUXDB_ADMIN_USERNAME}
-      DOCKER_INFLUXDB_INIT_PASSWORD_FILE: ${INFLUXDB_ADMIN_PASSWORD}
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: ${INFLUXDB_ADMIN_TOKEN}
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
       DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
     volumes:
       - type: volume
-        source: influxdb2-data
-        target: /var/lib/influxdb2
-      - type: volume
-        source: influxdb2-config
-        target: /etc/influxdb2
+        source: influxdb-storage
+        target: /var/lib/influxdb
 
-    chronograf:
-      image: chronograf:latest
-      restart: always
-      ports:
-        - '8888:8888'
-      volumes:
-        - chronograf-storage:/var/lib/chronograf
-      depends_on:
-        - influxdb
-      environment:
-        INFLUXDB_URL: http://influxdb:8086
-        INFLUXDB_USERNAME: ${INFLUXDB_ADMIN_USERNAME}
-        INFLUXDB_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+  chronograf:
+    <<: *common
+    image: chronograf:latest
+    restart: always
+    ports:
+      - '8888:8888'
+    volumes:
+      - chronograf-storage:/var/lib/chronograf
+    depends_on:
+      - influxdb
+    environment:
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_USERNAME: ${INFLUXDB_ADMIN_USERNAME}
+      INFLUXDB_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
 
-    unpoller:
-      image: ghcr.io/unpoller/unpoller:latest
-      depends_on:
-        - influxdb
-        - chronograf
-      environment:
-        UP_INFLUXDB_DB: ${INFLUXDB_DB}
-        UP_INFLUXDB_USER: ${INFLUXDB_ADMIN_USERNAME}
-        UP_INFLUXDB_PASS: ${INFLUXDB_ADMIN_PASSWORD}
-        UP_INFLUXDB_ORG: ${INFLUXDB_ORG}
-        UP_INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
-        UP_INFLUXDB_AUTH_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
-        UP_INFLUXDB_URL: http://influxdb:8086
-        UP_UNIFI_DEFAULT_USER: ${UNIFI_USER}
-        UP_UNIFI_DEFAULT_PASS: ${UNIFI_PASS}
-        UP_UNIFI_DEFAULT_URL: ${UNIFI_NETWORK_GATEWAY}
-        UP_POLLER_DEBUG: ${POLLER_DEBUG}
-        UP_UNIFI_DEFAULT_SAVE_DPI: ${POLLER_SAVE_DPI}
-      volumes:
-        - influxdb-storage:/var/lib/influxdb
-
-  # loki:
-  #   container_name: loki
-  #   image: grafana/loki:3.4.2
-  #   restart: unless-stopped
-  #   command: "-config.file=/etc/loki/config.yaml"
-  #   ports:
-  #     - 3100:3100
-  #   volumes:
-  #     - ./config/config.yaml:/etc/loki/config.yaml:ro
-  #     - data_loki:/loki:rw
+  unpoller:
+    <<: *common
+    image: ghcr.io/unpoller/unpoller:latest
+    depends_on:
+      - influxdb
+      - chronograf
+    environment:
+      UP_INFLUXDB_DB: ${INFLUXDB_DB}
+      UP_INFLUXDB_USER: ${INFLUXDB_ADMIN_USERNAME}
+      UP_INFLUXDB_PASS: ${INFLUXDB_ADMIN_PASSWORD}
+      UP_INFLUXDB_ORG: ${INFLUXDB_ORG}
+      UP_INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      UP_INFLUXDB_AUTH_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      UP_INFLUXDB_URL: http://influxdb:8086
+      UP_UNIFI_DEFAULT_USER: ${UNIFI_USER}
+      UP_UNIFI_DEFAULT_PASS: ${UNIFI_PASS}
+      UP_UNIFI_DEFAULT_URL: ${UNIFI_NETWORK_GATEWAY}
+      UP_UNIFI_DEFAULT_SAVE_DPI: true
+      UP_POLLER_DEBUG: false
 
 volumes:
   grafana-data:
   influxdb-storage:
   chronograf-storage:
-  # data_loki:
-  #   driver: local
