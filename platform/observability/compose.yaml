@@ -1,5 +1,9 @@
+x-common: &common
+  pull_policy: always
+
 services:
   grafana:
+    <<: *common
     image: grafana/grafana
     container_name: grafana
     ports:
@@ -14,6 +18,7 @@ services:
       - grafana-data:/var/lib/grafana
 
   influxdb:
+    <<: *common
     image: influxdb:2
     ports:
       - 8086:8086
