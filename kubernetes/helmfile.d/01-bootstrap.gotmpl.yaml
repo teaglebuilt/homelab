@@ -20,11 +20,18 @@ releases:
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: 1.17.2
+    version: 1.17.3
     createNamespace: true
     values:
       - ../apps/networking/cilium/values.yaml
     hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - apply
+          - -f
+          - https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
       - events: ["postsync"]
         showlogs: true
         command: "bash"

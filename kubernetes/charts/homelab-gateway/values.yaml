@@ -1,12 +1,7 @@
 ---
-gateway-helm:
-  config:
-    # backendTlsConfig:
-    #   clientCertificateRef: homelab-tls
-    envoyGateway:
-      extensionApis:
-        enableBackend: true
-
-ai-gateway-helm:
-  controller:
-    enableInferenceExtension: true
+gateway:
+  inferenceExtension:
+    enabled: true
+    autoProvision: false
+  aiExtension:
+    enabled: true
