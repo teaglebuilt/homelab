@@ -3,8 +3,10 @@ bases:
   - ../defaults.yaml
 
 repositories:
-  - name: nvidia
+  - name: nvidia-device-plugin
     url: https://nvidia.github.io/k8s-device-plugin
+  - name: nvidia
+    url: https://helm.ngc.nvidia.com/nim/charts
   - name: gpu-helm-charts
     url: https://nvidia.github.io/dcgm-exporter/helm-charts
   - name: kwasm
@@ -15,7 +17,7 @@ repositories:
 releases:
   - name: nvidia-device-plugin
     namespace: kube-system
-    chart: nvidia/nvidia-device-plugin
+    chart: nvidia-device-plugin/nvidia-device-plugin
     version: 0.17.1
     values:
       - runtimeClassName: nvidia
@@ -44,6 +46,9 @@ releases:
           - |
             kustomize build ../apps/hardware/nvidia | kubectl apply -f -
 
+  # - name: gpu-operator
+  # - name: nvidia-nim
+  #   chart: nvidia/
   - name: dcgm-exporter
     chart: gpu-helm-charts/dcgm-exporter
     namespace: kube-system
@@ -56,7 +61,10 @@ releases:
         hostNetwork: true
         serviceMonitor:
           interval: 15s
-          honorLabels: true
+          honorLabels: false
+          relabelings:
+          - sourceLabels: [__meta_kubernetes_pod_node_name]
+            targetLabel: instance
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator

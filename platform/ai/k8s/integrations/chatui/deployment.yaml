@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatui
+  labels:
+    app: chatui
+spec:
+  selector:
+    matchLabels:
+      app: chatui
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      name: chatui
+      labels:
+        app: chatui
+    spec:
+      containers:
+      - name: chatbot-ui
+        image: ghcr.io/huggingface/chat-ui-db
+        ports:
+          - name: http
+            containerPort: 3000
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2Gi
+          limits:
+            cpu: "4"
+            memory: 6Gi
+        envFrom:
+        - configMapRef:
+            name: chatui-config

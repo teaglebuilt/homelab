@@ -12,17 +12,20 @@ spec:
     kind: Gateway
     group: gateway.networking.k8s.io
   rules:
-  - matches:
-    - headers:
-      - type: Exact
-        name: x-ai-eg-model
-        value: gpt-4o-mini
-    backendRefs:
-    - name: openai-backend-service
-  # - matches:
-  #   - headers:
-  #     - type: Exact
-  #       name: x-ai-eg-model
-  #       value: us.meta.llama3-2-1b-instruct-v1:0
-  #   backendRefs:
-  #     - name: aws-bedrock-backend
+    - matches:
+      - headers:
+        - type: Exact
+          name: x-ai-eg-model
+          value: gpt-4o-mini
+      backendRefs:
+        - name: openai-backend-service
+  llmRequestCosts:
+    - metadataKey: llm_input_token
+      type: InputToken
+    - metadataKey: llm_output_token
+      type: OutputToken
+    - metadataKey: llm_total_token
+      type: TotalToken
+    - metadataKey: llm_cel_calculated_token
+      type: CEL
+      cel: "input_tokens == uint(3) ? 100000000 : 0"

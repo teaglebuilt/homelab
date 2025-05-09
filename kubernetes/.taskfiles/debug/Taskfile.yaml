@@ -25,4 +25,4 @@ tasks:
 
   monitor-gpu:
     cmds:
-      - kubectl apply -f {{.DEBUG_TASK_PATH}}/monitor-gpu.yaml
+      - kubectl apply -f {{.DEBUG_TASK_PATH}}/templates/monitor-gpu.yaml

@@ -1,0 +1,12 @@
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferencePool
+metadata:
+  name: inference-pool
+  namespace: ai
+spec:
+  targetPortNumber: 8080
+  selector:
+    app: ollama
+  extensionRef:
+    name: envoy-ai-gateway

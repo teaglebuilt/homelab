@@ -16,11 +16,23 @@ helmCharts:
           enabled: true
           type: 'nvidia'
           number: 1
+          nvidiaResource: "nvidia.com/gpu"
         models:
           pull:
-            - qwen2.5-coder
             - firefunction-v2
+            - nomic-embed-text
+            - qwen3
+            - gemma3
         insecure: true
+      extraEnv:
+        - name: OLLAMA_KV_CACHE_TYPE
+          value: "q8_0"
+        - name: OLLAMA_NUM_PARALLEL
+          value: "1"
+        - name: OLLAMA_FLASH_ATTENTION
+          value: "1"
+        - name: OLLAMA_DEBUG
+          value: "1"
       hostNetwork: true
       runtimeClassName: nvidia
       nodeSelector:
@@ -38,7 +50,7 @@ helmCharts:
         nvidia.com/gpu: 1
       limits:
         cpu: 600m
-        memory: 4Gi
+        memory: 2Gi
         nvidia.com/gpu: 1
       podSecurityContext:
         fsGroupChangePolicy: Always

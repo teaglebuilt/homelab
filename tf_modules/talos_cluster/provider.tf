@@ -1,6 +1,6 @@
 provider "proxmox" {
   ssh {
-    agent       = false
+    agent       = true
     private_key = file(var.proxmox_ssh_private_key)
   }
 }

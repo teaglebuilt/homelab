@@ -6,3 +6,15 @@ datasources:
     url: http://prometheus.homelab.internal
     jsonData:
       tlsSkipVerify: true
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: SQL
+      dbName: site
+      httpMode: POST
+      insecureGrpc: true
+      tlsSkipVerify: true
+    secureJsonData:
+      token: 'MyInitialAdminToken0=='

@@ -13,3 +13,9 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+  - name: https
+    protocol: HTTP
+    port: 443
+    allowedRoutes:
+      namespaces:
+        from: Same

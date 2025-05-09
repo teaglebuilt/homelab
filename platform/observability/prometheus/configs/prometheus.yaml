@@ -6,6 +6,21 @@ prometheus:
   agentMode: false
   nodeSelector:
     kubernetes.io/hostname: mlops-work-01
+  additionalRulesForClusterRole:
+    - apiGroups: [""]
+      resources:
+        - nodes/proxy
+      verbs: ["get", "list", "watch"]
+    - apiGroups:
+        - "extensions"
+        - "networking.k8s.io"
+      resources:
+        - ingresses/status
+        - ingresses
+      verbs: ["get", "list", "watch"]
+    - nonResourceURLs:
+        - "/metrics"
+      verbs: ["get", "list", "watch"]
   service:
     type: LoadBalancer
     annotations:
@@ -14,19 +29,76 @@ prometheus:
     nodeSelector:
       kubernetes.io/hostname: mlops-work-01
     additionalScrapeConfigs:
-      - job_name: 'kubernetes-endpoints'
-        scrape_interval: 30s
+      - job_name: 'dcgm'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - kube-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            regex: 'metrics'
+            action: keep
+          # Filter endpoints by the DCGM Exporter service name (optional but recommended)
+          - source_labels: [__meta_kubernetes_service_name]
+            regex: 'dcgm-exporter'  # Name of the DCGM Service
+            action: keep
+          # Set instance label to the node name (from the DaemonSet pod)
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: instance
+          # Optional: Add a "job" label to identify DCGM metrics
+          - replacement: 'dcgm'
+            target_label: job
+
+      - job_name: "node-exporter"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            regex: "node-exporter"
+            action: keep
+
+      - job_name: "kubernetes-nodes"
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics
+
+      - job_name: 'kubernetes-service-endpoints'
         kubernetes_sd_configs:
           - role: endpoints
         relabel_configs:
           - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
             action: keep
             regex: true
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
           - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
             action: replace
             target_label: __address__
-            regex: (.+)(?::\d+);(\d+)
+            regex: ([^:]+)(?::\d+)?;(\d+)
             replacement: $1:$2
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            action: replace
+            target_label: service
 
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:

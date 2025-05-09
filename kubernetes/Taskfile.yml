@@ -6,6 +6,8 @@ includes:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
   debug:
     taskfile: ".taskfiles/debug/Taskfile.yaml"
+  kubectl:
+    taskfile: ".taskfiles/kubectl/Taskfile.yml"
 
 vars:
   TERRAFORM: tofu -chdir=terraform
