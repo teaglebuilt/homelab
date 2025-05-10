@@ -60,6 +60,7 @@ l2announcements:
 externalIPs:
   enabled: true
 
+enableK8sEndpointSlice: true
 ciliumEndpointSlice:
   enabled: false
 
@@ -71,12 +72,12 @@ loadBalancer:
   algorithm: maglev
 
 gatewayAPI:
-  enabled: true
+  enabled: false
   enableAlpn: true
-  gatewayClass:
-    create: 'false'
+  enableAppProtocol: true
 
 envoy:
+  enabled: true
   prometheus:
     serviceMonitor:
       enabled: true

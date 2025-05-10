@@ -5,3 +5,4 @@ helmDefaults:
   timeout: 600
   recreatePods: false
   force: true
+  cleanupOnFail: true
