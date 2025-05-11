@@ -49,11 +49,3 @@ releases:
     needs:
       - external-dns/external-dns
       - cert-manager/cert-manager
-    hooks:
-      - events: ["presync"]
-        showlogs: true
-        command: "kubectl"
-        args:
-          - apply
-          - -f
-          - https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v0.2.0/manifests.yaml

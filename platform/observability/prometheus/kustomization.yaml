@@ -22,7 +22,7 @@ helmCharts:
       kubeDns:
         enabled: false
       crds:
-        enabled: false
+        enabled: true
       alertmanager:
         enabled: false
       grafana:

@@ -87,7 +87,6 @@ spec:
                 secretKeyRef:
                   name: aws-credentials
                   key: aws_secret_access_key
-
           volumeMounts:
             - name: credentials
               mountPath: /backup/credentials
@@ -114,5 +113,4 @@ spec:
           persistentVolumeClaim:
             claimName: n8n-storage-pvc
         - name: shared-data
-          persistentVolumeClaim:
-            claimName: n8n-storage-shared-pvc
+          emptyDir: {}

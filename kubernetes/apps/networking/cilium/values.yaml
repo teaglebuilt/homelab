@@ -2,10 +2,14 @@ cluster:
   name: mlops
   id: 1
 
+commonLabels:
+  namespace: kube-system
+
 kubeProxyReplacement: true
 kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
 
- # Talos specific
+# Talos specific:w
+#
 k8sServiceHost: localhost
 k8sServicePort: 7445
 securityContext:
@@ -46,8 +50,8 @@ resources:
     cpu: 200m
     memory: 512Mi
 
-#debug:
-#  enabled: true
+debug:
+  enabled: false
 
 # Increase rate limit when doing L2 announcements
 k8sClientRateLimit:
@@ -60,6 +64,7 @@ l2announcements:
 externalIPs:
   enabled: true
 
+enableK8sEndpointSlice: false
 ciliumEndpointSlice:
   enabled: false
 
@@ -73,10 +78,10 @@ loadBalancer:
 gatewayAPI:
   enabled: true
   enableAlpn: true
-  gatewayClass:
-    create: 'false'
+  enableAppProtocol: true
 
 envoy:
+  enabled: false
   prometheus:
     serviceMonitor:
       enabled: true

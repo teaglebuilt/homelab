@@ -3,11 +3,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: n8n-storage-pvc
   namespace: automation
-  # labels:
-  #   version: v1.0
 spec:
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteMany
+  storageClassName: nfs-csi
+  volumeName: automation-platform-storage
   resources:
     requests:
-      storage: 1Gi
+      storage: 15Gi
