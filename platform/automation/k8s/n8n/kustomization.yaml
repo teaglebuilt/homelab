@@ -6,8 +6,7 @@ resources:
 - deployment.yaml
 - service.yaml
 - configmap.yaml
-- storage/pvc.yaml
-- storage/shared-pvc.yaml
+- pvc.yaml
 - ingress.yaml
 
 configMapGenerator:
