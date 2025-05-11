@@ -11,29 +11,14 @@ repositories:
     url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
 
 releases:
-  - name: prometheus-operator-crds
-    namespace: observability
-    chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
-    version: 17.0.2
-    createNamespace: true
-
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
     version: 1.17.3
     createNamespace: true
-    needs:
-      - observability/prometheus-operator-crds
     values:
       - ../apps/networking/cilium/values.yaml
     hooks:
-      - events: ["presync"]
-        showlogs: true
-        command: "kubectl"
-        args:
-          - apply
-          - -f
-          - https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
       - events: ["postsync"]
         showlogs: true
         command: "bash"
