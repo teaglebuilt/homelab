@@ -7,9 +7,9 @@ version: '1.0.0'
 appVersion: 'v1.0.0'
 
 dependencies:
-  - name: gateway-helm
-    version: v0.0.0-latest
-    repository: oci://docker.io/envoyproxy
-  - name: ai-gateway-helm
-    version: v0.0.0-latest
-    repository: oci://docker.io/envoyproxy
+  - name: kgateway-crds
+    version: v2.0.1
+    repository: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway-crds
+  - name: kgateway
+    version: v2.0.1
+    repository: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway

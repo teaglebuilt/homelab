@@ -1,11 +1,22 @@
 ---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayParameters
+metadata:
+  name: ai-gateway-params
+  namespace: ai
+spec:
+  aiExtension:
+    enabled: true
+    monitoring:
+      enabled: true
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: ai-gateway
   namespace: ai
 spec:
-  gatewayClassName: envoy
+  gatewayClassName: kgateway
   listeners:
   - name: http
     protocol: HTTP
@@ -19,3 +30,8 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+  infrastructure:
+    parametersRef:
+      group: gateway.kgateway.dev
+      kind: GatewayParameters
+      name: ai-gateway-params
