@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: openai-httproute
+  namespace: ai
+spec:
+  parentRefs:
+    - name: ai-gateway
+      namespace: ai
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1/chat/completions
+          method: POST
+      backendRefs:
+        - name: openai-pool
+          kind: InferencePool
+          group: inference.networking.x-k8s.io
+          port: 8000

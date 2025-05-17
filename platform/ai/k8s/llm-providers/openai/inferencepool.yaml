@@ -1,0 +1,9 @@
+---
+kind: InferencePool
+metadata:
+  name: openai-pool
+spec:
+  externalService:
+    host: api.openai.com
+    port: 443
+    protocol: HTTPS

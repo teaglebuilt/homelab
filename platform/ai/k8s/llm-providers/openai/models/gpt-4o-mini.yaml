@@ -1,0 +1,12 @@
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha1
+kind: InferenceModel
+metadata:
+  name: gpt-4o-mini-model
+  namespace: ai
+spec:
+  modelName: gpt-4o-mini
+  poolRef:
+    name: openai-pool
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
