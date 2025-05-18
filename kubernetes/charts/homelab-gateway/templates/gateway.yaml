@@ -3,7 +3,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: homelab-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
   annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
     external-dns.alpha.kubernetes.io/hostname: homelab.internal
 spec:
   gatewayClassName: cilium

@@ -6,14 +6,16 @@ releases:
   - name: kgateway-crds
     chart: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway-crds
     version: v2.0.1
+    namespace: kube-system
     installed: true
 
   - name: kgateway
     chart: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway
     version: v2.0.1
+    namespace: kube-system
     installed: true
     needs:
-      - kgateway-crds
+      - kube-system/kgateway-crds
     values:
       - gateway:
           aiExtension:
@@ -23,5 +25,6 @@ releases:
 
   - name: homelab-gateway
     chart: ../charts/homelab-gateway
+    namespace: kube-system
     needs:
-      - kgateway
+      - kube-system/kgateway
