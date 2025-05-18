@@ -3,7 +3,6 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: kgateway
-  namespace: kube-system
 spec:
   controllerName: kgateway.dev/kgateway
   description: Standard class for managing Gateway API ingress traffic.
