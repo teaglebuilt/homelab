@@ -59,8 +59,10 @@ tasks:
   bootstrap-cluster:
     dir: kubernetes
     cmds:
+      - make apply_crds
       - make helmfile_lock
       - make helmfile_apply
+      - make helmfile_sync
 
   sync-cluster:
     dir: kubernetes

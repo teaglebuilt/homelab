@@ -30,6 +30,10 @@ bpf:
 ipam:
   mode: kubernetes
 
+prometheus:
+  serviceMonitor:
+    trustCRDsExist: true
+
 operator:
   rollOutPods: true
   resources:

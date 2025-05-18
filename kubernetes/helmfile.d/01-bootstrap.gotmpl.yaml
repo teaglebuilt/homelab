@@ -19,7 +19,7 @@ releases:
     values:
       - ../apps/networking/cilium/values.yaml
     hooks:
-      - events: ["postsync"]
+      - events: ["postapply"]
         showlogs: true
         command: "bash"
         args:
