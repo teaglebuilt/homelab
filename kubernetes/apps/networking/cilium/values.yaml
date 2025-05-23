@@ -64,9 +64,10 @@ l2announcements:
 externalIPs:
   enabled: true
 
-enableK8sEndpointSlice: false
-ciliumEndpointSlice:
-  enabled: false
+# enableK8sEndpointSlice: false
+# ciliumEndpointSlice:
+#   enabled: true
+# enableCiliumEndpointSlice: true
 
 endpointRoutes:
   enabled: true
@@ -81,7 +82,7 @@ gatewayAPI:
   enableAppProtocol: true
 
 envoy:
-  enabled: false
+  enabled: true
   prometheus:
     serviceMonitor:
       enabled: true

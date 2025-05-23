@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: "/"
     backendRefs:
-    - name: open-webui-ollama
+    - name: ollama
       port: 11434

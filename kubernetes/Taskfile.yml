@@ -59,13 +59,17 @@ tasks:
   bootstrap-cluster:
     dir: kubernetes
     cmds:
-      - make helmfile_lock
       - make helmfile_apply
 
   sync-cluster:
     dir: kubernetes
     cmds:
       - make helmfile_sync
+
+  lock-helm-charts:
+    dir: kubernetes
+    cmds:
+      - make helmfile_lock
 
   test-cluster:
     dir: kubernetes
