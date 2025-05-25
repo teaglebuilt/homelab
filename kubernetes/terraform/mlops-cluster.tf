@@ -10,11 +10,12 @@ module "talos_cluster" {
   }
 
   cluster = {
-    name            = "mlops"
-    endpoint        = var.k8s_api_server_ip
-    gateway         = var.network_gateway
-    talos_version   = "v1.9.1"
-    proxmox_cluster = "mlops"
+    name                = "mlops"
+    endpoint            = var.k8s_api_server_ip
+    gateway             = var.network_gateway
+    talos_version       = "v1.9.1"
+    kubernetes_version  = "1.32.2"
+    proxmox_cluster     = "mlops"
   }
 
   nodes = {
