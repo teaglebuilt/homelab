@@ -4,6 +4,5 @@ metadata:
   name: proxmox-pool
 spec:
   blocks:
-    - start: 192.168.2.210
+    - start: 192.168.2.10
       stop: 192.168.2.255
-  

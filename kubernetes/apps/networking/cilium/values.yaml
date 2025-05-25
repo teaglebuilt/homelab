@@ -64,10 +64,9 @@ l2announcements:
 externalIPs:
   enabled: true
 
-# enableK8sEndpointSlice: false
-# ciliumEndpointSlice:
-#   enabled: true
 # enableCiliumEndpointSlice: true
+ciliumEndpointSlice:
+  enabled: false
 
 endpointRoutes:
   enabled: true
@@ -78,8 +77,8 @@ loadBalancer:
 
 gatewayAPI:
   enabled: true
-  enableAlpn: true
-  enableAppProtocol: true
+  # enableAlpn: true
+  # enableAppProtocol: true
 
 envoy:
   enabled: true
