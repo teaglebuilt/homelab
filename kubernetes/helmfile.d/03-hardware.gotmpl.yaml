@@ -4,37 +4,47 @@ bases:
 
 repositories:
   - name: nvidia
-    url: https://nvidia.github.io/k8s-device-plugin
-  - name: gpu-helm-charts
-    url: https://nvidia.github.io/dcgm-exporter/helm-charts
+    url: https://helm.ngc.nvidia.com/nvidia
   - name: kwasm
     url: http://kwasm.sh/kwasm-operator/
   - name: metrics-server
     url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
-  - name: nvidia-device-plugin
+  - name: gpu-operator
     namespace: kube-system
-    chart: nvidia/nvidia-device-plugin
-    version: 0.17.1
+    chart: nvidia/gpu-operator
+    version: 25.3.0
+    createNamespace: true
     values:
       - runtimeClassName: nvidia
-      - devicePlugin:
+      - operator:
+          defaultRuntime: nvidia
+        toolkit:
+          env:
+            - name: CONTAINERD_CONFIG
+              value: /etc/containerd/config.toml
+        driver:
           enabled: true
+        devicePlugin:
+          enabled: true
+          runtimeClassName: nvidia
         gfd:
           enabled: true
+        migManager:
+          enabled: false
         nfd:
           enabled: true
-      # - config:
-      #     map:
-      #       default: |-
-      #         version: v1
-      #         sharing:
-      #           timeSlicing:
-      #             renameByDefault: false
-      #             resources:
-      #               - name: nvidia.com/gpu
-      #                 replicas: 4
+        validator:
+          enabled: false
+        dcgmExporter:
+          runtimeClassName: nvidia
+          hostNetwork: true
+          nodeSelector:
+            nvidia.com/gpu.present: 'true'
+          serviceMonitor:
+            interval: 15s
+            honorLabels: true
     hooks:
       - events: ["presync"]
         showlogs: true
@@ -43,20 +53,6 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/nvidia | kubectl apply -f -
-
-  - name: dcgm-exporter
-    chart: gpu-helm-charts/dcgm-exporter
-    namespace: kube-system
-    needs:
-      - kube-system/nvidia-device-plugin
-    values:
-      - nodeSelector:
-          nvidia.com/gpu.present: 'true'
-        runtimeClassName: nvidia
-        hostNetwork: true
-        serviceMonitor:
-          interval: 15s
-          honorLabels: true
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator

@@ -4,7 +4,7 @@ TALOSCONFIG=./generated/talosconfig
 include_env_vars:
 	@[ -f ../.envrc ] && set -a && . ../.envrc && set +a
 
-helmfile_apply:
+helmfile_apply: include_env_vars
 	helmfile apply --skip-diff-on-install --suppress-diff .
 
 helmfile_sync:
