@@ -4,47 +4,64 @@ bases:
 
 repositories:
   - name: nvidia
-    url: https://helm.ngc.nvidia.com/nvidia
+    url: https://nvidia.github.io/k8s-device-plugin
+  - name: gpu-helm-charts
+    url: https://nvidia.github.io/dcgm-exporter/helm-charts
   - name: kwasm
     url: http://kwasm.sh/kwasm-operator/
   - name: metrics-server
     url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
-  - name: gpu-operator
+  # - name: gpu-operator
+  #   namespace: kube-system
+  #   chart: nvidia/gpu-operator
+  #   version: 25.3.0
+  #   values:
+  #     - runtimeClassName: nvidia
+  #     - operator:
+  #         defaultRuntime: nvidia
+  #       toolkit:
+  #         env:
+  #           - name: CONTAINERD_CONFIG
+  #             value: /etc/containerd/config.toml
+  #           - name: CONTAINERD_RUNTIME_CLASS
+  #             value: nvidia
+  #       driver:
+  #         enabled: false
+  #       devicePlugin:
+  #         enabled: true
+  #         runtimeClassName: nvidia
+  #       toolkit:
+  #         enabled: true
+  #       gfd:
+  #         enabled: true
+  #       migManager:
+  #         enabled: false
+  #       nfd:
+  #         enabled: true
+  #       validator:
+  #         enabled: false
+  #       dcgmExporter:
+  #         runtimeClassName: nvidia
+  #         hostNetwork: true
+  #         nodeSelector:
+  #           nvidia.com/gpu.present: 'true'
+  #         serviceMonitor:
+  #           interval: 15s
+  #           honorLabels: true
+  - name: nvidia-device-plugin
     namespace: kube-system
-    chart: nvidia/gpu-operator
-    version: 25.3.0
-    createNamespace: true
+    chart: nvidia/nvidia-device-plugin
+    version: 0.17.1
     values:
       - runtimeClassName: nvidia
-      - operator:
-          defaultRuntime: nvidia
-        toolkit:
-          env:
-            - name: CONTAINERD_CONFIG
-              value: /etc/containerd/config.toml
-        driver:
+      - devicePlugin:
           enabled: true
-        devicePlugin:
-          enabled: true
-          runtimeClassName: nvidia
         gfd:
           enabled: true
-        migManager:
-          enabled: false
         nfd:
           enabled: true
-        validator:
-          enabled: false
-        dcgmExporter:
-          runtimeClassName: nvidia
-          hostNetwork: true
-          nodeSelector:
-            nvidia.com/gpu.present: 'true'
-          serviceMonitor:
-            interval: 15s
-            honorLabels: true
     hooks:
       - events: ["presync"]
         showlogs: true

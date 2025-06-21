@@ -6,7 +6,7 @@ metadata:
 spec:
   hard:
     limits.cpu: "2"
-    limits.memory: 8Gi
+    limits.memory: 4Gi
     limits.ephemeral-storage: 2Gi
     requests.cpu: "1"
     requests.memory: 4Gi

@@ -16,7 +16,7 @@ spec:
     - nolock
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: ollama
+    volumeHandle: ai
     volumeAttributes:
       server: unas.internal
       share: /var/nfs/shared/ai_platform_data

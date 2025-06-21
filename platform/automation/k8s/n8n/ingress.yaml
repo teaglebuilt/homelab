@@ -10,13 +10,21 @@ spec:
   - host: n8n.homelab.internal
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: n8n-service
-            port:
-              number: 443
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: n8n-service
+              port:
+                number: 443
+        - path: /rest/oauth2-credential/callback
+          pathType: Prefix
+          backend:
+            service:
+              name: n8n-service
+              port:
+                number: 443
+
   tls:
   - hosts:
       - n8n.homelab.internal

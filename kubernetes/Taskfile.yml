@@ -59,6 +59,7 @@ tasks:
   bootstrap-cluster:
     dir: kubernetes
     cmds:
+      - echo $NIM_TOKEN
       - make helmfile_apply
 
   sync-cluster:

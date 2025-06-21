@@ -18,8 +18,7 @@ helmCharts:
           number: 1
         models:
           pull:
-            - qwen2.5-coder
-            - firefunction-v2
+            - mistral
         insecure: true
       hostNetwork: true
       runtimeClassName: nvidia
@@ -33,22 +32,20 @@ helmCharts:
           - ReadWriteMany
         size: 200Gi
       requests:
-        cpu: 60m
-        memory: 256Mi
         nvidia.com/gpu: 1
       limits:
-        cpu: 600m
-        memory: 4Gi
         nvidia.com/gpu: 1
       podSecurityContext:
         fsGroupChangePolicy: Always
-        fsGroup: 988
+        fsGroup: 0
       containerSecurityContext:
         runAsUser: 977
-        runAsGroup: 988
+        runAsGroup: 0
         runAsNonRoot: true
         privileged: true
         allowPrivilegeEscalation: true
         readOnlyRootFilesystem: false
-        capabilities: { drop: ["ALL"] }
-        seccompProfile: { type: RuntimeDefault }
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault

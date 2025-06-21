@@ -25,3 +25,8 @@ tasks:
     cmds:
       - task: ai:destroy
       - task: automation:destroy
+
+  test:
+    dir: platform
+    cmds:
+      - task: ai:test

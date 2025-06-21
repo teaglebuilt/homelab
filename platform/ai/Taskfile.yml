@@ -14,3 +14,21 @@ tasks:
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | kubectl delete -f -
+
+  test:
+    cmds:
+      - |-
+        curl --insecure https://ollama.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
+
+  check-gpu:
+    cmds:
+      - kubectl describe node mlops-work-00 | grep -A5 "Capacity"
+
+  create-nvcr-secret:
+    cmds:
+      - echo "{{.NGC_API_KEY}}"
+      - |-
+        kubectl create secret docker-registry ngc-secret -n ai \
+          --docker-server=nvcr.io \
+          --docker-username='$oauthtoken' \
+          --docker-password='{{.NGC_API_KEY}}'

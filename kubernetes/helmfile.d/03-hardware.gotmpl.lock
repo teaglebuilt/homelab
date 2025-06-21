@@ -1,13 +1,13 @@
 version: v0.170.0
 dependencies:
-- name: gpu-operator
-  repository: https://helm.ngc.nvidia.com/nvidia
-  version: v25.3.0
 - name: kwasm-operator
   repository: http://kwasm.sh/kwasm-operator/
   version: 0.2.3
 - name: metrics-server
   repository: https://kubernetes-sigs.github.io/metrics-server/
   version: 3.8.3
-digest: sha256:cd4d8d3ca0f63e49edafc1ba0efff1653c195e66ae010c7145da10fac5b9cd44
-generated: "2025-05-26T16:05:42.229152-04:00"
+- name: nvidia-device-plugin
+  repository: https://nvidia.github.io/k8s-device-plugin
+  version: 0.17.1
+digest: sha256:d614a18c2d3bb0176766be325f72f8b1c3f3fe92852cdf0e1fdd60ce94080a9a
+generated: "2025-05-28T18:12:23.315316-04:00"
