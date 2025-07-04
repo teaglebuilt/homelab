@@ -1,12 +1,6 @@
 dependencies:
-- name: gateway-helm
-  repository: oci://docker.io/envoyproxy
-  version: v0.0.0-latest
-- name: ai-gateway-crds-helm
-  repository: oci://docker.io/envoyproxy
-  version: v0.0.0-latest
-- name: ai-gateway-helm
-  repository: oci://docker.io/envoyproxy
-  version: v0.0.0-latest
-digest: sha256:c524d9342a84b1f7587aa6cf0916399eb192424c62ff384f2f50961a733cc0d6
-generated: "2025-05-23T17:25:08.915025-04:00"
+- name: cloudflare-tunnel
+  repository: https://cloudflare.github.io/helm-charts
+  version: 0.3.2
+digest: sha256:6c087409e1f07f605a7d3be665077b9e7637ade70a024ceb513ff49f4fc07d10
+generated: "2025-06-27T12:22:56.510455-04:00"

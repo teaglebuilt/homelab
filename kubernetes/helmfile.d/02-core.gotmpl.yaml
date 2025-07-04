@@ -12,10 +12,19 @@ releases:
   - name: external-dns
     namespace: external-dns
     chart: external-dns/external-dns
-    version: 1.15.0
+    version: 1.17.0
     createNamespace: true
     values:
-      - ../apps/networking/externaldns/values.yaml.gotmpl
+      - ../apps/networking/externaldns/internal-values.yaml.gotmpl
+
+  # - name: external-dns
+  #   namespace: external-dns
+  #   releaseName: external-dns-cloudflare
+  #   chart: external-dns/external-dns
+  #   version: 1.17.0
+  #   createNamespace: true
+  #   values:
+  #     - ../apps/networking/externaldns/external-values.yaml.gotmpl
 
   - name: cert-manager
     namespace: cert-manager
@@ -41,7 +50,8 @@ releases:
         args:
           - -c
           - |
-            kustomize build ../apps/security/cert-manager | kubectl apply -f -
+            kustomize build ../apps/security/cert-manager \
+              --enable-helm --enable-exec --enable-alpha-plugins | envsubst | kubectl apply -f -
 
   - name: homelab-gateway
     chart: ../charts/homelab-gateway
@@ -49,3 +59,18 @@ releases:
     needs:
       - external-dns/external-dns
       - cert-manager/cert-manager
+    values:
+      - external:
+          domain: {{ requiredEnv "EXTERNAL_DOMAIN" }}
+          tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
+      - cloudflare-tunnel:
+          cloudflare:
+            account: {{ requiredEnv "CLOUDFLARE_ACCOUNT_TAG" }}
+            tunnelName: homelab_external
+            tunnelId: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
+            secret: {{ requiredEnv "CLOUDFLARE_TUNNEL_SECRET" }}
+            ingress:
+              - hostname: {{ requiredEnv "EXTERNAL_DOMAIN" }}
+                service: https://homelab.external
+          image:
+            pullPolicy: Always

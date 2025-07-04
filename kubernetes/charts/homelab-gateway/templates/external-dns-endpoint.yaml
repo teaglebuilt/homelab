@@ -1,0 +1,12 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: cloudflare-dns
+  namespace: kube-system
+spec:
+  endpoints:
+    - dnsName: {{ .Values.external.domain }}
+      recordType: CNAME
+      targets:
+        - {{ .Values.external.tunnel_id }}.cfargotunnel.com

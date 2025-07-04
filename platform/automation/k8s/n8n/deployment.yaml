@@ -53,13 +53,9 @@ spec:
             - name: N8N_HOST
               value: n8n.homelab.internal
             - name: N8N_EDITOR_BASE_URL
-              value: https://n8n.homelab.internal
+              value: https://n8n.teaglebuilt.tech
             - name: N8N_PROTOCOL
               value: https
-            - name: N8N_SSL_CERT
-              value: "/certs/tls.crt"
-            - name: N8N_SSL_KEY
-              value: "/certs/tls.key"
             - name: N8N_DIAGNOSTICS_ENABLED
               value: "false"
             - name: N8N_ONBOARDING_FLOW_DISABLED
@@ -92,9 +88,6 @@ spec:
           volumeMounts:
             - name: credentials
               mountPath: /backup/credentials
-            - name: certificates
-              mountPath: "/certs"
-              readOnly: true
             - name: workflows
               mountPath: /backup/workflows
             - name: n8n-storage
@@ -105,9 +98,6 @@ spec:
         - name: credentials
           configMap:
             name: credentials-cm
-        - name: certificates
-          secret:
-            secretName: n8n-tls
         - name: workflows
           configMap:
             name: workflows-cm

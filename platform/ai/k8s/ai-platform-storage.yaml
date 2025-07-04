@@ -11,6 +11,7 @@ spec:
     storage: 500Gi
   accessModes:
     - ReadWriteMany
+    - ReadWriteOnce
   storageClassName: nfs-csi
   mountOptions:
     - nolock

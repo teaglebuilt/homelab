@@ -6,3 +6,6 @@ resources:
   - self-signed-cluster-issuer.yaml
   - internal-ca-certificate.yaml
   - internal-ca-issuer.yaml
+  - cloudflare-issuer.yaml
+# generators:
+#   - secrets-generator.yaml

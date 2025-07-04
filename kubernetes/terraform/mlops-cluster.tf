@@ -24,7 +24,7 @@ module "talos_cluster" {
       machine_type  = "controlplane"
       ip            = var.master_node_ip
       vm_id         = 100
-      cpu           = 4
+      cpu           = 8
       disk_size     = 20
       ram_dedicated = 8096
     }
@@ -33,7 +33,7 @@ module "talos_cluster" {
       machine_type  = "worker"
       ip            = var.worker_one_node_ip
       vm_id         = 102
-      cpu           = 8
+      cpu           = 16
       disk_size     = 30
       ram_dedicated = 14240
       igpu          = true

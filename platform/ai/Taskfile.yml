@@ -8,12 +8,12 @@ tasks:
   deploy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl apply -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl delete -f -
 
   test:
     cmds:

@@ -3,20 +3,37 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
+  namespace: data
   labels:
     app: redis
+    version: v1.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: redis
+      version: v1.0
   template:
     metadata:
       labels:
         app: redis
+        version: v1.0
     spec:
       containers:
         - name: redis
-          image: redis:alpine
+          image: redislabs/redismod:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REDIS_HOST
+              value: localhost
+            - name: REDIS_PORT
+              value: '6379'
           ports:
             - containerPort: 6379
+          resources:
+            requests:
+              memory: "164Mi"
+              cpu: "120m"
+            limits:
+              memory: "328Mi"
+              cpu: "300m"

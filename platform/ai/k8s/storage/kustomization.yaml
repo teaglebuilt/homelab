@@ -1,0 +1,35 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+helmCharts:
+  - name: qdrant
+    repo: https://qdrant.github.io/qdrant-helm
+    namespace: ai
+    version: 1.14.1
+    releaseName: qdrant
+    includeCRDs: true
+    valuesInline:
+      # apiKey:
+      #   valueFrom:
+      #     secretKeyRef:
+      #       name: qdrant-secrets
+      #       key: qdrant_api_key
+      config:
+        cluster:
+          enabled: "true"
+          p2p:
+            port: 6335
+            enable_tls: "false"
+          consensus:
+            tick_period_ms: 200
+      service:
+        annotations:
+          external-dns.alpha.kubernetes.io/hostname: qdrant.homelab.internal
+        type: LoadBalancer
+        apiKey: "$(QDRANT_API_KEY)"
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-01
+
+# generators:
+#   - secrets-generator.yaml

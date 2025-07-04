@@ -16,7 +16,7 @@ spec:
           solverName: "unifi"
           config:
             apiUrl: "https://unifi.example.com"
-            username: "admin"
+            username: $(UNIFI_USERNAME)
             passwordSecretRef:
               name: unifi-dns-creds
               key: password

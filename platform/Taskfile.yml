@@ -2,6 +2,8 @@
 version: 3
 
 includes:
+  data:
+    taskfile: data/Taskfile.yml
   ai:
     taskfile: ai/Taskfile.yml
   automation:
@@ -14,6 +16,7 @@ tasks:
     dir: platform
     summary: 'deploy all platform services running on kubernetes'
     cmds:
+      - task: data:deploy
       - task: ai:deploy
       - task: automation:deploy
       - task: observability:deploy

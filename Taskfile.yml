@@ -39,6 +39,7 @@ tasks:
       - task: kubernetes:sync-cluster
       - task: kubernetes:test-cluster
       - task: platform:deploy
+      - task: platform:test
 
   spin-up-*:
     summary: Used for launching any platform service locally.

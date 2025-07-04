@@ -23,9 +23,8 @@ spec:
     tls:
       mode: Terminate
       certificateRefs:
-      - kind: Secret
-        group: ""
-        name: homelab-tls
+        - kind: Secret
+          name: cloudflare-tls
     allowedRoutes:
       namespaces:
         from: All

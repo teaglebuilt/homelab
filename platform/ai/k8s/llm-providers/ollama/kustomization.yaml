@@ -8,7 +8,7 @@ helmCharts:
   - name: ollama
     releaseName: ollama
     repo: https://otwld.github.io/ollama-helm/
-    version: 1.14.0
+    version: 1.21.0
     namespace: ai
     valuesInline:
       ollama:
@@ -19,6 +19,7 @@ helmCharts:
         models:
           pull:
             - mistral
+            - nomic-embed-text
         insecure: true
       hostNetwork: true
       runtimeClassName: nvidia
@@ -31,10 +32,15 @@ helmCharts:
         accessModes:
           - ReadWriteMany
         size: 200Gi
-      requests:
-        nvidia.com/gpu: 1
-      limits:
-        nvidia.com/gpu: 1
+      resources:
+        requests:
+          cpu: "1"
+          memory: "6Gi"
+          nvidia.com/gpu: 1
+        limits:
+          cpu: "2"
+          memory: "16Gi"
+          nvidia.com/gpu: 1
       podSecurityContext:
         fsGroupChangePolicy: Always
         fsGroup: 0

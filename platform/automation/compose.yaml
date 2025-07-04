@@ -2,7 +2,8 @@ x-common: &common
   networks: ['automation-platform']
 
 services:
-  freq
+  hummingbot:
+
 
 networks:
   automation-platform:
