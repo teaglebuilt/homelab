@@ -10,14 +10,21 @@ helmCharts:
     releaseName: qdrant
     includeCRDs: true
     valuesInline:
+      # readOnlyApiKey:
+      #   valueFrom:
+      #     secretKeyRef:
+      #       name: qdrant-secrets
+      #       key: qdrant_api_key
       # apiKey:
       #   valueFrom:
       #     secretKeyRef:
       #       name: qdrant-secrets
       #       key: qdrant_api_key
+      apiKey: your-super-secret-api-key
       config:
+        api_key: your-super-secret-api-key
         cluster:
-          enabled: "true"
+          enabled: "false"
           p2p:
             port: 6335
             enable_tls: "false"
@@ -27,9 +34,8 @@ helmCharts:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: qdrant.homelab.internal
         type: LoadBalancer
-        apiKey: "$(QDRANT_API_KEY)"
       nodeSelector:
         kubernetes.io/hostname: mlops-work-01
 
-# generators:
-#   - secrets-generator.yaml
+generators:
+  - secrets-generator.yaml
