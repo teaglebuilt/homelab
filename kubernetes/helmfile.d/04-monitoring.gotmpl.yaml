@@ -13,4 +13,4 @@ releases:
     chart: vector/vector
     version: 0.44.0
     values:
-      - ../monitoring/vector.yaml
+      - ../apps/monitoring/vector.yaml
