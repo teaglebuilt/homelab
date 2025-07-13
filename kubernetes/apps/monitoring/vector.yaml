@@ -25,6 +25,14 @@ customConfig:
         . = parse_json!(.message) ?? .
 
   sinks:
+    graylog_gelf:
+      type: "gelf"
+      inputs:
+        - "kubernetes_logs"
+        - "talos_json_parse"
+      endpoint: "udp://graylog.homelab.internal:12201"
+      compression: "gzip"
+
     loki:
       type: "loki"
       inputs:
@@ -33,12 +41,12 @@ customConfig:
       endpoint: "http://loki.logging.svc.cluster.local:3100"
       encoding:
         codec: "json"
-      labels:
-        host: "{{ host }}"
-        source_type: "{{ source_type }}"
-        kubernetes_namespace: "{{ kubernetes.namespace }}"
-        kubernetes_pod: "{{ kubernetes.pod_name }}"
-        kubernetes_container: "{{ kubernetes.container_name }}"
+      # labels:
+      #   host: "{{ host }}"
+      #   source_type: "{{ source_type }}"
+      #   kubernetes_namespace: "{{ kubernetes.namespace }}"
+      #   kubernetes_pod: "{{ kubernetes.pod_name }}"
+      #   kubernetes_container: "{{ kubernetes.container_name }}"
 
 service:
   enabled: true

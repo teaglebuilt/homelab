@@ -1,6 +1,9 @@
 x-common: &common
   pull_policy: always
 
+include:
+  - graylog/compose.yaml
+
 services:
   grafana:
     <<: *common
