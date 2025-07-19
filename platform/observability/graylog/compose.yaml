@@ -12,7 +12,6 @@ services:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
     # To change password: echo -n "Enter Password: " && head -1 < /dev/stdin | tr -d '\n' | sha256sum | cut -d " " -f1
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
-      GRAYLOG_HTTP_EXTERNAL_URI: "https://graylog.homelab.internal"
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
       TZ: "America/New_York"
       GRAYLOG_ROOT_TIMEZONE: "America/New_York"
