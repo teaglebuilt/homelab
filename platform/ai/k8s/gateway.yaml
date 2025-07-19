@@ -5,7 +5,7 @@ metadata:
   name: ai-gateway
   namespace: ai
 spec:
-  gatewayClassName: envoy
+  gatewayClassName: envoy-gateway-class
   listeners:
   - name: http
     protocol: HTTP

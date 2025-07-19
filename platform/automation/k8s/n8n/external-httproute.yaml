@@ -6,7 +6,7 @@ metadata:
   namespace: automation
 spec:
   parentRefs:
-    - name: external-gateway
+    - name: homelab-external-gateway
       namespace: kube-system
   rules:
     - matches:

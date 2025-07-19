@@ -8,7 +8,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: n8n.homelab.internal
 spec:
   parentRefs:
-    - name: homelab-gateway
+    - name: homelab-internal-gateway
       namespace: kube-system
   rules:
     - matches:

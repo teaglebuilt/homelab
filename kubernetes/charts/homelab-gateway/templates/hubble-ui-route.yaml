@@ -8,7 +8,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: hubble.homelab.internal
 spec:
   parentRefs:
-  - name: homelab-gateway
+  - name: homelab-internal-gateway
     namespace: kube-system
   hostnames:
     - hubble.homelab.internal
