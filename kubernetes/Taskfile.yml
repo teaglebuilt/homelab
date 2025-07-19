@@ -66,11 +66,6 @@ tasks:
     cmds:
       - make helmfile_sync
 
-  lock-helm-charts:
-    dir: kubernetes
-    cmds:
-      - make helmfile_lock
-
   test-cluster:
     dir: kubernetes
     cmds:
@@ -90,3 +85,9 @@ tasks:
           sleep 10
         done
         echo "Kubernetes cluster is healthy!"
+
+  update-dependencies:
+    dir: kubernetes
+    cmds:
+      - make helmfile_lock
+      - make build_chart_dependencies

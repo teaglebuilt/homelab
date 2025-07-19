@@ -6,3 +6,6 @@ resources:
   - backend-service.yaml
   - backend-tls-policy.yaml
   - backend-security-policy.yaml
+
+generators:
+  - secrets-generator.yaml

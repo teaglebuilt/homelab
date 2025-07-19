@@ -12,7 +12,6 @@ services:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
     # To change password: echo -n "Enter Password: " && head -1 < /dev/stdin | tr -d '\n' | sha256sum | cut -d " " -f1
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
-      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
       GRAYLOG_HTTP_EXTERNAL_URI: "https://graylog.homelab.internal"
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
       TZ: "America/NewYork"
@@ -20,7 +19,8 @@ services:
     ports:
       - 1514:1514/tcp # Syslog TCP
       - 1514:1514/udp # Syslog UDP
-      - 5044:5044/tcp # Beats
+      - 5044:5044/tcp # Beatscd .
+      - 9001:9000  # ui
     restart: always
     depends_on:
       - mongo

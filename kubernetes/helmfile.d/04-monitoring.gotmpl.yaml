@@ -12,5 +12,5 @@ releases:
     createNamespace: true
     chart: vector/vector
     version: 0.44.0
-    values:
-      - ../apps/monitoring/vector.yaml
+    # values:
+    #   - ../apps/monitoring/vector.yaml

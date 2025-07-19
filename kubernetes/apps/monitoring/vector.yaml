@@ -33,14 +33,14 @@ customConfig:
       endpoint: "udp://graylog.homelab.internal:12201"
       compression: "gzip"
 
-    loki:
-      type: "loki"
-      inputs:
-        - "kubernetes_logs"
-        - "talos_json_parse"
-      endpoint: "http://loki.logging.svc.cluster.local:3100"
-      encoding:
-        codec: "json"
+    # loki:
+    #   type: "loki"
+    #   inputs:
+    #     - "kubernetes_logs"
+    #     - "talos_json_parse"
+    #   endpoint: "http://loki.logging.svc.cluster.local:3100"
+    #   encoding:
+    #     codec: "json"
       # labels:
       #   host: "{{ host }}"
       #   source_type: "{{ source_type }}"
