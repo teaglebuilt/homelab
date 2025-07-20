@@ -4,7 +4,7 @@ services:
     hostname: mongodb
     restart: always
     volumes:
-      - /mnt/data/mongo:/data/db
+      - /mnt/local/mongo:/data/db
     networks:
       - graylog-net
 
@@ -13,7 +13,7 @@ services:
     hostname: opensearch
     restart: always
     volumes:
-      - /mnt/data/opensearch:/usr/share/opensearch/data
+      - /mnt/local/opensearch:/usr/share/opensearch/data
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
@@ -50,7 +50,7 @@ services:
       - 12201:12201/udp # GELF UDP input recommended
       - 9001:9000/tcp   # Graylog Web UI
     volumes:
-      - /mnt/data/graylog/core:/usr/share/graylog/data
+      - /mnt/local/graylog/core:/usr/share/graylog/data
     depends_on:
       - mongo
       - opensearch
