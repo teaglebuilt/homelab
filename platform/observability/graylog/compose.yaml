@@ -1,15 +1,17 @@
+version: '3.8'
+
 services:
   mongo:
     image: mongo:7.0.14
     hostname: mongodb
     volumes:
-      - mongo_data:/data/db
+      - /mnt/data/mongo:/data/db
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     hostname: opensearch
     volumes:
-      - es_data:/usr/share/opensearch/data
+      - /mnt/data/opensearch:/usr/share/opensearch/data
     ports:
       - 9200:9200/tcp
     environment:
@@ -19,8 +21,6 @@ services:
       - "action.auto_create_index=false"
       - "plugins.security.ssl.http.enabled=false"
       - "plugins.security.disabled=true"
-      # Can generate a password for `OPENSEARCH_INITIAL_ADMIN_PASSWORD` using a linux device via
-      # tr -dc A-Z-a-z-0-9_@#%^-_=+  devurandom  head -c${1-32}
       - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon"
     ulimits:
       memlock:
@@ -32,8 +32,8 @@ services:
     restart: always
 
   datanode:
-    image: "graylog/graylog-datanode:6.1"
-    hostname: "datanode"
+    image: graylog/graylog-datanode:6.1
+    hostname: datanode
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
       GRAYLOG_DATANODE_PASSWORD_SECRET: "somepasswordpepper"
@@ -47,7 +47,7 @@ services:
         soft: 65536
         hard: 65536
     volumes:
-      - "graylog_datanode:/var/lib/graylog-datanode"
+      - /mnt/data/graylog/datanode:/var/lib/graylog-datanode
 
   graylog:
     image: graylog/graylog:6.1.5
@@ -55,29 +55,18 @@ services:
     environment:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
       GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
-    # To change password: echo -n "Enter Password: " && head -1 < /dev/stdin | tr -d '\n' | sha256sum | cut -d " " -f1
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
       TZ: "America/New_York"
       GRAYLOG_ROOT_TIMEZONE: "America/New_York"
     ports:
-      - 1514:1514/tcp # Syslog TCP
-      - 1514:1514/udp # Syslog UDP
-      - 5044:5044/tcp # Beatscd .
-      - 9001:9000  # ui
+      - 1514:1514/tcp
+      - 1514:1514/udp
+      - 5044:5044/tcp
+      - 9001:9000
     restart: always
     volumes:
-      - graylog_data:/usr/share/graylog/data
+      - /mnt/data/graylog/core:/usr/share/graylog/data
     depends_on:
       - mongo
       - opensearch
-
-volumes:
-  mongo_data:
-    driver: local
-  es_data:
-    driver: local
-  graylog_data:
-    driver: local
-  graylog_datanode:
-    driver: local
