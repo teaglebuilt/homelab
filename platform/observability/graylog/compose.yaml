@@ -22,13 +22,6 @@ services:
       - "plugins.security.ssl.http.enabled=false"
       - "plugins.security.disabled=true"
       - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
     restart: always
 
   datanode:
@@ -39,13 +32,6 @@ services:
       GRAYLOG_DATANODE_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
       GRAYLOG_DATANODE_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
       GRAYLOG_DATANODE_MONGODB_URI: "mongodb://mongodb:27017/graylog"
-    ulimits:
-      memlock:
-        hard: -1
-        soft: -1
-      nofile:
-        soft: 65536
-        hard: 65536
     volumes:
       - /mnt/data/graylog/datanode:/var/lib/graylog-datanode
 
