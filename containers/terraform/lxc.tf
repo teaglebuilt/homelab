@@ -41,6 +41,12 @@ resource "proxmox_virtual_environment_container" "portainer" {
     nesting = true
   }
 
+  mount_point {
+    volume = "sre_storage"
+    path   = "mnt/local"
+    size = "50G"
+  }
+
   initialization {
     hostname = "portainer"
     ip_config {
