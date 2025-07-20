@@ -1,58 +1,62 @@
-version: '3.8'
-
 services:
   mongo:
     image: mongo:7.0.14
     hostname: mongodb
+    restart: always
     volumes:
       - /mnt/data/mongo:/data/db
+    networks:
+      - graylog-net
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     hostname: opensearch
+    restart: always
     volumes:
       - /mnt/data/opensearch:/usr/share/opensearch/data
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g
+      - action.auto_create_index=false
+      - plugins.security.ssl.http.enabled=false
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     ports:
-      - 9200:9200/tcp
-    environment:
-      - "discovery.type=single-node"
-      - "bootstrap.memory_lock=true"
-      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
-      - "action.auto_create_index=false"
-      - "plugins.security.ssl.http.enabled=false"
-      - "plugins.security.disabled=true"
-      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon"
-    restart: always
-
-  datanode:
-    image: graylog/graylog-datanode:6.1
-    hostname: datanode
-    environment:
-      GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
-      GRAYLOG_DATANODE_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
-      GRAYLOG_DATANODE_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
-      GRAYLOG_DATANODE_MONGODB_URI: "mongodb://mongodb:27017/graylog"
-    volumes:
-      - /mnt/data/graylog/datanode:/var/lib/graylog-datanode
+      - 9200:9200
+    networks:
+      - graylog-net
 
   graylog:
     image: graylog/graylog:6.1.5
     hostname: graylog
+    restart: always
     environment:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
-      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
+      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
+      GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9001/"
       TZ: "America/New_York"
       GRAYLOG_ROOT_TIMEZONE: "America/New_York"
     ports:
       - 1514:1514/tcp
       - 1514:1514/udp
       - 5044:5044/tcp
-      - 9001:9000
-    restart: always
+      - 12201:12201/udp # GELF UDP input recommended
+      - 9001:9000/tcp   # Graylog Web UI
     volumes:
       - /mnt/data/graylog/core:/usr/share/graylog/data
     depends_on:
       - mongo
       - opensearch
+    networks:
+      - graylog-net
+
+networks:
+  graylog-net:
+    driver: bridge
