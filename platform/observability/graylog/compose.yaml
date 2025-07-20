@@ -31,6 +31,24 @@ services:
         hard: 65536
     restart: always
 
+  datanode:
+    image: "graylog/graylog-datanode:6.1"
+    hostname: "datanode"
+    environment:
+      GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
+      GRAYLOG_DATANODE_PASSWORD_SECRET: "somepasswordpepper"
+      GRAYLOG_DATANODE_ROOT_PASSWORD_SHA2: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
+      GRAYLOG_DATANODE_MONGODB_URI: "mongodb://mongodb:27017/graylog"
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - "graylog_datanode:/var/lib/graylog-datanode"
+
   graylog:
     image: graylog/graylog:6.1.5
     hostname: graylog
@@ -60,4 +78,6 @@ volumes:
   es_data:
     driver: local
   graylog_data:
+    driver: local
+  graylog_datanode:
     driver: local
