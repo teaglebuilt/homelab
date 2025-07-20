@@ -5,11 +5,41 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    hostname: opensearch
+    volumes:
+      - es_data:/usr/share/opensearch/data
+    ports:
+      - 9200:9200/tcp
+    environment:
+      - "discovery.type=single-node"
+      - "bootstrap.memory_lock=true"
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "action.auto_create_index=false"
+      - "plugins.security.ssl.http.enabled=false"
+      - "plugins.security.disabled=true"
+      # Can generate a password for `OPENSEARCH_INITIAL_ADMIN_PASSWORD` using a linux device via
+      # tr -dc A-Z-a-z-0-9_@#%^-_=+  devurandom  head -c${1-32}
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    networks:
+      - graylog
+      - traefik-tls
+    restart: always
+
   graylog:
     image: graylog/graylog:6.1.5
     hostname: graylog
     environment:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
+      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
     # To change password: echo -n "Enter Password: " && head -1 < /dev/stdin | tr -d '\n' | sha256sum | cut -d " " -f1
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
@@ -21,9 +51,16 @@ services:
       - 5044:5044/tcp # Beatscd .
       - 9001:9000  # ui
     restart: always
+    volumes:
+      - graylog_data:/usr/share/graylog/data
     depends_on:
       - mongo
+      - opensearch
 
 volumes:
   mongo_data:
+    driver: local
+  es_data:
+    driver: local
+  graylog_data:
     driver: local
