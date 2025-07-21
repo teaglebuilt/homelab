@@ -46,7 +46,7 @@ services:
       - 12201:12201/udp # GELF UDP input recommended
       - 9001:9000/tcp   # Graylog Web UI
     volumes:
-      - /mnt/local/graylog/core:/usr/share/graylog/data
+      - /mnt/local/graylog:/usr/share/graylog/data
     depends_on:
       - mongo
       - opensearch
