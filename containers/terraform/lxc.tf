@@ -15,12 +15,12 @@ resource "proxmox_virtual_environment_container" "portainer" {
   vm_id = 105
 
   cpu {
-    cores = 1
+    cores = 2
   }
 
   memory {
-    dedicated = 512
-    swap = 512
+    dedicated = 3096
+    swap = 3096
   }
 
   network_interface {
@@ -44,7 +44,7 @@ resource "proxmox_virtual_environment_container" "portainer" {
   mount_point {
     volume = "sre_storage"
     path   = "mnt/local"
-    size = "50G"
+    size = "100G"
   }
 
   initialization {

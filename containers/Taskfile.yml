@@ -1,9 +1,12 @@
 ---
 version: 3
 
+vars:
+  TERRAFORM: tofu -chdir=terraform
+
 tasks:
-  deploy-portainer:
-    dir: terraform
+  provision:
+    dir: containers
     summary: Standup lxc container with portainer for container management
     env:
       PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
@@ -14,9 +17,9 @@ tasks:
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
     cmds:
       - |-
-        tofu init --upgrade
+        {{.TERRAFORM}} init --upgrade
       - |-
-        tofu plan \
+        {{.TERRAFORM}} plan \
           -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
           -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
@@ -24,7 +27,7 @@ tasks:
           -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
           -var portainer_password=$PORTAINER_PASSWORD
       - |-
-        tofu apply -auto-approve \
+        {{.TERRAFORM}} apply -auto-approve \
           -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
           -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
@@ -32,11 +35,11 @@ tasks:
           -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
           -var portainer_password=$PORTAINER_PASSWORD
 
-  destroy-portainer:
+  destroy:
     dir: terraform
     cmds:
       - |-
-        tofu destroy -auto-approve \
+        {{.TERRAFORM}} destroy -auto-approve \
           -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
           -var portainer_ip=$PORTAINER_IP \
