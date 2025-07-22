@@ -5,8 +5,6 @@ services:
     restart: always
     volumes:
       - /mnt/local/mongo:/data/db
-    networks:
-      - graylog-net
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
@@ -24,8 +22,6 @@ services:
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon
     ports:
       - 9200:9200
-    networks:
-      - graylog-net
 
   graylog:
     image: graylog/graylog:6.1.5
@@ -47,13 +43,7 @@ services:
       - 9001:9000/tcp   # Graylog Web UI
     volumes:
       - ./graylog.conf:/usr/share/graylog/config/graylog.conf
-      - /mnt/local/graylog:/usr/share/graylog/data
+      - /mnt/local/graylog:/usr/share/graylog/
     depends_on:
       - mongo
       - opensearch
-    networks:
-      - graylog-net
-
-networks:
-  graylog-net:
-    driver: bridge
