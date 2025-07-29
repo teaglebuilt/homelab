@@ -34,8 +34,10 @@ extraArgs:
   - --ignore-ingress-tls-spec
 policy: sync
 sources: ["ingress", "service", "gateway-httproute", "gateway-tlsroute"]
-txtOwnerId: default
-txtPrefix: k8s.
+txtOwnerId: k8s-internal
+txtPrefix: k8s-internal.
 domainFilters: ["internal"]
+interval: 1m
+triggerLoopOnEvent: true
 nodeSelector:
   kubernetes.io/hostname: mlops-work-01

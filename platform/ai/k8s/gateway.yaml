@@ -4,18 +4,27 @@ kind: Gateway
 metadata:
   name: ai-gateway
   namespace: ai
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal
 spec:
   gatewayClassName: envoy-gateway-class
   listeners:
   - name: http
     protocol: HTTP
+    hostname: ai.homelab.internal
     port: 80
     allowedRoutes:
       namespaces:
         from: Same
   - name: https
-    protocol: HTTP
     port: 443
+    protocol: HTTPS
+    hostname: ai.homelab.internal
+    tls:
+      mode: Terminate
+      certificateRefs:
+        - kind: Secret
+          name: internal-cloudflare-tls
     allowedRoutes:
       namespaces:
-        from: Same
+        from: All

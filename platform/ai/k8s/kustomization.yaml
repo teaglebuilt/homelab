@@ -9,6 +9,3 @@ resources:
   - storage
   - llm-providers
   - integrations
-
-generators:
-  - secrets-generator.yaml

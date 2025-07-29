@@ -16,6 +16,7 @@ module "talos_cluster" {
     talos_version       = "v1.9.1"
     kubernetes_version  = "1.32.2"
     proxmox_cluster     = "mlops"
+    logging_server      = var.graylog_ip
   }
 
   nodes = {

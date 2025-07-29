@@ -10,6 +10,8 @@ spec:
   parentRefs:
     - name: homelab-internal-gateway
       namespace: kube-system
+  hostnames:
+    - n8n.homelab.internal
   rules:
     - matches:
         - path:

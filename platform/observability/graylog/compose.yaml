@@ -9,7 +9,7 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     hostname: opensearch
-    restart: always
+    restart: unless-stopped
     volumes:
       - /mnt/local/opensearch:/usr/share/opensearch/data
     environment:
@@ -24,9 +24,10 @@ services:
       - 9200:9200
 
   graylog:
-    image: graylog/graylog:6.1.5
+    image: graylog/graylog:6.2
     hostname: graylog
     restart: always
+    entrypoint: /usr/bin/tini -- wait-for-it opensearch:9200 -- /docker-entrypoint.sh
     environment:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
@@ -35,15 +36,23 @@ services:
       GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9001/"
       TZ: "America/New_York"
       GRAYLOG_ROOT_TIMEZONE: "America/New_York"
+      GRAYLOG_JOURNAL_ENABLED: false
+      GRAYLOG_MESSAGE_JOURNAL_MAX_SIZE: 1gb
     ports:
-      - 1514:1514/tcp
-      - 1514:1514/udp
-      - 5044:5044/tcp
-      - 12201:12201/udp # GELF UDP input recommended
-      - 9001:9000/tcp   # Graylog Web UI
+      - 9001:9000/tcp   # Graylog web interface and REST API
+      - 1514:1514/tcp   # Syslog
+      - 1514:1514/udp   # Syslog
+      - 12201:12201/tcp # GELF
+      - 12201:12201/udp # GELF
     volumes:
-      - ./graylog.conf:/usr/share/graylog/config/graylog.conf
-      - /mnt/local/graylog:/usr/share/graylog/
+      - ./graylog.conf:/usr/share/graylog/config/graylog.conf"
+      - graylog_data:/usr/share/graylog/data
     depends_on:
-      - mongo
-      - opensearch
+      opensearch:
+        condition: "service_started"
+      mongo:
+        condition: "service_started"
+
+
+volumes:
+  graylog_data:

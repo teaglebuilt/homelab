@@ -4,6 +4,8 @@ kind: HTTPRoute
 metadata:
   name: n8n-callback-route
   namespace: automation
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: n8n.homelab.external
 spec:
   parentRefs:
     - name: homelab-external-gateway

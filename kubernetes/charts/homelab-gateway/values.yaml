@@ -1,14 +1,13 @@
 
+gateway-helm:
+  config:
+    envoyGateway:
+      gateway:
+        controllerName: gateway.envoyproxy.io/gatewayclass-controller
+        gatewayClassName: envoy-gateway-class
+      extensionApis:
+        enableBackend: true
 
-# cloudflare-tunnel:
-#   cloudflare:
-#     account: ce70bbe5880cef2c1874b61b39a55436
-#     tunnelName: homelab_external
-#     tunnelId: 862aefa7-f9b9-4c2d-be08-d3911716c583
-#     secret: zfdAi54uEpnEp+BAxjRfYkN9HiD+bBa5Jjq0I+NYqc0=
-#   image:
-#     pullPolicy: Always
-envoyGateway:
-  gateway:
-    controllerName: gateway.envoyproxy.io/gatewayclass-controller
-    gatewayClassName: aigw-envoy
+ai-gateway-helm:
+  controller:
+    envoyGatewayNamespace: kube-system

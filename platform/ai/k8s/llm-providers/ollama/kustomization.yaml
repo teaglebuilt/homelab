@@ -35,11 +35,11 @@ helmCharts:
       resources:
         requests:
           cpu: "1"
-          memory: "5Gi"
+          memory: "2Gi"
           nvidia.com/gpu: 1
         limits:
           cpu: "2"
-          memory: "14Gi"
+          memory: "12Gi"
           nvidia.com/gpu: 1
       podSecurityContext:
         fsGroupChangePolicy: Always

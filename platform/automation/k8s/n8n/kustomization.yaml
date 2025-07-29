@@ -3,12 +3,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: automation
 resources:
-- ingress.yaml
 - deployment.yaml
 - service.yaml
 - configmap.yaml
 - pvc.yaml
 - internal-httproute.yaml
+- external-httproute.yaml
 
 configMapGenerator:
 - name: workflows-cm

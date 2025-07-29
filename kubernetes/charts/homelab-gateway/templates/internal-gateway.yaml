@@ -24,7 +24,7 @@ spec:
       mode: Terminate
       certificateRefs:
         - kind: Secret
-          name: cloudflare-tls
+          name: internal-cloudflare-tls
     allowedRoutes:
       namespaces:
         from: All

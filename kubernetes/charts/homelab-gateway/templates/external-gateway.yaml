@@ -17,4 +17,4 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
-            name: cloudflare-tls
+            name: external-cloudflare-tls
