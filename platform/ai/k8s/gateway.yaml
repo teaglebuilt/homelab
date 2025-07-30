@@ -27,4 +27,4 @@ spec:
           name: internal-cloudflare-tls
     allowedRoutes:
       namespaces:
-        from: All
+        from: Same
