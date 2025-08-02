@@ -4,7 +4,14 @@ sidebar_position: 2
 
 [Talos Linux](https://www.talos.dev/v1.9/) is a linux operating system that runs and manages kubernetes.
 
-## Clusters
+## Core
+
+**Security**
+  * `Certificates` - [Certmanager]() is used to automate certificate management and rotation for all services both internal and external.
+    - `internal` certficates use internal dns resolution with [externaldns webhook](https://github.com/kashalls/external-dns-unifi-webhook).
+    - `external` certificates are managed with cloudflare and a issuer exists using cloudflare for issuing these certificates. These services are only exposed over [cloudflare tunnels]().
+
+### Clusters
 
 ### MLOps Cluster
 
