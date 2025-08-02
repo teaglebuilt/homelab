@@ -1,12 +1,13 @@
----
+
 gateway-helm:
   config:
-    # backendTlsConfig:
-    #   clientCertificateRef: homelab-tls
     envoyGateway:
+      gateway:
+        controllerName: gateway.envoyproxy.io/gatewayclass-controller
+        gatewayClassName: envoy-gateway-class
       extensionApis:
         enableBackend: true
 
 ai-gateway-helm:
   controller:
-    enableInferenceExtension: true
+    envoyGatewayNamespace: kube-system

@@ -1,6 +1,9 @@
 x-common: &common
   pull_policy: always
 
+include:
+  - graylog/compose.yaml
+
 services:
   grafana:
     <<: *common
@@ -14,7 +17,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
       GF_INSTALL_PLUGINS: grafana-clock-panel,natel-discrete-panel,grafana-piechart-panel
     volumes:
-      - ./grafana:/etc/grafana/provisioning
+      - ./mnt/data/grafana:/etc/grafana/provisioning
       - grafana-data:/var/lib/grafana
 
   influxdb:

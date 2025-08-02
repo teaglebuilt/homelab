@@ -39,6 +39,11 @@ extraEnvVars:
       secretKeyRef:
         name: openwebui-secrets
         key: webui_api_key
+  - name: QDRANT_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: qdrant-secrets
+        key: qdrant_api_key
   - name: STORAGE_PROVIDER
     value: s3
   - name: S3_REGION_NAME

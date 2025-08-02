@@ -1,0 +1,43 @@
+---
+fullnameOverride: external-dns-unifi
+logLevel: &logLevel debug
+provider:
+  name: webhook
+  webhook:
+    image:
+      repository: ghcr.io/kashalls/external-dns-unifi-webhook
+      tag: main
+    env:
+      - name: UNIFI_HOST
+        value: {{ requiredEnv "UNIFI_NETWORK_GATEWAY" | quote }}
+      - name: UNIFI_EXTERNAL_CONTROLLER
+        value: "false"
+      - name: UNIFI_SKIP_TLS_VERIFY
+        value: "true"
+      - name: UNIFI_API_KEY
+        value: {{ requiredEnv "UNIFI_API_KEY" | quote }}
+      - name: LOG_LEVEL
+        value: *logLevel
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: http-webhook
+      initialDelaySeconds: 10
+      timeoutSeconds: 5
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: http-webhook
+      initialDelaySeconds: 10
+      timeoutSeconds: 5
+extraArgs:
+  - --ignore-ingress-tls-spec
+policy: sync
+sources: ["ingress", "service", "gateway-httproute", "gateway-tlsroute"]
+txtOwnerId: k8s-internal
+txtPrefix: k8s-internal.
+domainFilters: ["internal"]
+interval: 1m
+triggerLoopOnEvent: true
+nodeSelector:
+  kubernetes.io/hostname: mlops-work-01

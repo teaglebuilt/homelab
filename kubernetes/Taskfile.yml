@@ -32,7 +32,8 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
-          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
+          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
+          -var graylog_ip=${GRAYLOG_IP}
       - |-
         {{.TERRAFORM}} apply -auto-approve \
           -var k8s_api_server_ip=${MASTER_NODE_IP} \
@@ -40,7 +41,8 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
-          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
+          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
+          -var graylog_ip=${GRAYLOG_IP}
 
   destroy-cluster:
     dir: kubernetes
@@ -54,7 +56,8 @@ tasks:
           -var master_node_ip=${MASTER_NODE_IP} \
           -var worker_one_node_ip=${WORKER_00_NODE_IP} \
           -var worker_two_node_ip=${WORKER_01_NODE_IP} \
-          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY}
+          -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
+          -var graylog_ip=${GRAYLOG_IP}
 
   bootstrap-cluster:
     dir: kubernetes
@@ -65,11 +68,6 @@ tasks:
     dir: kubernetes
     cmds:
       - make helmfile_sync
-
-  lock-helm-charts:
-    dir: kubernetes
-    cmds:
-      - make helmfile_lock
 
   test-cluster:
     dir: kubernetes
@@ -90,3 +88,9 @@ tasks:
           sleep 10
         done
         echo "Kubernetes cluster is healthy!"
+
+  update-dependencies:
+    dir: kubernetes
+    cmds:
+      - make helmfile_lock
+      - make build_chart_dependencies

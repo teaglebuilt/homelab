@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comfyui
+  labels:
+    app: comfyui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: comfyui
+  template:
+    metadata:
+      labels:
+        app: comfyui
+    spec:
+      runtimeClassName: nvidia
+      tolerations:
+      - key: restriction
+        operator: "Equal"
+        value: "CUDAonly"
+        effect: "NoSchedule"
+      containers:
+      - name: comfyui
+        image: registry.svc.snowgoons.ro/snowgoons/comfyui:2024-07-02
+        args: [ "--listen", "0.0.0.0" ]
+        imagePullPolicy: Always
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        ports:
+        - containerPort: 8188
+          name: comfyui
+        volumeMounts:
+        - mountPath: /usr/local/ComfyUI/models
+          name: model-folder
+      volumes:
+      - name: model-folder
+        hostPath:
+          path: /usr/local/ai/models/comfyui

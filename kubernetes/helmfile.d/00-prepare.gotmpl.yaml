@@ -12,15 +12,11 @@ hooks:
     args:
       - -c
       - |
-        kustomize build ../apps/security/reflector | kubectl apply -f -
-  - events: ["prepare"]
-    showlogs: true
-    command: "bash"
-    args:
-      - -c
+        sops --decrypt --input-type yaml --output-type yaml \
+          ../apps/secrets/aws.enc.yaml /dev/stdin | kubectl apply -f -
       - |
         sops --decrypt --input-type yaml --output-type yaml \
-          ../apps/secrets.enc.yaml /dev/stdin | kubectl apply -f -
+          ../apps/secrets/cloudflare.enc.yaml /dev/stdin | kubectl apply -f -
   - events: ["prepare"]
     showlogs: true
     command: "kubectl"

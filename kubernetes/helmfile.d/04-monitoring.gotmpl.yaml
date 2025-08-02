@@ -1,0 +1,16 @@
+---
+bases:
+  - ../defaults.yaml
+
+repositories:
+  - name: vector
+    url: https://helm.vector.dev
+
+releases:
+  - name: vector
+    namespace: observability
+    createNamespace: true
+    chart: vector/vector
+    version: 0.44.0
+    # values:
+    #   - ../apps/monitoring/vector.yaml

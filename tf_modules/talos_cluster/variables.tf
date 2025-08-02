@@ -19,6 +19,7 @@ variable "cluster" {
     talos_version       = string
     kubernetes_version  = string
     proxmox_cluster     = string
+    logging_server      = string
   })
 }
 

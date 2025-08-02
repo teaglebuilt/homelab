@@ -11,12 +11,13 @@ spec:
     storage: 500Gi
   accessModes:
     - ReadWriteMany
+    - ReadWriteOnce
   storageClassName: nfs-csi
   mountOptions:
     - nolock
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: ollama
+    volumeHandle: ai
     volumeAttributes:
       server: unas.internal
       share: /var/nfs/shared/ai_platform_data

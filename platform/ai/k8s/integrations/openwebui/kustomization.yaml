@@ -10,3 +10,6 @@ helmCharts:
     namespace: ai
     releaseName: open-webui
     valuesFile: values.yaml
+
+generators:
+  - secrets-generator.yaml

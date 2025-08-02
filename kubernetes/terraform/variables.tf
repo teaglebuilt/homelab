@@ -28,3 +28,7 @@ variable proxmox_ssh_private_key {
   description = "Path to the SSH private key file"
   type        = string
 }
+
+variable "graylog_ip" {
+  type = string
+}

@@ -5,14 +5,16 @@ description: Helm Chart for homelab gateway
 type: application
 version: '1.0.0'
 appVersion: 'v1.0.0'
-
 dependencies:
+  - name: cloudflare-tunnel
+    repository: https://cloudflare.github.io/helm-charts
+    version: 0.3.2
   - name: gateway-helm
-    version: v0.0.0-latest
+    version: v1.4.1
     repository: oci://docker.io/envoyproxy
   - name: ai-gateway-crds-helm
-    version: v0.0.0-latest
+    version: v0.2.1
     repository: oci://docker.io/envoyproxy
   - name: ai-gateway-helm
-    version: v0.0.0-latest
+    version: v0.2.1
     repository: oci://docker.io/envoyproxy

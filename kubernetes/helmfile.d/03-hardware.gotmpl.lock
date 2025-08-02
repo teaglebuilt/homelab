@@ -1,8 +1,5 @@
 version: v0.170.0
 dependencies:
-- name: dcgm-exporter
-  repository: https://nvidia.github.io/dcgm-exporter/helm-charts
-  version: 4.1.1
 - name: kwasm-operator
   repository: http://kwasm.sh/kwasm-operator/
   version: 0.2.3
@@ -12,5 +9,5 @@ dependencies:
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.17.1
-digest: sha256:8ad4afa638242cb332ecbf250154ac6a62ae4b558eee9a13a31cf35ba9a59f49
-generated: "2025-05-23T16:15:59.605685-04:00"
+digest: sha256:d614a18c2d3bb0176766be325f72f8b1c3f3fe92852cdf0e1fdd60ce94080a9a
+generated: "2025-07-12T11:56:45.141213-04:00"

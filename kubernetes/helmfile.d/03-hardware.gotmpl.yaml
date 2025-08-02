@@ -13,6 +13,43 @@ repositories:
     url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
+  # - name: gpu-operator
+  #   namespace: kube-system
+  #   chart: nvidia/gpu-operator
+  #   version: 25.3.0
+  #   values:
+  #     - runtimeClassName: nvidia
+  #     - operator:
+  #         defaultRuntime: nvidia
+  #       toolkit:
+  #         env:
+  #           - name: CONTAINERD_CONFIG
+  #             value: /etc/containerd/config.toml
+  #           - name: CONTAINERD_RUNTIME_CLASS
+  #             value: nvidia
+  #       driver:
+  #         enabled: false
+  #       devicePlugin:
+  #         enabled: true
+  #         runtimeClassName: nvidia
+  #       toolkit:
+  #         enabled: true
+  #       gfd:
+  #         enabled: true
+  #       migManager:
+  #         enabled: false
+  #       nfd:
+  #         enabled: true
+  #       validator:
+  #         enabled: false
+  #       dcgmExporter:
+  #         runtimeClassName: nvidia
+  #         hostNetwork: true
+  #         nodeSelector:
+  #           nvidia.com/gpu.present: 'true'
+  #         serviceMonitor:
+  #           interval: 15s
+  #           honorLabels: true
   - name: nvidia-device-plugin
     namespace: kube-system
     chart: nvidia/nvidia-device-plugin
@@ -25,16 +62,6 @@ releases:
           enabled: true
         nfd:
           enabled: true
-      # - config:
-      #     map:
-      #       default: |-
-      #         version: v1
-      #         sharing:
-      #           timeSlicing:
-      #             renameByDefault: false
-      #             resources:
-      #               - name: nvidia.com/gpu
-      #                 replicas: 4
     hooks:
       - events: ["presync"]
         showlogs: true
@@ -43,20 +70,6 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/nvidia | kubectl apply -f -
-
-  - name: dcgm-exporter
-    chart: gpu-helm-charts/dcgm-exporter
-    namespace: kube-system
-    needs:
-      - kube-system/nvidia-device-plugin
-    values:
-      - nodeSelector:
-          nvidia.com/gpu.present: 'true'
-        runtimeClassName: nvidia
-        hostNetwork: true
-        serviceMonitor:
-          interval: 15s
-          honorLabels: true
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator

@@ -11,6 +11,11 @@ repositories:
     url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
 
 releases:
+  - name: reflector
+    namespace: kube-system
+    chart: oci://ghcr.io/emberstack/helm-charts/reflector
+    version: 9.1.12
+
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium

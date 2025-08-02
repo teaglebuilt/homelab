@@ -1,0 +1,9 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+![V1Diagram](mdc:https:/raw.githubusercontent.com/teaglebuilt/homelab/main/docs/static/img/overview.v1.png)
+
+[hardware](mdc:../../docs/docs/hardware.md)

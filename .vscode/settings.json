@@ -1,5 +1,6 @@
 {
   "python.analysis.extraPaths": [
+    "platform/automation/jobs",
     "packages/network_client/lib",
     "${workspaceFolder}/platform/ai/.venv/bin/python"
   ],

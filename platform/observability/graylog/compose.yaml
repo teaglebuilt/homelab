@@ -2,35 +2,57 @@ services:
   mongo:
     image: mongo:7.0.14
     hostname: mongodb
+    restart: always
     volumes:
-      - mongo_data:/data/db
-    networks:
-      - sre
+      - /mnt/local/mongo:/data/db
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    hostname: opensearch
+    restart: unless-stopped
+    volumes:
+      - /mnt/local/opensearch:/usr/share/opensearch/data
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g
+      - action.auto_create_index=false
+      - plugins.security.ssl.http.enabled=false
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Chocolate1-Strawberry-Opacity-Lemon
+    ports:
+      - 9200:9200
 
   graylog:
-    image: graylog/graylog:6.1.5
+    image: graylog/graylog:6.2
     hostname: graylog
-    environment:
-      GRAYLOG_PASSWORD_SECRET: somepasswordpepper
-    # To change password: echo -n "Enter Password: " && head -1 < /dev/stdin | tr -d '\n' | sha256sum | cut -d " " -f1
-      GRAYLOG_ROOT_PASSWORD_SHA2: 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
-      GRAYLOG_HTTP_EXTERNAL_URI: "https://graylog.homelab.internal"
-      GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
-      TZ: "America/NewYork"
-      GRAYLOG_ROOT_TIMEZONE: "America/NewYork"
-    ports:
-      - 1514:1514/tcp # Syslog TCP
-      - 1514:1514/udp # Syslog UDP
-      - 5044:5044/tcp # Beats
     restart: always
+    entrypoint: /usr/bin/tini -- wait-for-it opensearch:9200 -- /docker-entrypoint.sh
+    environment:
+      GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
+      GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
+      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
+      GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
+      GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9001/"
+      TZ: "America/New_York"
+      GRAYLOG_ROOT_TIMEZONE: "America/New_York"
+      GRAYLOG_JOURNAL_ENABLED: false
+      GRAYLOG_MESSAGE_JOURNAL_MAX_SIZE: 1gb
+    ports:
+      - 9001:9000/tcp   # Graylog web interface and REST API
+      - 1514:1514/tcp   # Syslog
+      - 1514:1514/udp   # Syslog
+      - 12201:12201/tcp # GELF
+      - 12201:12201/udp # GELF
+    volumes:
+      - ./graylog.conf:/usr/share/graylog/config/graylog.conf"
+      - graylog_data:/usr/share/graylog/data
     depends_on:
-      - mongo
+      opensearch:
+        condition: "service_started"
+      mongo:
+        condition: "service_started"
+
 
 volumes:
-  mongo_data:
-    driver: local
-
-networks:
-  sre:
-    external: true
+  graylog_data:

@@ -1,0 +1,64 @@
+---
+role: "Agent"
+customConfig:
+  data_dir: "/vector-data-dir"
+
+  sources:
+    kubernetes_logs:
+      type: "kubernetes_logs"
+      use_apiserver_cache: true
+      pod_annotation_fields:
+        container_image: "image"
+        container_name: "container"
+
+    talos_syslog:
+      type: "syslog"
+      address: "0.0.0.0:5140"
+      mode: "udp"
+
+  transforms:
+    talos_json_parse:
+      type: "remap"
+      inputs:
+        - "talos_syslog"
+      source: |
+        . = parse_json!(.message) ?? .
+
+  sinks:
+    graylog_gelf:
+      type: "gelf"
+      inputs:
+        - "kubernetes_logs"
+        - "talos_json_parse"
+      endpoint: "udp://graylog.homelab.internal:12201"
+      compression: "gzip"
+
+    # loki:
+    #   type: "loki"
+    #   inputs:
+    #     - "kubernetes_logs"
+    #     - "talos_json_parse"
+    #   endpoint: "http://loki.logging.svc.cluster.local:3100"
+    #   encoding:
+    #     codec: "json"
+      # labels:
+      #   host: "{{ host }}"
+      #   source_type: "{{ source_type }}"
+      #   kubernetes_namespace: "{{ kubernetes.namespace }}"
+      #   kubernetes_pod: "{{ kubernetes.pod_name }}"
+      #   kubernetes_container: "{{ kubernetes.container_name }}"
+
+service:
+  enabled: true
+  ports:
+    - name: syslog-udp
+      port: 5140
+      protocol: UDP
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
