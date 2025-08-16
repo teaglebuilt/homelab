@@ -1,0 +1,8 @@
+services:
+  paperless:
+    image: clusterzx/paperless-ai:latest
+    restart: always
+    ports:
+      - 3003:3000
+    volumes:
+      - /mnt/local/media/paperless:/app/data
