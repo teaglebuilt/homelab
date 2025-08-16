@@ -77,7 +77,14 @@ resource "proxmox_virtual_environment_container" "portainer" {
       "mkdir -p /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | tee /etc/apt/keyrings/docker.asc > /dev/null",
       "echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu focal stable' | tee /etc/apt/sources.list.d/docker.list > /dev/null",
       "apt update && apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin",
-      "systemctl enable --now docker && usermod -aG docker root"
+      "systemctl stop docker",
+      "mkdir -p /mnt/local/docker",
+      "mv /var/lib/docker/* /mnt/local/docker/ || true",
+      "echo '{\"data-root\": \"/mnt/local/docker\"}' > /etc/docker/daemon.json",
+      "systemctl daemon-reexec",
+      "systemctl start docker",
+      "systemctl enable docker",
+      "usermod -aG docker root"
     ]
   }
 
