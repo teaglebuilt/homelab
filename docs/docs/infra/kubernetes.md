@@ -6,7 +6,25 @@ sidebar_position: 2
 
 ## Core
 
-**Security**
+### Networking
+
+- [Cilium]()
+- [ExternalDNS]()
+- [CertManager]()
+- [Gateway API]()
+- [Kgateway](https://kgateway.dev/docs/main) - AIGateway for all traffic in `ai` namespace. View docs in [platform/ai]() for further information on all ai related resources.
+
+**Gateways**
+
+Cilium and Kgateway both utilizie GatewayAPI for creating gateway & route declerations. For that reason, we have several different base `Gatewayclasses`. All ai traffic should use `Gatewayclass` with a target from kgateway and non ai workloads will use cilium.
+
+- Internal Gateway -
+- External Gateway - Cloudflare tunnels
+- AI Gateway - All AI traffic in `ai` namespace.
+
+
+### Security
+
   * `Certificates` - [Certmanager]() is used to automate certificate management and rotation for all services both internal and external.
     - `internal` certficates use internal dns resolution with [externaldns webhook](https://github.com/kashalls/external-dns-unifi-webhook). A cluster issuer exists for issuing all internal certificates.
     - `external` certificates are managed with cloudflare and a issuer exists using cloudflare for issuing these certificates. These services are only exposed over [cloudflare tunnels]().

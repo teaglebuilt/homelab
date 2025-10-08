@@ -1,5 +1,8 @@
 services:
-  paperless:
+  paperless-nxg:
+    ...
+
+  paperless-ai:
     image: clusterzx/paperless-ai:latest
     restart: always
     ports:

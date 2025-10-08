@@ -8,8 +8,8 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: "ollama.homelab.internal"
 spec:
   parentRefs:
-  - name: homelab-internal-gateway
-    namespace: kube-system
+  - name: ai-gateway
+    namespace: ai
   hostnames:
     - "ollama.homelab.internal"
   rules:

@@ -1,13 +1,16 @@
-
-gateway-helm:
-  config:
-    envoyGateway:
-      gateway:
-        controllerName: gateway.envoyproxy.io/gatewayclass-controller
-        gatewayClassName: envoy-gateway-class
-      extensionApis:
-        enableBackend: true
-
-ai-gateway-helm:
+---
+kgateway-crds:
   controller:
-    envoyGatewayNamespace: kube-system
+    image:
+      pullPolicy: Always
+
+kgateway:
+  agentgateway:
+    enabled: true
+
+  controller:
+    image:
+      pullPolicy: Always
+    deployment:
+      extraArgs:
+        - --zap-log-level=info
