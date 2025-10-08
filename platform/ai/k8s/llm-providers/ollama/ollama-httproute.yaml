@@ -4,19 +4,22 @@ kind: HTTPRoute
 metadata:
   name: ollama
   namespace: ai
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: "ollama.homelab.internal"
 spec:
   parentRefs:
-  - name: ai-gateway
-    namespace: ai
-  hostnames:
-    - "ollama.homelab.internal"
+    - name: ai-gateway
+      namespace: ai
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: "/"
-    backendRefs:
-    - name: ollama
-      port: 11434
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ollama
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /
+      backendRefs:
+        - group: gateway.kgateway.dev
+          kind: Backend
+          name: ollama

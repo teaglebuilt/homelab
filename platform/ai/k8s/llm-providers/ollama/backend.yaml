@@ -1,0 +1,16 @@
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: Backend
+metadata:
+  name: ollama
+  namespace: ai
+spec:
+  type: AI
+  ai:
+    llm:
+      host: ollama.ai.svc.cluster.local
+      port: 11434
+      openai:
+        model: "mistral"
+        authToken:
+          kind: Inline
+          inline: "dev"
