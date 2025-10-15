@@ -7,11 +7,11 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal
 spec:
-  gatewayClassName: envoy-gateway-class
+  gatewayClassName: agentgateway
   listeners:
   - name: http
     protocol: HTTP
-    hostname: ai.homelab.internal
+    hostname: "*.homelab.internal"
     port: 80
     allowedRoutes:
       namespaces:

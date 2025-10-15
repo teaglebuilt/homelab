@@ -9,12 +9,9 @@ dependencies:
   - name: cloudflare-tunnel
     repository: https://cloudflare.github.io/helm-charts
     version: 0.3.2
-  - name: gateway-helm
-    version: v1.4.1
-    repository: oci://docker.io/envoyproxy
-  - name: ai-gateway-crds-helm
-    version: v0.2.1
-    repository: oci://docker.io/envoyproxy
-  - name: ai-gateway-helm
-    version: v0.2.1
-    repository: oci://docker.io/envoyproxy
+  - name: kgateway-crds
+    version: v2.1.0-main
+    repository: oci://cr.kgateway.dev/kgateway-dev/charts
+  - name: kgateway
+    version: v2.1.0-main
+    repository: oci://cr.kgateway.dev/kgateway-dev/charts

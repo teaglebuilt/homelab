@@ -1,0 +1,23 @@
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: internal-cluster-issuer
+  namespace: cert-manager
+spec:
+  acme:
+    email: ${EMAIL}
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: internal-cluster-issuer-key
+    solvers:
+      - dns01:
+          webhook:
+            groupName: homelab.internal
+            solverName: unifi
+            config:
+              apiUrl: ${UNIFI_API_URL}
+              username: ${UNIFI_USERNAME}
+              passwordSecretRef:
+                name: unifi-dns-creds
+                key: password
