@@ -7,7 +7,8 @@ kgateway-crds:
 kgateway:
   agentgateway:
     enabled: true
-
+  inferenceExtension:
+    enabled: true
   controller:
     image:
       pullPolicy: Always

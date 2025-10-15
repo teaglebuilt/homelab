@@ -17,8 +17,8 @@ spec:
         - type: URLRewrite
           urlRewrite:
             path:
-              type: ReplaceFullPath
-              replaceFullPath: /
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
       backendRefs:
         - group: gateway.kgateway.dev
           kind: Backend

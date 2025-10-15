@@ -11,7 +11,7 @@ spec:
   listeners:
   - name: http
     protocol: HTTP
-    hostname: ai.homelab.internal
+    hostname: "*.homelab.internal"
     port: 80
     allowedRoutes:
       namespaces:
