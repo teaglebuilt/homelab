@@ -29,7 +29,7 @@ generated
 kubernetes/apps/**/charts
 kubernetes/charts/homelab-gateway/charts
 platform/**/charts/
-
+platform/**/k8s/charts/
 .DS_Store
 .pytest_cache
 __pycache__

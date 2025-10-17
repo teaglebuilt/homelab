@@ -8,3 +8,17 @@ resources:
   - storage
   - llm-providers
   - integrations
+helmCharts:
+  - name: kagent-crds
+    releaseName: kagent-crds
+    repo: oci://ghcr.io/kagent-dev/kagent/helm
+    namespace: ai
+  - name: kagent
+    releaseName: kagent
+    repo: oci://ghcr.io/kagent-dev/kagent/helm
+    namespace: ai
+    valuesInline:
+      providers:
+        default: openAI
+        openAI:
+          apiKey: ${OPENAI_API_KEY}
