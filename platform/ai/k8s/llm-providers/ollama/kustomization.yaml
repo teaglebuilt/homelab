@@ -5,6 +5,7 @@ resources:
   - ollama-pvc.yaml
   - backend.yaml
   - ollama-httproute.yaml
+  - models
 helmCharts:
   - name: ollama
     releaseName: ollama

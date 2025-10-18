@@ -1,0 +1,9 @@
+---
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: nomic-embed-text
+  namespace: ai
+spec:
+  provider: Ollama
+  model: nomic-embed-text

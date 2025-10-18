@@ -1,0 +1,10 @@
+---
+apiVersion: kagent.dev/v1alpha1
+kind: ModelConfig
+metadata:
+  name: gpt-4.5
+spec:
+  provider: OpenAI
+  model: gpt-4.5
+  apiKeySecretRef: kagent-openai
+  apiKeySecretKey: OPENAI_API_KEY

@@ -1,0 +1,20 @@
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: Backend
+metadata:
+  name: openai
+  namespace: ai
+spec:
+  type: AI
+  ai:
+    llm:
+      host: api.openai.com
+      port: 443
+      protocol: https
+      openai:
+        model: "gpt-4o-mini"
+        authToken:
+          kind: Secret
+          secretRef:
+            name: openai-api-key
+            key: OPENAI_API_KEY

@@ -19,4 +19,4 @@ spec:
             value: /
       backendRefs:
         - name: n8n-service
-          port: 443
+          port: 80

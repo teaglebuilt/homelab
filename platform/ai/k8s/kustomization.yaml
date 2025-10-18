@@ -8,6 +8,7 @@ resources:
   - storage
   - llm-providers
   - integrations
+  - ui-http-route.yaml
 helmCharts:
   - name: kagent-crds
     releaseName: kagent-crds

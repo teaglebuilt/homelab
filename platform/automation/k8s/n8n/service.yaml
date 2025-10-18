@@ -8,7 +8,7 @@ spec:
   selector:
     app: n8n
   ports:
-    - port: 443
+    - port: 80
       name: https
       protocol: TCP
       targetPort: 5678
