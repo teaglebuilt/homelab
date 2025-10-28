@@ -13,43 +13,6 @@ repositories:
     url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
-  # - name: gpu-operator
-  #   namespace: kube-system
-  #   chart: nvidia/gpu-operator
-  #   version: 25.3.0
-  #   values:
-  #     - runtimeClassName: nvidia
-  #     - operator:
-  #         defaultRuntime: nvidia
-  #       toolkit:
-  #         env:
-  #           - name: CONTAINERD_CONFIG
-  #             value: /etc/containerd/config.toml
-  #           - name: CONTAINERD_RUNTIME_CLASS
-  #             value: nvidia
-  #       driver:
-  #         enabled: false
-  #       devicePlugin:
-  #         enabled: true
-  #         runtimeClassName: nvidia
-  #       toolkit:
-  #         enabled: true
-  #       gfd:
-  #         enabled: true
-  #       migManager:
-  #         enabled: false
-  #       nfd:
-  #         enabled: true
-  #       validator:
-  #         enabled: false
-  #       dcgmExporter:
-  #         runtimeClassName: nvidia
-  #         hostNetwork: true
-  #         nodeSelector:
-  #           nvidia.com/gpu.present: 'true'
-  #         serviceMonitor:
-  #           interval: 15s
-  #           honorLabels: true
   - name: nvidia-device-plugin
     namespace: kube-system
     chart: nvidia/nvidia-device-plugin
