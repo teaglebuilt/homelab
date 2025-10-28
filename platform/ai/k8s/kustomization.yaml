@@ -20,6 +20,4 @@ helmCharts:
     namespace: ai
     valuesInline:
       providers:
-        default: openAI
-        openAI:
-          apiKey: ${OPENAI_API_KEY}
+        default: anthropic

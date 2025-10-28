@@ -1,0 +1,20 @@
+---
+apiVersion: kagent.dev/v1alpha1
+kind: ModelConfig
+metadata:
+  name: bedrock-anthropic-claude-3-5-sonnet
+  namespace: ai
+spec:
+  apiKeySecretKey: key
+  apiKeySecretRef: bedrock
+  model: bedrock-claude-3-5-sonnet
+  modelInfo:
+    family: unknown
+    functionCalling: true
+    jsonOutput: true
+    multipleSystemMessages: false
+    structuredOutput: true
+    vision: false
+  openAI:
+    baseUrl: http://litellm-service.default.svc.cluster.local:4000
+  provider: OpenAI

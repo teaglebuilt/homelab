@@ -10,11 +10,10 @@ spec:
     llm:
       host: api.openai.com
       port: 443
-      protocol: https
       openai:
         model: "gpt-4o-mini"
         authToken:
           kind: Secret
           secretRef:
-            name: openai-api-key
+            name: kagent-openai
             key: OPENAI_API_KEY
