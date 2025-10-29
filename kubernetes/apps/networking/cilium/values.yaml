@@ -93,6 +93,7 @@ envoy:
 
 bandwidthManager:
   enabled: true
+  bbr: true
 
 hubble:
   enabled: true

@@ -1,0 +1,7 @@
+---
+bases:
+  - ../defaults.yaml
+
+helmfiles:
+  - ../
+  - 01-workloads.gotmpl.yaml
