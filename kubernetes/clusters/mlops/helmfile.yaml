@@ -1,6 +1,6 @@
 ---
 bases:
-  - ../defaults.yaml
+  - ../../defaults.yaml
 
 helmfiles:
   - ../
