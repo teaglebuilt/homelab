@@ -14,6 +14,10 @@ prometheus:
     nodeSelector:
       kubernetes.io/hostname: mlops-work-01
     additionalScrapeConfigs:
+      - job_name: parca
+        static_configs:
+          - targets: ['parca-server.observability.svc.cluster.local:7070']
+
       - job_name: 'kubernetes-endpoints'
         scrape_interval: 30s
         kubernetes_sd_configs:

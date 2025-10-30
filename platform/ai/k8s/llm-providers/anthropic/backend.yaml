@@ -7,14 +7,11 @@ spec:
   type: AI
   ai:
     llm:
-      host: api.anthropic.com
-      port: 443
-      protocol: https
-      openai:
-        # Any model accessible via Claude API (Sonnet, Opus, Haiku)
-        model: "anthropic-claude-sonnet-4-20250514"
-        authToken:
-          kind: Secret
-          secretRef:
-            name: anthropic-api-key
-            key: ANTHROPIC_API_KEY
+      provider:
+        openai:
+          model: "anthropic-claude-sonnet-4-20250514"
+          authToken:
+            kind: Secret
+            secretRef:
+              name: anthropic-api-key
+              key: ANTHROPIC_API_KEY

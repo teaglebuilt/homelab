@@ -4,3 +4,12 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - prometheus
+helmCharts:
+  - name: parca
+    repo: https://parca-dev.github.io/helm-charts
+    version: 4.19.0
+    namespace: observability
+    releaseName: parca
+    valuesInline:
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-00

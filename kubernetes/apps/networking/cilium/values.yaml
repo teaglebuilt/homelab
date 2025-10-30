@@ -25,7 +25,11 @@ cgroup:
 # https://www.talos.dev/latest/talos-guides/network/host-dns/#forwarding-kube-dns-to-host-dns
 # https://docs.cilium.io/en/stable/operations/performance/tuning/#ebpf-host-routing
 bpf:
-  hostLegacyRouting: true
+  hostLegacyRouting: false
+
+bandwidthManager:
+  enabled: true
+  bbr: true
 
 ipam:
   mode: kubernetes
@@ -53,22 +57,14 @@ resources:
 debug:
   enabled: false
 
-# Increase rate limit when doing L2 announcements
 k8sClientRateLimit:
   qps: 20
   burst: 100
 
 l2announcements:
   enabled: true
-
 externalIPs:
   enabled: true
-
-# enableK8sEndpointSlice: false
-# ciliumEndpointSlice:
-#   enabled: true
-# enableCiliumEndpointSlice: true
-
 endpointRoutes:
   enabled: true
 
@@ -90,10 +86,6 @@ envoy:
     capabilities:
       keepCapNetBindService: true
       envoy: [ NET_ADMIN, PERFMON, BPF ]
-
-bandwidthManager:
-  enabled: true
-  bbr: true
 
 hubble:
   enabled: true

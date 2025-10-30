@@ -2,9 +2,9 @@ version: v0.170.0
 dependencies:
 - name: cert-manager
   repository: https://charts.jetstack.io
-  version: v1.19.0
+  version: v1.19.1
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
   version: 1.17.0
-digest: sha256:aeaba4a79005ee080864ee84679b808cb28d41c5f55da1d23184627b1d65face
-generated: "2025-10-08T15:17:49.508699-04:00"
+digest: sha256:335e67ddbd07fb7816c90fd4314e655df68e2e1ddc07f83bda8bad0e039648d7
+generated: "2025-10-29T17:18:05.605185-04:00"
