@@ -5,6 +5,10 @@ bases:
 repositories:
   - name: vector
     url: https://helm.vector.dev
+  - name: pixie
+    url: https://artifacts.px.dev/helm_charts/operator
+  - name: parca
+    url: https://parca-dev.github.io/helm-charts
 
 releases:
   - name: vector
@@ -14,3 +18,12 @@ releases:
     version: 0.44.0
     # values:
     #   - ../apps/monitoring/vector.yaml
+
+  # - name: pixie
+  #   namespace: observability
+  #   createNamespace: true
+  #   chart: pixie-operator/pixie-operator-chart
+  #   version: 61.7.1
+  #   set:
+  #     - name: clusterName
+  #       value: mlops

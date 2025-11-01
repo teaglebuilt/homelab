@@ -4,4 +4,4 @@ kind: Kustomization
 resources:
   - ollama
   - openai
-  # - nvidia
+  - anthropic

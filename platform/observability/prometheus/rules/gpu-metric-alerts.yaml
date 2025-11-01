@@ -16,4 +16,12 @@ spec:
             severity: warning
           annotations:
             summary: "High GPU usage on node {{ $labels.Hostname }} for 15 minutes"
-            description: "GPU usage on node {{ $labels.Hostname }} for gpu: {{ $labels.modelName }} has passed 85% for over 15 minutes"
+    - name: vllm.latency.rule
+      rules:
+        - alert: vLLMLatency
+          expr: max_over_time(time_per_output_token_seconds}[5m]) >= 0.3       1
+          labels:
+            severity: critical
+            app: my-model
+          annotations:
+            message: Latency of vLLM is too high.

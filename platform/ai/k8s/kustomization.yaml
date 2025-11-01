@@ -20,4 +20,15 @@ helmCharts:
     namespace: ai
     valuesInline:
       providers:
-        default: anthropic
+        default: openAI
+        openAI:
+          provider: OpenAI
+          model: "gpt-4.1-mini"
+          apiKeySecretRef: kagent-openai
+          apiKeySecretKey: OPENAI_API_KEY
+          # apiKey: ""
+        ollama:
+          provider: Ollama
+          model: "llama3.2"
+          config:
+            host: :11434
