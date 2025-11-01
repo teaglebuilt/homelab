@@ -9,29 +9,30 @@ sidebar_position: 2
 ### Networking
 
 * **CNI**
-  - [Cilium]()
+  - [Cilium](https://docs.cilium.io/en/stable/index.html)
 
 * **DNS**
-  - [CoreDNS]()
-  - [ExternalDNS]()
+  - [CoreDNS](https://coredns.io/manual/toc/)
+  - [ExternalDNS](https://github.com/kubernetes-sigs/external-dns)
   - [ExternalDNS Unifi Webhook](https://github.com/kashalls/external-dns-unifi-webhook)
 
 * **Certificate Management**
-  - [CertManager]()
+  - [CertManager](https://github.com/cert-manager/cert-manager)
 
 **Layer 4 Proxy**
-  - [Gateway API]()
+  - [Gateway API](https://gateway-api.sigs.k8s.io/)
+    - [Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/)
   - [Kgateway](https://kgateway.dev/docs/main) - AIGateway for all traffic in `ai` namespace. View docs in [platform/ai]() for further information on all ai related resources.
 
 **Gateways**
 
 Cilium and Kgateway both utilizie GatewayAPI for creating gateway & route declerations. For that reason, we have several different base `Gatewayclasses`. All ai traffic should use `Gatewayclass` with a target from kgateway and non ai workloads will use cilium.
 
-- Internal Gateway - All standard ingress traffic
-- Egress Gateway - All standard egress traffic
-- External Gateway - Cloudflare tunnel for oauth callbacks from external providers
-- AI Gateway - All AI traffic in `ai` namespace bot `http`/`tcp`
-- VPN Gateway - Site to Site VPN traffic from homelab to AWS VPC
+- `Internal Gateway` - All standard ingress traffic
+- `Egress Gateway` - All standard egress traffic
+- `External Gateway` - Cloudflare tunnel for oauth callbacks from external providers
+- `AI Gateway` - All AI traffic in `ai` namespace bot `http`/`tcp`
+- `VPN Gateway` - Site to Site VPN traffic from homelab to AWS VPC
 
 #### VPN Gateway
 
@@ -92,7 +93,7 @@ Routes exchanged:
 
 ### Security
 
-  * `Certificates` - [Certmanager]() is used to automate certificate management and rotation for all services both internal and external.
+  * `Certificates` - certmanager is used to automate certificate management and rotation for all services both internal and external routes.
     - `internal` certficates use internal dns resolution with [externaldns webhook](https://github.com/kashalls/external-dns-unifi-webhook). A cluster issuer exists for issuing all internal certificates.
     - `external` certificates are managed with cloudflare and a issuer exists using cloudflare for issuing these certificates. These services are only exposed over [cloudflare tunnels]().
 
