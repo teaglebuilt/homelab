@@ -12,7 +12,7 @@ sidebar_position: 2
   - [Cilium](https://docs.cilium.io/en/stable/index.html)
     - [ClusterMesh](https://cilium.io/use-cases/cluster-mesh/) - used for establishing inter cluster networking between `administration` and `mlops`.
 * **DNS**
-  - [CoreDNS](https://coredns.io/manual/toc/) _ Originally custom coredns configurations were required when running clustermesh. Need to consider if this is still necessary now that cilium created the `mcsapi` which handled resolving dns for services when clustermesh is enabled.
+  - [CoreDNS](https://coredns.io/manual/toc/) _ Originally custom coredns configurations were required when running clustermesh. Need to consider if this is still necessary now that cilium created the [mcsapi](https://docs.cilium.io/en/latest/network/clustermesh/mcsapi) which handled resolving dns for services when clustermesh is enabled.
   - [ExternalDNS](https://github.com/kubernetes-sigs/external-dns)
   - [ExternalDNS Unifi Webhook](https://github.com/kashalls/external-dns-unifi-webhook)
 

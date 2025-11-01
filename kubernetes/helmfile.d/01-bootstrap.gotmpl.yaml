@@ -22,7 +22,18 @@ releases:
     version: 1.17.3
     createNamespace: true
     values:
-      - ../apps/networking/cilium/values.yaml
+      # Base values are always applied
+      - ../apps/networking/cilium/base/values.yaml
+
+      {{ if .Values.cilium }}
+      {{ if .Values.cilium.clusterMeshEnabled }}
+      - ../apps/networking/cilium/base/clustermesh-values.yaml
+      {{ end }}
+      {{ if .Values.cilium.overlayPath }}
+      - {{ .Values.cilium.overlayPath }}
+      {{ end }}
+      {{ end }}
+
     hooks:
       - events: ["postsync"]
         showlogs: true
@@ -30,7 +41,38 @@ releases:
         args:
           - -c
           - |
-            kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
+            # Apply Kustomize overlay for the specific cluster
+            {{ if .Values.cilium }}
+            {{ if .Values.cilium.overlay }}
+            echo "applying configurations for {{ .Values.cilium.overlay }} cluster..."
+            kustomize build --enable-exec --enable-helm ../apps/networking/cilium/overlays/{{ .Values.cilium.overlay }} | kubectl apply -f -
+            {{ else }}
+            echo "no overlay specified, applying base configuration..."
+            kustomize build --enable-exec --enable-helm ../apps/networking/cilium/base | kubectl apply -f -
+            {{ end }}
+            {{ else }}
+            echo "no cilium configuration defined"
+            {{ end }}
+
+            kubectl -n kube-system wait --for=condition=ready pod -l k8s-app=cilium --timeout=300s
+
+            {{ if .Values.cilium }}
+            {{ if .Values.cilium.clusterMeshEnabled }}
+            # Only enable ClusterMesh if explicitly requested
+            if command -v cilium &> /dev/null; then
+              echo "Enabling ClusterMesh for {{ .Values.cilium.overlay | default "default" }} cluster..."
+              cilium clustermesh enable 2>/dev/null || true
+              echo "ClusterMesh enabled successfully"
+            else
+              echo "Cilium CLI not found. To enable ClusterMesh, install the CLI:"
+              echo "  curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz"
+            fi
+            {{ else }}
+            echo "ClusterMesh is disabled for this deployment (standalone mode)"
+            {{ end }}
+            {{ else }}
+            echo "No Cilium configuration specified"
+            {{ end }}
 
   - name: coredns
     namespace: kube-system

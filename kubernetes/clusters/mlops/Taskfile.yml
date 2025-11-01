@@ -1,0 +1,15 @@
+---
+version: '3'
+
+vars:
+  CLUSTER: mlops
+
+tasks:
+  deploy:
+    cmds:
+      - helmfile --kube-context={{.CLUSTER}} sync
+
+  status:
+    cmds:
+      - cilium --context={{.CLUSTER}} status
+      - cilium --context={{.CLUSTER}} clustermesh status

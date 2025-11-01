@@ -1,0 +1,54 @@
+---
+cluster:
+  name: administration
+  id: 1
+
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - 10.244.16.0/20
+
+clustermesh:
+  apiserver:
+    service:
+      annotations: {}
+    replicas: 3
+
+resources:
+  limits:
+    cpu: 1500m
+    memory: 1536Mi
+  requests:
+    cpu: 300m
+    memory: 768Mi
+
+operator:
+  resources:
+    limits:
+      cpu: 750m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+hubble:
+  relay:
+    replicas: 3
+  ui:
+    replicas: 2
+
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: node.kubernetes.io/cluster
+#           operator: In
+#           values:
+#           - administration
+
+# tolerations:
+#   - key: "cluster"
+#     operator: "Equal"
+#     value: "administration"
+#     effect: "NoSchedule"

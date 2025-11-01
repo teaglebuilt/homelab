@@ -25,6 +25,10 @@ helmCharts:
         insecure: true
       hostNetwork: true
       runtimeClassName: nvidia
+      service:
+        annotations:
+          service.cilium.io/global: "true"
+          service.cilium.io/shared: "true"
       nodeSelector:
         nvidia.com/gpu.present: "true"
       persistentVolume:
