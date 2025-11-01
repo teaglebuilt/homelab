@@ -1,7 +1,10 @@
 version: v0.170.0
 dependencies:
+- name: parca
+  repository: https://parca-dev.github.io/helm-charts
+  version: 4.19.0
 - name: vector
   repository: https://helm.vector.dev
   version: 0.44.0
-digest: sha256:5ce9a82f379378e7f0e123d7d029527e94ec14e4a4d0cd5889546831cefab0b8
-generated: "2025-07-12T11:59:07.464947-04:00"
+digest: sha256:051cca3de5bc4f53ef21fc13874b1009c6175c99cdee3c80f5420ec9133c0ce1
+generated: "2025-10-29T17:18:10.476092-04:00"

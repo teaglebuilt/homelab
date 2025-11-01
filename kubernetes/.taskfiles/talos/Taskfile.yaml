@@ -41,6 +41,10 @@ tasks:
     cmds:
       - talosctl dmesg --follow --tail -n {{.NODE}}
 
+  watch-packets:
+    cmds:
+      - talosctl pcap -i eth0 -n {{.NODE}}
+
   machineconfig:
     cmds:
       - talosctl get machineconfig -n {{.NODE}} -o yaml
