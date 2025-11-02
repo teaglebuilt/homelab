@@ -19,16 +19,29 @@ helmCharts:
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     namespace: ai
     valuesInline:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+        readOnlyRootFilesystem: true
       providers:
         default: openAI
         openAI:
           provider: OpenAI
-          model: "gpt-4.1-mini"
-          apiKeySecretRef: kagent-openai
+          model: "gpt-4o-mini"
+          apiKeySecretRef: openai-api-key-secret
           apiKeySecretKey: OPENAI_API_KEY
-          # apiKey: ""
         ollama:
           provider: Ollama
           model: "llama3.2"
           config:
-            host: :11434
+            host: ollama.ai.svc.cluster.local:11434
