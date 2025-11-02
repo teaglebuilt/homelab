@@ -1,3 +1,32 @@
 ---
 bases:
   - ../../defaults.yaml
+  - ../../helmfile.d/01-bootstrap.gotmpl.yaml
+
+repositories:
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
+
+values:
+  - cilium:
+      clusterMeshEnabled: true
+      overlay: administration
+      overlayPath: ../apps/networking/cilium/overlays/administration/values.yaml
+
+releases:
+  - name: argocd
+    namespace: argocd
+    chart: argo/argo-cd
+    version: 7.7.10
+    createNamespace: true
+    values:
+      - ../../apps/gitops/argocd/values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            # Wait for ArgoCD to be ready
+            kubectl -n argocd wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s

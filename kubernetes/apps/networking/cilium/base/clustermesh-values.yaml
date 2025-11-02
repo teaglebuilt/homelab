@@ -1,0 +1,57 @@
+# ClusterMesh specific base configuration
+# These settings enable ClusterMesh functionality across all clusters
+
+# Enable ClusterMesh
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    replicas: 2
+    service:
+      type: LoadBalancer
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1024Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    tls:
+      auto:
+        enabled: true
+        method: helm
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+tunnel: vxlan
+endpointRoutes:
+  enabled: true
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4MaskSize: 24
+global:
+  enabled: true
+serviceAccounts:
+  enabled: true
+networkPolicy:
+  enabled: true
+wellKnownIdentities:
+  enabled: true
+mcsapi:
+  enabled: true
+hubble:
+  relay:
+    replicas: 2
+  ui:
+    replicas: 1
+  metrics:
+    enabled:
+      - dns
+      - drop
+      - tcp
+      - flow
+      - port-distribution
+      - icmp
+      - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction,source_cluster,destination_cluster

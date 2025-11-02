@@ -1,32 +1,24 @@
-cluster:
-  name: mlops
-  id: 1
-
+---
 commonLabels:
   namespace: kube-system
-
 kubeProxyReplacement: true
 kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
 
-# Talos specific:w
-#
+# talos settings
 k8sServiceHost: localhost
 k8sServicePort: 7445
 securityContext:
   capabilities:
-    ciliumAgent: [ CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID ]
-    cleanCiliumState: [ NET_ADMIN,SYS_ADMIN,SYS_RESOURCE ]
+    ciliumAgent: [CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID]
+    cleanCiliumState: [NET_ADMIN,SYS_ADMIN,SYS_RESOURCE]
 
 cgroup:
   autoMount:
     enabled: false
   hostRoot: /sys/fs/cgroup
 
-# https://www.talos.dev/latest/talos-guides/network/host-dns/#forwarding-kube-dns-to-host-dns
-# https://docs.cilium.io/en/stable/operations/performance/tuning/#ebpf-host-routing
 bpf:
   hostLegacyRouting: false
-
 bandwidthManager:
   enabled: true
   bbr: true
@@ -44,7 +36,6 @@ operator:
       cpu: 50m
       memory: 128Mi
 
-# Roll out cilium agent pods automatically when ConfigMap is updated.
 rollOutCiliumPods: true
 resources:
   limits:
@@ -60,23 +51,19 @@ debug:
 k8sClientRateLimit:
   qps: 20
   burst: 100
-
 l2announcements:
   enabled: true
 externalIPs:
   enabled: true
 endpointRoutes:
   enabled: true
-
 loadBalancer:
-  # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#maglev-consistent-hashing
   algorithm: maglev
-
+  mode: dsr
 gatewayAPI:
   enabled: true
   enableAlpn: true
   enableAppProtocol: true
-
 envoy:
   enabled: true
   prometheus:
@@ -85,7 +72,7 @@ envoy:
   securityContext:
     capabilities:
       keepCapNetBindService: true
-      envoy: [ NET_ADMIN, PERFMON, BPF ]
+      envoy: [NET_ADMIN, PERFMON, BPF]
 
 hubble:
   enabled: true
@@ -113,12 +100,9 @@ ingressController:
   default: true
   loadbalancerMode: shared
   service:
-    # annotations:
-    #   io.cilium/lb-ipam-ips: 192.168.X.X
     insecureNodePort: 32434
     secureNodePort: 31247
 
-# mTLS
 authentication:
   enabled: false
   mutual:

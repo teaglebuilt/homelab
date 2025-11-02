@@ -6,6 +6,10 @@ includes:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
   debug:
     taskfile: ".taskfiles/debug/Taskfile.yaml"
+  administration:
+    taskfile: "./clusters/administration/Taskfile.yml"
+  mlops:
+    taskfile: "./clusters/mlops/Taskfile.yml"
 
 vars:
   TERRAFORM: tofu -chdir=terraform
@@ -94,3 +98,8 @@ tasks:
     cmds:
       - make helmfile_lock
       - make build_chart_dependencies
+
+  check_status:
+    cmds:
+      - task: administration:status
+      - task: mlops:status

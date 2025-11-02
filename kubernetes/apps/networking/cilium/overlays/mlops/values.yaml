@@ -1,0 +1,47 @@
+---
+cluster:
+  name: mlops
+  id: 2
+
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - 10.244.0.0/20
+
+clustermesh:
+  apiserver:
+    service:
+      annotations: {}
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+
+operator:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: node.kubernetes.io/cluster
+#           operator: In
+#           values:
+#           - mlops
+
+# tolerations:
+#   - key: "cluster"
+#     operator: "Equal"
+#     value: "mlops"
+#     effect: "NoSchedule"

@@ -1,3 +1,10 @@
 ---
 bases:
   - ../../defaults.yaml
+  - ../../helmfile.d/01-bootstrap.gotmpl.yaml
+
+values:
+  - cilium:
+      clusterMeshEnabled: true
+      overlay: mlops
+      overlayPath: ../apps/networking/cilium/overlays/mlops/values.yaml

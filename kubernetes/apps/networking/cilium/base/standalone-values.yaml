@@ -1,0 +1,28 @@
+# Standalone Cilium values - for single cluster deployments
+# These override base values when running without ClusterMesh
+
+# Disable ClusterMesh specific features
+clustermesh:
+  useAPIServer: false
+
+# Use standard Kubernetes IPAM (not cluster-pool)
+ipam:
+  mode: kubernetes
+
+# Disable global services
+global:
+  enabled: false
+
+# Standard tunnel mode for single cluster
+tunnel: vxlan
+
+# Simplified Hubble configuration for single cluster
+hubble:
+  relay:
+    replicas: 1  # Only need 1 replica for single cluster
+  ui:
+    replicas: 1
+
+# No need for MCS API in standalone mode
+mcsapi:
+  enabled: false
