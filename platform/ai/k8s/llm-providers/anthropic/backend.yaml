@@ -7,11 +7,7 @@ spec:
   type: AI
   ai:
     llm:
-      provider:
-        openai:
-          model: "anthropic-claude-sonnet-4-20250514"
-          authToken:
-            kind: Secret
-            secretRef:
-              name: anthropic-api-key
-              key: ANTHROPIC_API_KEY
+      anthropic:
+        model: "claude-3-5-sonnet-latest"
+        authToken:
+          kind: SecretRef
