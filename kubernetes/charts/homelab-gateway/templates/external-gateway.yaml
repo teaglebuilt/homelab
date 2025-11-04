@@ -12,7 +12,7 @@ spec:
     - name: https
       protocol: HTTPS
       port: 443
-      hostname: {{ .Values.external.domain }}
+      hostname: "external.{{ .Values.external.domain }}"
       tls:
         mode: Terminate
         certificateRefs:

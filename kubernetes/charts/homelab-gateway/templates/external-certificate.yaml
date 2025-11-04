@@ -9,7 +9,7 @@ spec:
   duration: 2160h
   renewBefore: 360h
   dnsNames:
-    - {{ .Values.external.domain }}
+    - "external.{{ .Values.external.domain }}"
   issuerRef:
     name: cloudflare-dns-issuer
     kind: ClusterIssuer

@@ -11,9 +11,6 @@ machine:
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}
-  sysctl:
-    net.core.default_qdisc: "fq"
-    net.ipv4.tcp_congestion_control: "bbr"
 
 cluster:
   allowSchedulingOnControlPlanes: false

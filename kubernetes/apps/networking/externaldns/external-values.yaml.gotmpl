@@ -1,6 +1,9 @@
 ---
 provider:
   name: cloudflare
+cloudflare:
+  apiKey: {{ requiredEnv "CLOUDFLARE_API_TOKEN" | quote }}
+  email: {{ requiredEnv "CLOUDFLARE_EMAIL" | quote }}
 env:
   - name: CLOUDFLARE_API_TOKEN
     valueFrom:
@@ -10,13 +13,14 @@ env:
 extraArgs:
   - --cloudflare-dns-records-per-page=1000
   - --cloudflare-proxied
-  - --gateway-name=remote
+  - --gateway-name=homelab-external-gateway
+  - --zone-id-filter={{ requiredEnv "CLOUDFLARE_ZONE_ID" | quote }}
 triggerLoopOnEvent: true
 policy: sync
 sources: ["gateway-httproute"]
 txtOwnerId: default
 txtPrefix: k8s.
-domainFilters: ["teaglebuilt.tech"]
+domainFilters: [{{ requiredEnv "CLOUDFLARE_DOMAIN" | quote }}]
 # serviceMonitor:
 #   enabled: true
 nodeSelector:

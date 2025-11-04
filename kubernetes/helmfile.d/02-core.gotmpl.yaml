@@ -9,7 +9,7 @@ repositories:
     url: https://charts.jetstack.io
 
 releases:
-  - name: external-dns
+  - name: internal-dns
     namespace: external-dns
     chart: external-dns/external-dns
     version: 1.17.0
@@ -17,14 +17,13 @@ releases:
     values:
       - ../apps/networking/externaldns/internal-values.yaml.gotmpl
 
-  # - name: external-dns
-  #   namespace: external-dns
-  #   releaseName: external-dns-cloudflare
-  #   chart: external-dns/external-dns
-  #   version: 1.17.0
-  #   createNamespace: true
-  #   values:
-  #     - ../apps/networking/externaldns/external-values.yaml.gotmpl
+  - name: external-dns
+    namespace: external-dns
+    chart: external-dns/external-dns
+    version: 1.17.0
+    createNamespace: true
+    values:
+      - ../apps/networking/externaldns/external-values.yaml.gotmpl
 
   - name: cert-manager
     namespace: cert-manager
@@ -61,7 +60,7 @@ releases:
       - cert-manager/cert-manager
     values:
       - external:
-          domain: {{ requiredEnv "EXTERNAL_DOMAIN" }}
+          domain: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
       - cloudflare-tunnel:
           cloudflare:
@@ -70,7 +69,7 @@ releases:
             tunnelId: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
             secret: {{ requiredEnv "CLOUDFLARE_TUNNEL_SECRET" }}
             ingress:
-              - hostname: {{ requiredEnv "EXTERNAL_DOMAIN" }}
+              - hostname: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
                 service: https://homelab.external
           image:
             pullPolicy: Always
