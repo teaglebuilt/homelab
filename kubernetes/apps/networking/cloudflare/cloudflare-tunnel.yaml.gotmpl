@@ -1,0 +1,12 @@
+---
+cloudflare:
+  account: {{ requiredEnv "CLOUDFLARE_ACCOUNT_TAG" }}
+  tunnelName: homelab_external
+  tunnelId: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
+  secret: {{ requiredEnv "CLOUDFLARE_TUNNEL_SECRET" }}
+  ingress:
+    - hostname: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
+      service: https://cilium-gateway-homelab-external-gateway.kube-system.svc.cluster.local
+
+image:
+  pullPolicy: Always

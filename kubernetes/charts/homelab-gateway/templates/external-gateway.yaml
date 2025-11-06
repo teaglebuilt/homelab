@@ -12,7 +12,7 @@ spec:
     - name: https
       protocol: HTTPS
       port: 443
-      hostname: "external.{{ .Values.external.domain }}"
+      hostname: "homelab.external"
       tls:
         mode: Terminate
         certificateRefs:

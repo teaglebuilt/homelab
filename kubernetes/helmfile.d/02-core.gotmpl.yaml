@@ -3,12 +3,21 @@ bases:
   - ../defaults.yaml
 
 repositories:
+  - name: cloudflare
+    url: https://cloudflare.github.io/helm-charts
   - name: external-dns
     url: https://kubernetes-sigs.github.io/external-dns
   - name: jetstack
     url: https://charts.jetstack.io
 
 releases:
+  - name: cloudflare-tunnel
+    namespace: kube-system
+    chart: cloudflare/cloudflare-tunnel
+    version: 0.3.2
+    values:
+      - ../apps/networking/cloudflare/cloudflare-tunnel.yaml.gotmpl
+
   - name: internal-dns
     namespace: external-dns
     chart: external-dns/external-dns
@@ -62,14 +71,3 @@ releases:
       - external:
           domain: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
-      - cloudflare-tunnel:
-          cloudflare:
-            account: {{ requiredEnv "CLOUDFLARE_ACCOUNT_TAG" }}
-            tunnelName: homelab_external
-            tunnelId: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
-            secret: {{ requiredEnv "CLOUDFLARE_TUNNEL_SECRET" }}
-            ingress:
-              - hostname: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
-                service: https://homelab.external
-          image:
-            pullPolicy: Always

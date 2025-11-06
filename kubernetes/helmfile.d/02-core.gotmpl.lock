@@ -3,8 +3,14 @@ dependencies:
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v1.19.1
+- name: cloudflare-tunnel
+  repository: https://cloudflare.github.io/helm-charts
+  version: 0.3.2
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
   version: 1.17.0
-digest: sha256:335e67ddbd07fb7816c90fd4314e655df68e2e1ddc07f83bda8bad0e039648d7
-generated: "2025-10-29T17:18:05.605185-04:00"
+- name: external-dns
+  repository: https://kubernetes-sigs.github.io/external-dns
+  version: 1.17.0
+digest: sha256:737b57a76f19e152273a909b1a16968e691270ee03be8ef361a6ca7b778932a7
+generated: "2025-11-05T16:45:26.070673-05:00"

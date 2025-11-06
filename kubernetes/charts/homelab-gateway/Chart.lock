@@ -1,12 +1,9 @@
 dependencies:
-- name: cloudflare-tunnel
-  repository: https://cloudflare.github.io/helm-charts
-  version: 0.3.2
 - name: kgateway-crds
   repository: oci://cr.kgateway.dev/kgateway-dev/charts
   version: v2.1.0-main
 - name: kgateway
   repository: oci://cr.kgateway.dev/kgateway-dev/charts
   version: v2.1.0-main
-digest: sha256:9447dfde2b45612b0da8b53b7e89adc1279616a4a63527bae0c6c9e73fce4c82
-generated: "2025-10-08T15:17:31.71162-04:00"
+digest: sha256:28309e15638345fdd951ee92ae28fe39dceee2346fc4d792fcb7e55161eb1896
+generated: "2025-11-05T16:14:51.375879-05:00"
