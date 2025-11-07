@@ -13,3 +13,6 @@ helmCharts:
     valuesInline:
       nodeSelector:
         kubernetes.io/hostname: mlops-work-00
+      agent:
+        serviceMonitor:
+          enabled: true

@@ -16,7 +16,7 @@ prometheus:
     additionalScrapeConfigs:
       - job_name: parca
         static_configs:
-          - targets: ['parca-server.observability.svc.cluster.local:7070']
+          - targets: ['parca-server.default.svc.cluster.local:7070']
 
       - job_name: 'kubernetes-endpoints'
         scrape_interval: 30s
