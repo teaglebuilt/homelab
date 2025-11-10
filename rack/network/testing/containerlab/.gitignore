@@ -1,0 +1,46 @@
+# Environment files with sensitive data
+.env
+*.env
+!.env.example
+
+# Rendered files from templates
+topology.yaml
+configs/frr/core-router/frr.conf
+configs/frr/core-router/daemons
+
+# Containerlab runtime files
+clab-*
+.*.clab.yml
+*.bak
+
+# Containerlab certificates and keys
+*.crt
+*.key
+*.pem
+
+# Log files
+*.log
+logs/
+.env.example
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+
+# Python cache (if using Python scripts)
+__pycache__/
+*.pyc
+
+# Backup files
+*.backup
+*.orig
+
+# Test output
+test-results/
+reports/

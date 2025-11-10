@@ -40,3 +40,4 @@ dist/
 chroma.sqlite3
 .idea
 *.pkl
+.env.example
