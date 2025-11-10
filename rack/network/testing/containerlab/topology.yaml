@@ -1,0 +1,164 @@
+# Containerlab topology for simulating network infrastructure
+# This topology creates a test environment that mimics a typical Unifi deployment
+name: unifi-test-lab
+
+topology:
+  kinds:
+    linux:
+      image: nicolaka/netshoot:latest
+
+  nodes:
+    # Core router - simulates USG/UDM
+    core-router:
+      kind: linux
+      image: frrouting/frr:latest
+      ports:
+        - "2601:2601"  # FRR vtysh
+      binds:
+        - ./configs/frr/core-router:/etc/frr
+      exec:
+        - ip addr add 192.168.1.1/24 dev eth1
+        - ip addr add 10.0.0.1/24 dev eth2
+        - ip addr add 10.0.1.1/24 dev eth3
+      labels:
+        role: core-router
+        network: management
+
+    # Distribution switches - simulates Unifi switches
+    dist-switch-1:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 192.168.1.10/24 dev eth1
+        - ip link add name br0 type bridge
+        - ip link set br0 up
+        - ip link set eth1 master br0
+        - ip link set eth2 master br0
+        - ip link set eth3 master br0
+      labels:
+        role: distribution-switch
+        location: rack-1
+
+    dist-switch-2:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 192.168.1.11/24 dev eth1
+        - ip link add name br0 type bridge
+        - ip link set br0 up
+        - ip link set eth1 master br0
+        - ip link set eth2 master br0
+        - ip link set eth3 master br0
+      labels:
+        role: distribution-switch
+        location: rack-2
+
+    # Access switches - simulates edge switches
+    access-switch-1:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 192.168.1.20/24 dev eth1
+        - ip link add name br0 type bridge
+        - ip link set br0 up
+        - ip link set eth1 master br0
+        - ip link set eth2 master br0
+      labels:
+        role: access-switch
+        location: floor-1
+
+    access-switch-2:
+      kind: linux
+      image: nicolaca/netshoot
+      exec:
+        - ip addr add 192.168.1.21/24 dev eth1
+        - ip link add name br0 type bridge
+        - ip link set br0 up
+        - ip link set eth1 master br0
+        - ip link set eth2 master br0
+      labels:
+        role: access-switch
+        location: floor-2
+
+    # VLAN test endpoints
+    vlan10-client:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 10.0.0.100/24 dev eth1
+        - ip route add default via 10.0.0.1
+      labels:
+        vlan: "10"
+        network: office
+
+    vlan20-client:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 10.0.1.100/24 dev eth1
+        - ip route add default via 10.0.1.1
+      labels:
+        vlan: "20"
+        network: guest
+
+    # DMZ client
+    dmz-client:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 192.168.100.100/24 dev eth1
+      labels:
+        network: dmz
+
+    # Test servers
+    test-server-1:
+      kind: linux
+      image: nginx:alpine
+      exec:
+        - ip addr add 10.0.0.50/24 dev eth1
+      ports:
+        - "8081:80"
+      labels:
+        role: test-server
+        vlan: "10"
+
+    test-server-2:
+      kind: linux
+      image: nginx:alpine
+      exec:
+        - ip addr add 10.0.1.50/24 dev eth1
+      ports:
+        - "8082:80"
+      labels:
+        role: test-server
+        vlan: "20"
+
+  links:
+    # Core router connections
+    - endpoints: ["core-router:eth1", "dist-switch-1:eth1"]
+      mtu: 9000
+    - endpoints: ["core-router:eth2", "dist-switch-2:eth1"]
+      mtu: 9000
+
+    # Distribution to access layer
+    - endpoints: ["dist-switch-1:eth2", "access-switch-1:eth1"]
+    - endpoints: ["dist-switch-2:eth2", "access-switch-2:eth1"]
+
+    # Cross-connect for redundancy
+    - endpoints: ["dist-switch-1:eth3", "dist-switch-2:eth3"]
+
+    # Client connections
+    - endpoints: ["access-switch-1:eth2", "vlan10-client:eth1"]
+    - endpoints: ["access-switch-2:eth2", "vlan20-client:eth1"]
+
+    # Server connections
+    - endpoints: ["dist-switch-1:eth4", "test-server-1:eth1"]
+    - endpoints: ["dist-switch-2:eth4", "test-server-2:eth1"]
+
+    # DMZ connection
+    - endpoints: ["core-router:eth4", "dmz-client:eth1"]
+
+# Management network configuration
+mgmt:
+  network: unifi-mgmt
+  ipv4-subnet: 172.20.10.0/24

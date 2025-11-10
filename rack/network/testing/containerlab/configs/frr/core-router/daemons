@@ -1,0 +1,27 @@
+# FRR daemons configuration for core router
+# This file tells the FRR service which daemons to start
+
+zebra=yes
+bgpd=no
+ospfd=yes
+ospf6d=no
+ripd=no
+ripngd=no
+isisd=no
+pimd=no
+ldpd=no
+nhrpd=no
+eigrpd=no
+babeld=no
+sharpd=no
+staticd=yes
+pbrd=no
+bfdd=no
+fabricd=no
+
+# FRR integrated config file
+vtysh_enable=yes
+zebra_options=" -A 127.0.0.1 -s 90000000"
+bgpd_options=" -A 127.0.0.1"
+ospfd_options=" -A 127.0.0.1"
+staticd_options="-A 127.0.0.1"

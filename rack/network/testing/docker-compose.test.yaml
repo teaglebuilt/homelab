@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  unifi-test:
+    image: lscr.io/linuxserver/unifi-network-application:latest
+    container_name: unifi-test-controller
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Chicago
+      - MONGO_USER=unifi
+      - MONGO_PASS=unifi_test_password_change_me
+      - MONGO_HOST=unifi-test-db
+      - MONGO_PORT=27017
+      - MONGO_DBNAME=unifi
+      - MEM_LIMIT=1024 # Memory limit in MB
+      - MEM_STARTUP=1024 # Memory allocation at startup
+    volumes:
+      - ./data/unifi-test:/config
+    ports:
+      - "8443:8443"   # Web UI (HTTPS)
+      - "8080:8080"   # Device communication
+      - "8843:8843"   # Guest portal (HTTPS)
+      - "8880:8880"   # Guest portal (HTTP)
+      - "6789:6789"   # Speed test
+      - "3478:3478/udp" # STUN
+      - "10001:10001/udp" # Device discovery
+      - "1900:1900/udp"   # L2 discovery
+    restart: unless-stopped
+    depends_on:
+      unifi-test-db:
+        condition: service_healthy
+    networks:
+      - unifi-test-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  unifi-test-db:
+    image: mongo:7.0
+    container_name: unifi-test-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root_test_password_change_me
+      - MONGO_INITDB_DATABASE=unifi
+      - MONGO_USER=unifi
+      - MONGO_PASS=unifi_test_password_change_me
+    volumes:
+      - ./data/mongodb-test:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    restart: unless-stopped
+    networks:
+      - unifi-test-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # Optional: Network emulation container for testing network conditions
+  network-emulator:
+    image: nicolaka/netshoot
+    container_name: unifi-network-emulator
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - unifi-test-net
+    profiles:
+      - emulation
+
+  # Optional: Traffic generator for load testing
+  traffic-generator:
+    image: nicolaka/netshoot
+    container_name: unifi-traffic-gen
+    command: sleep infinity
+    networks:
+      - unifi-test-net
+    profiles:
+      - load-testing
+
+networks:
+  unifi-test-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+volumes:
+  unifi-test-data:
+  mongodb-test-data:

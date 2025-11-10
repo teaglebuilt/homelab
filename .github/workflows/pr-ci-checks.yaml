@@ -1,3 +1,4 @@
+---
 name: Pull Request CI Checks
 
 on:
@@ -11,14 +12,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 21.7.3
-
       - name: Install dependencies
         run: npm --prefix docs install
-
       - name: Build Docs
         run: npm --prefix docs run build
+
+  network_ci:
+    if: ${{ github.event.label.name == 'docs' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Start Test Environment
+        run: docker-compose -f rack/network/testing/docker-compose.test.yaml up -d
+      - name: Wait for Controller
+        run: ./rack/network/testing/scripts/wait-for-controller.sh
+      - name: Terraform Plan
+        run: |
+          cd rack/network/testing/terraform/test
+          terraform init
+          terraform plan -var-file=test.tfvars -out=test.tfplan
+      - name: Validate Plan
+        run: ./rack/network/testing/scripts/validate-plan.sh test.tfplan
+      - name: Apply to Test
+        run: terraform apply test.tfplan
+      - name: Run Validation Tests
+        run: ./rack/network/testing/scripts/validate-deployment.sh
+      - name: Cleanup
+        if: always()
+        run: docker-compose -f rack/network/testing/docker-compose.test.yaml down -v

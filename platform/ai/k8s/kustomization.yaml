@@ -14,6 +14,10 @@ helmCharts:
     releaseName: kagent-crds
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     namespace: ai
+  - name: kmcp-crds
+    releaseName: kmcp-crds
+    repo: oci://ghcr.io/kagent-dev/kmcp/helm/kmcp-crds
+    namespace: ai
   - name: kagent
     releaseName: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm
