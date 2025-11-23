@@ -6,7 +6,11 @@ metadata:
   namespace: kube-system
 spec:
   endpoints:
-    - dnsName: "external.{{ .Values.external.domain }}"
+    - dnsName: "{{ .Values.external.domain }}"
+      recordType: CNAME
+      targets:
+        - {{ .Values.external.tunnel_id }}.cfargotunnel.com
+    - dnsName: "*.{{ .Values.external.domain }}"
       recordType: CNAME
       targets:
         - {{ .Values.external.tunnel_id }}.cfargotunnel.com

@@ -53,7 +53,9 @@ spec:
             - name: N8N_HOST
               value: n8n.homelab.internal
             - name: N8N_EDITOR_BASE_URL
-              value: https://n8n.homelab.internal
+              value: https://n8n.teaglebuilt.tech
+            - name: WEBHOOK_URL
+              value: https://n8n.teaglebuilt.tech
             - name: N8N_PROTOCOL
               value: https
             - name: N8N_DIAGNOSTICS_ENABLED

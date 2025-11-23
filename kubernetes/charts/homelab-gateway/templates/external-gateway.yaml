@@ -9,10 +9,19 @@ metadata:
 spec:
   gatewayClassName: cilium
   listeners:
-    - name: https
+    - name: https-wildcard
       protocol: HTTPS
       port: 443
-      hostname: "homelab.external"
+      hostname: "*.{{ .Values.external.domain }}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: external-cloudflare-tls
+    - name: https-apex
+      protocol: HTTPS
+      port: 443
+      hostname: "{{ .Values.external.domain }}"
       tls:
         mode: Terminate
         certificateRefs:
