@@ -21,6 +21,15 @@
 While inspired by the [K8s@Home](https://k8s-at-home.com/) community, this repository does not follow the standard approach and does not only manage kubernetes related workloads.
 You can find more information by visiting the [Docs](https://teaglebuilt.github.io/homelab/) which is in progress and under construction 🚧.
 
+## Platforms
+
+This homelab was built years ago and today and is the infrastructure that supports the following features.
+
+* [AI](./platform/ai)
+* [Workflow Automation](./platform/automation)
+* [Observability](./platform/observability)
+* [Data](./platform/data)
+
 ### Communities
 
 <img src="https://discordapp.com/api/guilds/673534664354430999/widget.png?style=banner2">

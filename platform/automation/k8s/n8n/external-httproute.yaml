@@ -5,7 +5,7 @@ metadata:
   name: n8n-external-route
   namespace: automation
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: n8n.teaglebuilt.tech
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   parentRefs:
     - name: homelab-external-gateway
@@ -15,4 +15,4 @@ spec:
   rules:
     - backendRefs:
         - name: n8n-service
-          port: 80
+          port: 443

@@ -5,11 +5,12 @@ metadata:
   name: external-certificate
   namespace: kube-system
 spec:
-  secretName: cloudflare-dns-key
+  secretName: external-cloudflare-tls
   duration: 2160h
   renewBefore: 360h
   dnsNames:
-    - homelab.external
+    - "{{ .Values.external.domain }}"
+    - "*.{{ .Values.external.domain }}"
   issuerRef:
     name: cloudflare-dns-issuer
     kind: ClusterIssuer

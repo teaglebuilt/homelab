@@ -2,15 +2,15 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: homelab-cert
+  name: internal-certificate
   namespace: kube-system
   annotations:
     reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
     reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
 spec:
-  secretName: homelab-tls
+  secretName: internal-certificate-tls
   dnsNames:
-    - homelab.internal
+    - "homelab.internal"
     - "*.homelab.internal"
   issuerRef:
     name: internal-ca-cluster-issuer

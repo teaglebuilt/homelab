@@ -29,6 +29,7 @@ spec:
       containers:
         - name: n8n
           image: ghcr.io/n8n-io/n8n:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5678
           securityContext:
@@ -64,6 +65,18 @@ spec:
               value: "true"
             - name: N8N_VERSION_NOTIFICATIONS_ENABLED
               value: "false"
+            - name: N8N_PROXY_HOPS
+              value: "1"
+            - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+              value: "true"
+            - name: DB_SQLITE_POOL_SIZE
+              value: "3"
+            - name: N8N_RUNNERS_ENABLED
+              value: "true"
+            - name: N8N_BLOCK_ENV_ACCESS_IN_NODE
+              value: "false"
+            - name: N8N_GIT_NODE_DISABLE_BARE_REPOS
+              value: "true"
             - name: N8N_AVAILABLE_BINARY_DATA_MODES
               value: s3,filesystem
             - name: N8N_DEFAULT_BINARY_DATA_MODES

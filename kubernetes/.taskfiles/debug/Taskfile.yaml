@@ -5,19 +5,29 @@ vars:
   DEBUG_TASK_PATH: '{{.ROOT_DIR}}/kubernetes/.taskfiles/debug'
 
 tasks:
+  launch_dnsutils:
+    cmds:
+      - kubectl apply -f {{.DEBUG_TASK_PATH}}/dnsutils.yaml
+
+  remove_dnsutils:
+    cmds:
+      - kubectl destroy -f {{.DEBUG_TASK_PATH}}/dnsutils.yaml
+
   ping-pod:
     desc: check if pod is reachable
     cmds:
-      - kubectl exec debug2 -it -- ping -c2 {{ .POD_DNS }}
+      - kubectl exec dnsutils -it -- ping -c2 {{ .POD_DNS }}
 
   dig-pod:
     desc: dig the pod
     cmds:
-      - kubectl exec debug2 -it -- dig +short +search {{ .POD_DNS }}
+      - task: launch_dnsutils
+      - kubectl exec dnsutils -it -- dig +short +search {{ .POD_DNS }}
+      - task: remove_dnsutils
 
   check-hosts:
     cmds:
-      - kubectl exec debug -- cat /etc/hosts | tail -1
+      - kubectl exec dnsutils -- cat /etc/hosts | tail -1
 
   check-gpu:
     cmds:

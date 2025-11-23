@@ -13,8 +13,8 @@ spec:
       - dns01:
           cloudflare:
             email: ${EMAIL}
-            apiTokenSecretRef:
-              name: cloudflare-token-secret
-              key: CLOUDFLARE_API_TOKEN
-        # selector:
-        #   dnsZones: ["${CLOUDFLARE_DOMAIN}"]
+            apiKeySecretRef:
+              name: cloudflare-api-key-secret
+              key: CLOUDFLARE_API_KEY
+        selector:
+          dnsZones: ["${CLOUDFLARE_DOMAIN}"]

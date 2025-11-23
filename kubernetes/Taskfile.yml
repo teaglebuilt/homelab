@@ -72,7 +72,10 @@ tasks:
   test-cluster:
     dir: kubernetes
     cmds:
-      - echo "executing tests"
+      - echo "waiting for external certificate"
+      - kubectl get certificate external-certificate -n kube-system -w
+      - kubectl get secret external-cloudflare-tls -n kube-system
+      - kubectl get gateway homelab-external-gateway -n kube-system -o jsonpath='{.status.listeners}' | jq .
 
   reboot-cluster-node:
     dir: kubernetes
