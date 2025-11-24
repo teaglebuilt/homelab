@@ -5,8 +5,14 @@ vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
 
 tasks:
+  deploy_crds:
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s/crds | envsubst | kubectl apply -f -
+
   deploy:
     cmds:
+      - task: deploy_crds
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl apply -f -
 
