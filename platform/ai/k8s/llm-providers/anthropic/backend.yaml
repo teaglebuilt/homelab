@@ -12,5 +12,4 @@ spec:
           kind: SecretRef
           secretRef:
             name: anthropic-header-auth
-        model: "claude-3-opus-20240229"
-        apiVersion: "2023-06-01"
+        model: "claude-sonnet-4-20250514"

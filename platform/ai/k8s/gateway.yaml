@@ -11,11 +11,10 @@ spec:
   listeners:
   - name: http
     protocol: HTTP
-    hostname: ai.homelab.internal
     port: 8080
     allowedRoutes:
       namespaces:
-        from: All
+        from: Same
   # - name: https
   #   port: 443
   #   protocol: HTTPS

@@ -13,7 +13,14 @@ spec:
         - path:
             type: PathPrefix
             value: /anthropic
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /v1/chat/completions
       backendRefs:
         - group: gateway.kgateway.dev
           kind: Backend
+          group: gateway.kgateway.dev
           name: anthropic
