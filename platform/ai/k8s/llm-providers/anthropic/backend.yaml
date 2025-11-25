@@ -8,6 +8,9 @@ spec:
   ai:
     llm:
       anthropic:
-        model: "claude-3-5-sonnet-latest"
         authToken:
           kind: SecretRef
+          secretRef:
+            name: anthropic-header-auth
+        model: "claude-3-opus-20240229"
+        apiVersion: "2023-06-01"

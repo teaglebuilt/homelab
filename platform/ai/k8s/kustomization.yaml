@@ -10,10 +10,6 @@ resources:
   - integrations
   - ui-http-route.yaml
 helmCharts:
-  - name: kagent-crds
-    releaseName: kagent-crds
-    repo: oci://ghcr.io/kagent-dev/kagent/helm
-    namespace: ai
   - name: kagent
     releaseName: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm

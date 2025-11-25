@@ -5,5 +5,6 @@ resources:
   - backend.yaml
   - models/claude-3-5-sonnet.yaml
   - models/claude-4-sonnet.yaml
+  - http-route.yaml
 generators:
   - secrets-generator.yaml

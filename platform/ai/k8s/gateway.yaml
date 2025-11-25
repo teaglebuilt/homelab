@@ -11,20 +11,20 @@ spec:
   listeners:
   - name: http
     protocol: HTTP
-    hostname: "*.homelab.internal"
-    port: 80
-    allowedRoutes:
-      namespaces:
-        from: Same
-  - name: https
-    port: 443
-    protocol: HTTPS
     hostname: ai.homelab.internal
-    tls:
-      mode: Terminate
-      certificateRefs:
-        - kind: Secret
-          name: internal-certificate-tls
+    port: 8080
     allowedRoutes:
       namespaces:
-        from: Same
+        from: All
+  # - name: https
+  #   port: 443
+  #   protocol: HTTPS
+  #   hostname: ai.homelab.internal
+  #   tls:
+  #     mode: Terminate
+  #     certificateRefs:
+  #       - kind: Secret
+  #         name: internal-certificate-tls
+  #   allowedRoutes:
+  #     namespaces:
+  #       from: All
