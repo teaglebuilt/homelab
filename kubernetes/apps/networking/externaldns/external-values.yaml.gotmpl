@@ -8,7 +8,6 @@ env:
     value: {{ requiredEnv "CLOUDFLARE_EMAIL" }}
 extraArgs:
   - --cloudflare-dns-records-per-page=1000
-  - --cloudflare-proxied
   - --gateway-name=homelab-external-gateway
   - --zone-id-filter={{ requiredEnv "CLOUDFLARE_ZONE_ID" }}
 triggerLoopOnEvent: true

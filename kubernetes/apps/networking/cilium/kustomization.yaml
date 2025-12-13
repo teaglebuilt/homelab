@@ -5,3 +5,19 @@ namespace: kube-system
 resources:
   - ip-pool.yaml
   - announcement.yaml
+  - policies/tcp-policies.yaml
+helmCharts:
+  - name: tetragon
+    repo: https://helm.cilium.io
+    namespace: kube-system
+    version: 1.6.0
+    includeCRDs: true
+    valuesInline:
+      tetragon:
+        prometheus:
+          serviceMonitor:
+            enabled: true
+        tetragonOperator:
+          prometheus:
+            serviceMonitor:
+              enabled: true
