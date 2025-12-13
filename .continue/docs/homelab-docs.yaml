@@ -1,6 +1,0 @@
-name: Homelab Docs
-version: 0.0.1
-schema: v1
-docs:
-  - name: Homelab Docs
-    startUrl: https://teaglebuilt.github.io/homelab/overview/
