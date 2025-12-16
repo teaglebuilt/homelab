@@ -9,12 +9,14 @@ repositories:
     url: https://coredns.github.io/helm
   - name: csi-driver-nfs
     url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+  - name: emberstack
+    url: https://emberstack.github.io/helm-charts
 
 releases:
   - name: reflector
     namespace: kube-system
-    chart: oci://ghcr.io/emberstack/helm-charts/reflector
-    version: 9.1.12
+    chart: emberstack/reflector
+    version: 7.1.288
 
   - name: cilium
     namespace: kube-system
@@ -41,6 +43,24 @@ releases:
       - ../apps/networking/coredns/values.yaml
     needs:
       - kube-system/cilium
+
+  - name: spegel
+    namespace: spegel
+    chart: oci://ghcr.io/spegel-org/helm-charts/spegel
+    version: 0.5.1
+    values:
+      - ../apps/security/spegel/values.yaml
+    needs:
+      - kube-system/coredns
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kubectl create namespace spegel --dry-run=client -o yaml | kubectl apply -f -
+            kubectl label namespace spegel pod-security.kubernetes.io/enforce=privileged --overwrite
 
   - name: csi-driver-nfs
     namespace: kube-system

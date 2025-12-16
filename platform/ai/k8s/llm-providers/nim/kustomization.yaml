@@ -24,7 +24,7 @@ helmCharts:
         # - nvcr.io/nim/meta/llama-3.2-3b-instruct (small model)
         # - nvcr.io/nim/mistralai/mistral-7b-instruct-v0.3 (Mistral)
         repository: nvcr.io/nim/meta/llama-3.2-3b-instruct
-        tag: "1.10.1"
+        tag: "1.10.1"  # Requires CUDA 12.8+ / Driver 560+ (Talos v1.11.5)
       imagePullSecrets:
         - name: ngc-registry-secret
       model:
@@ -82,9 +82,11 @@ helmCharts:
         - name: NIM_LOG_LEVEL
           value: "INFO"
         - name: NIM_CACHE_PATH
-          value: /var/nfs/shared/ai_platform_data/nim/cache
+          value: /opt/nim/.cache
         - name: NIM_MODEL_NAME
           value: "meta/llama-3.2-3b-instruct"
+        - name: NIM_MAX_MODEL_LEN
+          value: "8192"  # Reduced from 131K to fit RTX 4070 Super 12GB VRAM, 16384 for 10GB VRAM, currently 8GB VRAM
       podAnnotations:
         kubernetes.io/egress-bandwidth: "1G"
         kubernetes.io/ingress-bandwidth: "1G"
