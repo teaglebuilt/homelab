@@ -29,7 +29,12 @@ helmCharts:
           type: RuntimeDefault
         readOnlyRootFilesystem: true
       providers:
-        default: openAI
+        default: nim  # Use local NIM by default
+        nim:
+          provider: OpenAICompatible
+          model: "meta/llama-3.2-3b-instruct"
+          config:
+            baseUrl: http://nim.ai.svc.cluster.local:8000/v1
         openAI:
           provider: OpenAI
           model: "gpt-4o-mini"
