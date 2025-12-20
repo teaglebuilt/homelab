@@ -1,0 +1,14 @@
+---
+# ModelConfig for NVIDIA NIM Llama 3.1 8B Instruct
+# This configuration is used by kagent for model discovery
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: llama-3-1-8b-instruct-nim
+  namespace: ai
+  labels:
+    app: nvidia-nim
+    component: model-config
+spec:
+  provider: OpenAI
+  model: meta/llama-3.1-8b-instruct

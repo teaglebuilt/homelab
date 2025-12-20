@@ -5,15 +5,15 @@ module "talos_cluster" {
   proxmox_ssh_private_key = var.proxmox_ssh_private_key
 
   image = {
-    version = "v1.9.1"
-    update_version = "v1.9.1" # renovate: github-releases=siderolabs/talos
+    version = "v1.11.5"
+    update_version = "v1.11.5" # renovate: github-releases=siderolabs/talos
   }
 
   cluster = {
     name                = "mlops"
     endpoint            = var.k8s_api_server_ip
     gateway             = var.network_gateway
-    talos_version       = "v1.9.1"
+    talos_version       = "v1.11.5"
     kubernetes_version  = "1.32.2"
     proxmox_cluster     = "mlops"
     logging_server      = var.graylog_ip
@@ -35,8 +35,8 @@ module "talos_cluster" {
       ip            = var.worker_one_node_ip
       vm_id         = 102
       cpu           = 16
-      disk_size     = 30
-      ram_dedicated = 14240
+      disk_size     = 200
+      ram_dedicated = 16384
       igpu          = true
       pci           = {
         id = "10de:2783"
@@ -53,7 +53,7 @@ module "talos_cluster" {
       ip            = var.worker_two_node_ip
       vm_id         = 103
       cpu           = 6
-      disk_size     = 20
+      disk_size     = 40
       ram_dedicated = 8120
     }
   }

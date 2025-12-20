@@ -1,0 +1,94 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+resources:
+  - nim-storage-pv.yaml
+  - nim-pvc.yaml
+  - backend.yaml
+  - nim-httproute.yaml
+  - models
+generators:
+  - secrets-generator.yaml
+helmCharts:
+  - name: nim-llm
+    releaseName: nim
+    namespace: ai
+    includeCRDs: true
+    valuesInline:
+      image:
+        # NVIDIA NIM for LLMs - Llama 3.1 8B Instruct
+        # Change repository to deploy different models:
+        # - nvcr.io/nim/meta/llama-3.1-8b-instruct (default, single GPU)
+        # - nvcr.io/nim/meta/llama-3.1-70b-instruct (4 GPUs)
+        # - nvcr.io/nim/meta/llama-3.2-3b-instruct (small model)
+        # - nvcr.io/nim/mistralai/mistral-7b-instruct-v0.3 (Mistral)
+        repository: nvcr.io/nim/meta/llama-3.2-3b-instruct
+        tag: "1.10.1"  # Requires CUDA 12.8+ / Driver 560+ (Talos v1.11.5)
+      imagePullSecrets:
+        - name: ngc-registry-secret
+      model:
+        ngcAPISecret: ngc-api-secret
+      resources:
+        requests:
+          cpu: "2"
+          memory: "4Gi"
+          nvidia.com/gpu: 1
+        limits:
+          cpu: "8"
+          memory: "16Gi"
+          nvidia.com/gpu: 1
+      persistence:
+        enabled: true
+        existingClaim: nim-pvc
+        accessMode: ReadWriteMany
+        size: 200Gi
+        storageClass: nfs-csi
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      runtimeClassName: nvidia
+      service:
+        type: ClusterIP
+        port: 8000
+        name: nim
+      startupProbe:
+        enabled: true
+        initialDelaySeconds: 60
+        periodSeconds: 30
+        failureThreshold: 60  # Allow up to 30 minutes for model loading
+      readinessProbe:
+        enabled: true
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      livenessProbe:
+        enabled: true
+        initialDelaySeconds: 60
+        periodSeconds: 30
+      podSecurityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+      env:
+        - name: NIM_SERVER_PORT
+          value: "8000"
+        - name: NIM_LOG_LEVEL
+          value: "INFO"
+        - name: NIM_CACHE_PATH
+          value: /opt/nim/.cache
+        - name: NIM_MODEL_NAME
+          value: "meta/llama-3.2-3b-instruct"
+        - name: NIM_MAX_MODEL_LEN
+          value: "8192"  # Reduced from 131K to fit RTX 4070 Super 12GB VRAM, 16384 for 10GB VRAM, currently 8GB VRAM
+      podAnnotations:
+        kubernetes.io/egress-bandwidth: "1G"
+        kubernetes.io/ingress-bandwidth: "1G"
+helmGlobals:
+  chartHome: ./charts

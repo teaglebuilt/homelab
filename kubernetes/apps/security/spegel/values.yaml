@@ -3,8 +3,31 @@ spegel:
   appendMirrors: true
   containerdSock: /run/containerd/containerd.sock
   containerdRegistryConfigPath: /etc/cri/conf.d/hosts
+  # Registries to mirror - includes NVIDIA NIM registry for large GPU model images
+  registries:
+    - https://nvcr.io
+    - https://docker.io
+    - https://ghcr.io
+    - https://registry.k8s.io
+    - https://quay.io
+  # Resolve configuration for peer discovery
+  resolveRetries: 3
+  resolveTimeout: 30ms
 service:
   registry:
     hostPort: 29999
   serviceMonitor:
     enabled: true
+# Tolerations to run on all nodes including GPU nodes
+tolerations:
+  - effect: NoSchedule
+    operator: Exists
+  - effect: NoExecute
+    operator: Exists
+  - key: CriticalAddonsOnly
+    operator: Exists
+# Priority class for critical system component
+priorityClassName: system-node-critical
+# Node selector for Linux nodes only
+nodeSelector:
+  kubernetes.io/os: linux

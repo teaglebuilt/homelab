@@ -1,0 +1,17 @@
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: Backend
+metadata:
+  name: nvidia-nim
+  namespace: ai
+spec:
+  type: AI
+  ai:
+    llm:
+      host: nim.ai.svc.cluster.local
+      port: 8000
+      openai:
+        model: "meta/llama-3.2-3b-instruct"
+        authToken:
+          kind: Inline
+          inline: "dev"

@@ -2,11 +2,11 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: ollama-pvc
+  name: nim-pvc
   namespace: ai
 spec:
   storageClassName: nfs-csi
-  volumeName: ollama-ai-storage
+  volumeName: nim-ai-storage
   accessModes:
     - ReadWriteMany
   resources:
