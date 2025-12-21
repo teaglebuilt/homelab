@@ -14,4 +14,3 @@ spec:
           kind: SecretRef
           secretRef:
             name: anthropic-api-key
-            key: ANTHROPIC_API_KEY

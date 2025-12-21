@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: mlops-work-01
       containers:
         - name: openedai-speech
-          image: matatonic/openedai-speech-min:latest
+          image: ghcr.io/matatonic/openedai-speech-min:latest
           ports:
             - name: http
               containerPort: 8000

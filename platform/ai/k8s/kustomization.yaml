@@ -7,6 +7,7 @@ resources:
   - gateway.yaml
   - storage
   - llm-providers
+  - integrations
   - ui-http-route.yaml
 helmCharts:
   - name: kagent
@@ -29,17 +30,12 @@ helmCharts:
           type: RuntimeDefault
         readOnlyRootFilesystem: true
       providers:
-        default: nim  # Use local NIM by default
-        nim:
-          provider: OpenAICompatible
-          model: "meta/llama-3.2-3b-instruct"
-          config:
-            baseUrl: http://nim.ai.svc.cluster.local:8000/v1
+        default: openAI
         openAI:
           provider: OpenAI
           model: "gpt-4o-mini"
           apiKeySecretRef: openai-api-key-secret
-          apiKeySecretKey: apiKey
+          apiKeySecretKey: Authorization
         ollama:
           provider: Ollama
           model: "llama3.2"
