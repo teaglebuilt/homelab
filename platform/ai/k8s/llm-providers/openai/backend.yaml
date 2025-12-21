@@ -12,3 +12,5 @@ spec:
         model: "gpt-4o-mini"
         authToken:
           kind: SecretRef
+          secretRef:
+            name: openai-api-key-secret

@@ -38,6 +38,7 @@ tasks:
       - task: kubernetes:bootstrap-cluster
       - task: kubernetes:sync-cluster
       - task: kubernetes:test-cluster
+      - task: kubernetes:copy-kubeconfig
       - task: platform:deploy
       - task: platform:test
 

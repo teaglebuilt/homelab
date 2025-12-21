@@ -1,0 +1,14 @@
+---
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: llama-3-2-3b-instruct-nim
+  namespace: ai
+  labels:
+    app: nvidia-nim
+    component: model-config
+spec:
+  provider: OpenAI
+  model: meta/llama-3.2-3b-instruct
+  openAI:
+    baseUrl: http://nim.ai.svc.cluster.local:8000/v1

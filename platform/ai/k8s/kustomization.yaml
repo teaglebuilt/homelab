@@ -34,7 +34,7 @@ helmCharts:
           provider: OpenAI
           model: "gpt-4o-mini"
           apiKeySecretRef: openai-api-key-secret
-          apiKeySecretKey: apiKey
+          apiKeySecretKey: Authorization
         ollama:
           provider: Ollama
           model: "llama3.2"
