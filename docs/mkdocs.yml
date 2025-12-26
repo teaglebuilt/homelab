@@ -1,0 +1,93 @@
+site_name: Built At Home
+site_description: Dillan Teagle's Homelab Documentation
+site_author: Dillan Teagle
+site_url: https://teaglebuilt.github.io/homelab/
+
+repo_name: teaglebuilt/homelab
+repo_url: https://github.com/teaglebuilt/homelab
+
+docs_dir: .
+site_dir: ../site
+
+theme:
+  name: material
+  favicon: assets/favicon.ico
+  logo: assets/logo.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mike:
+      version_selector: true
+      css_dir: css
+      javascript_dir: js
+
+extra:
+  version:
+    provider: mike
+    default: latest
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/teaglebuilt/homelab
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Overview: overview.md
+  - Hardware: hardware.md
+  - Network: network.md
+  - Infrastructure:
+    - Kubernetes: infra/kubernetes.md
+    - Portainer: infra/portainer.md
+  - Platform:
+    - AI: platform/ai.md
+    - Observability: platform/observability.md
+    - Workflows: platform/workflows.md
+    - Research: platform/research.md
