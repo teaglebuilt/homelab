@@ -8,3 +8,9 @@ machine:
       - name: nvidia_modeset
   sysctls:
     net.core.bpf_jit_harden: 1
+    vm.min_free_kbytes: "1048576"
+    vm.swappiness: "10"
+  kubelet:
+    extraArgs:
+      system-reserved: memory=2Gi
+      eviction-hard: memory.available<1Gi
