@@ -1,0 +1,141 @@
+name: Deploy Stacks to Portainer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'platform/**/compose.yaml'
+      - 'containers/compose.yaml'
+      - 'rack/network/compose.yaml'
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: 'Stack to deploy (leave empty for all changed)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - containers
+          - ai
+          - automation
+          - management
+          - observability
+          - observability-graylog
+          - observability-opensearch
+          - research
+          - home
+          - network
+
+env:
+  PORTAINER_HOST: ${{ secrets.PORTAINER_HOST }}
+  PORTAINER_USERNAME: ${{ secrets.PORTAINER_USERNAME }}
+  PORTAINER_PASSWORD: ${{ secrets.PORTAINER_PASSWORD }}
+  PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID || '1' }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.changes.outputs.stacks }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed stacks
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.stack }}" ]; then
+            echo "stacks=[\"${{ inputs.stack }}\"]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          STACKS="[]"
+
+          declare -A STACK_PATHS=(
+            ["containers"]="containers/compose.yaml"
+            ["ai"]="platform/ai/compose.yaml"
+            ["automation"]="platform/automation/compose.yaml"
+            ["management"]="platform/management/compose.yaml"
+            ["observability"]="platform/observability/compose.yaml"
+            ["observability-graylog"]="platform/observability/graylog/compose.yaml"
+            ["observability-opensearch"]="platform/observability/opensearch/compose.yaml"
+            ["research"]="platform/research/compose.yaml"
+            ["home"]="platform/home/compose.yaml"
+            ["network"]="rack/network/compose.yaml"
+          )
+
+          DETECTED_STACKS=()
+          for STACK in "${!STACK_PATHS[@]}"; do
+            if echo "$CHANGED_FILES" | grep -q "${STACK_PATHS[$STACK]}"; then
+              DETECTED_STACKS+=("\"$STACK\"")
+            fi
+          done
+
+          if [ ${#DETECTED_STACKS[@]} -gt 0 ]; then
+            STACKS="[$(IFS=,; echo "${DETECTED_STACKS[*]}")]"
+          fi
+
+          echo "stacks=$STACKS" >> $GITHUB_OUTPUT
+          echo "Detected stacks to deploy: $STACKS"
+
+  deploy:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.stacks != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJson(needs.detect-changes.outputs.stacks) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set stack configuration
+        id: config
+        run: |
+          declare -A STACK_DEFINITIONS=(
+            ["containers"]="containers/compose.yaml"
+            ["ai"]="platform/ai/compose.yaml"
+            ["automation"]="platform/automation/compose.yaml"
+            ["management"]="platform/management/compose.yaml"
+            ["observability"]="platform/observability/compose.yaml"
+            ["observability-graylog"]="platform/observability/graylog/compose.yaml"
+            ["observability-opensearch"]="platform/observability/opensearch/compose.yaml"
+            ["research"]="platform/research/compose.yaml"
+            ["home"]="platform/home/compose.yaml"
+            ["network"]="rack/network/compose.yaml"
+          )
+
+          STACK="${{ matrix.stack }}"
+          DEFINITION="${STACK_DEFINITIONS[$STACK]}"
+
+          echo "stack-name=$STACK" >> $GITHUB_OUTPUT
+          echo "stack-definition=$DEFINITION" >> $GITHUB_OUTPUT
+          echo "Deploying stack: $STACK from $DEFINITION"
+
+      - name: Deploy stack to Portainer
+        uses: carlrygart/portainer-stack-deploy@v1
+        with:
+          portainer-host: ${{ env.PORTAINER_HOST }}
+          username: ${{ env.PORTAINER_USERNAME }}
+          password: ${{ env.PORTAINER_PASSWORD }}
+          endpoint-id: ${{ env.PORTAINER_ENDPOINT_ID }}
+          stack-name: ${{ steps.config.outputs.stack-name }}
+          stack-definition: ${{ steps.config.outputs.stack-definition }}
+          prune-stack: true
+          pull-image: true
+
+      - name: Deployment summary
+        run: |
+          echo "## Stack Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Stack | ${{ steps.config.outputs.stack-name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Definition | ${{ steps.config.outputs.stack-definition }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Portainer | ${{ env.PORTAINER_HOST }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Endpoint | ${{ env.PORTAINER_ENDPOINT_ID }} |" >> $GITHUB_STEP_SUMMARY

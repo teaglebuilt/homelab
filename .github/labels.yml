@@ -3,6 +3,8 @@
   color: "0e8a16"
 - name: area/bootstrap
   color: "0e8a16"
+- name: area/containers
+  color: "1d76db"
 - name: area/kubernetes
   color: "#3a71e5"
 - name: area/taskfile
