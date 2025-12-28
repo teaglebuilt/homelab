@@ -1,0 +1,252 @@
+---
+# Woodpecker CI Pipeline for Portainer Deployment
+# Lightweight, container-native alternative to GitHub Actions
+#
+# Setup:
+# 1. Install Woodpecker CI (see docs/deployment/portainer-gitops-guide.md)
+# 2. Configure secrets in Woodpecker UI:
+#    - ssh_key: SSH private key for LXC container
+#    - portainer_ip: LXC container IP address
+#    - discord_webhook: (Optional) Discord webhook URL
+# 3. Enable this repository in Woodpecker
+
+when:
+  branch:
+    - main
+  event:
+    - push
+    - manual
+  path:
+    include:
+      - 'containers/compose.yaml'
+      - 'containers/config/**'
+      - '.woodpecker.yml'
+
+# Global variables
+variables:
+  - &compose_file 'containers/compose.yaml'
+  - &repo_path '/root/homelab'
+
+steps:
+  # ============================================
+  # Phase 1: Validation
+  # ============================================
+  validate-syntax:
+    image: docker/compose:2.31.0-alpine
+    pull: true
+    commands:
+      - docker compose -f ${compose_file} config --quiet
+      - echo "✅ Compose file syntax is valid"
+
+  check-pinned-versions:
+    image: alpine:3.21.0
+    commands:
+      - |
+        if grep -q ':latest' ${compose_file}; then
+          echo "⚠️  WARNING: Found :latest tags in compose file"
+          grep ':latest' ${compose_file} || true
+          exit 1
+        fi
+        echo "✅ All images are pinned to specific versions"
+
+  security-scan:
+    image: aquasec/trivy:0.56.2
+    commands:
+      - trivy config ${compose_file} --severity CRITICAL,HIGH --exit-code 1
+    when:
+      - evaluate: 'CI_PIPELINE_EVENT != "manual"'
+
+  # ============================================
+  # Phase 2: Backup
+  # ============================================
+  backup:
+    image: appleboy/drone-ssh:1.7.4
+    secrets: [ssh_key, portainer_ip]
+    settings:
+      host:
+        from_secret: portainer_ip
+      username: root
+      key:
+        from_secret: ssh_key
+      script:
+        - |
+          set -euo pipefail
+          BACKUP_DIR="/mnt/local/backups"
+          BACKUP_NAME="portainer-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+
+          mkdir -p $BACKUP_DIR
+
+          # Stop Portainer
+          cd ${repo_path}
+          docker compose -f ${compose_file} stop portainer
+
+          # Create backup
+          docker run --rm \
+            -v portainer_data:/data:ro \
+            -v $BACKUP_DIR:/backup \
+            alpine:3.21.0 \
+            tar czf /backup/$BACKUP_NAME -C /data .
+
+          # Start Portainer
+          docker compose -f ${compose_file} start portainer
+
+          echo "✅ Backup created: $BACKUP_NAME"
+
+          # Cleanup old backups
+          find $BACKUP_DIR -name "portainer-backup-*.tar.gz" -mtime +7 -delete
+
+  # ============================================
+  # Phase 3: Deployment
+  # ============================================
+  deploy:
+    image: appleboy/drone-ssh:1.7.4
+    secrets: [ssh_key, portainer_ip]
+    settings:
+      host:
+        from_secret: portainer_ip
+      username: root
+      key:
+        from_secret: ssh_key
+      script:
+        - |
+          set -euo pipefail
+
+          echo "🔄 Syncing repository..."
+          cd ${repo_path}
+
+          # Store current commit for rollback
+          git rev-parse HEAD > /tmp/pre-deployment-commit
+
+          # Pull latest changes
+          git fetch origin
+          git reset --hard origin/main
+
+          echo "📥 Pulling container images..."
+          docker compose -f ${compose_file} pull
+
+          echo "🚀 Deploying services..."
+          docker compose -f ${compose_file} up -d --remove-orphans
+
+          echo "✅ Deployment complete"
+
+  # ============================================
+  # Phase 4: Health Checks
+  # ============================================
+  health-check:
+    image: appleboy/drone-ssh:1.7.4
+    secrets: [ssh_key, portainer_ip]
+    settings:
+      host:
+        from_secret: portainer_ip
+      username: root
+      key:
+        from_secret: ssh_key
+      script:
+        - |
+          set -euo pipefail
+
+          echo "🏥 Running health checks..."
+
+          # Wait for containers to start
+          sleep 10
+
+          # Check for failed containers
+          cd ${repo_path}
+          FAILED=$(docker compose -f ${compose_file} ps --services --filter "status=exited" || true)
+
+          if [ -n "$FAILED" ]; then
+            echo "❌ Failed containers detected: $FAILED"
+            docker compose -f ${compose_file} ps
+            exit 1
+          fi
+
+          # Check Portainer API
+          MAX_RETRIES=30
+          RETRY=0
+
+          while [ $RETRY -lt $MAX_RETRIES ]; do
+            if curl -k -f -s https://localhost:9443/api/system/status > /dev/null 2>&1; then
+              echo "✅ Portainer API is healthy"
+              break
+            fi
+            RETRY=$((RETRY + 1))
+            echo "⏳ Waiting for Portainer API... ($RETRY/$MAX_RETRIES)"
+            sleep 5
+          done
+
+          if [ $RETRY -eq $MAX_RETRIES ]; then
+            echo "❌ Portainer API health check failed"
+            exit 1
+          fi
+
+          # Check Homepage
+          if curl -f -s http://localhost:3000 > /dev/null 2>&1; then
+            echo "✅ Homepage is healthy"
+          else
+            echo "⚠️  Homepage health check failed (non-critical)"
+          fi
+
+          echo "✅ All health checks passed"
+
+  # ============================================
+  # Phase 5: Notifications
+  # ============================================
+  notify-success:
+    image: plugins/webhook:1.14.0
+    secrets: [discord_webhook]
+    settings:
+      urls:
+        from_secret: discord_webhook
+      content_type: application/json
+      template: |
+        {
+          "content": "✅ Portainer deployment successful!",
+          "embeds": [{
+            "title": "Deployment Success",
+            "description": "Commit: {{ commit.sha }}",
+            "color": 3066993,
+            "fields": [
+              {"name": "Branch", "value": "{{ commit.branch }}", "inline": true},
+              {"name": "Author", "value": "{{ commit.author }}", "inline": true},
+              {"name": "Message", "value": "{{ commit.message }}", "inline": false}
+            ]
+          }]
+        }
+    when:
+      - evaluate: 'CI_PIPELINE_STATUS == "success"'
+
+  notify-failure:
+    image: plugins/webhook:1.14.0
+    secrets: [discord_webhook]
+    settings:
+      urls:
+        from_secret: discord_webhook
+      content_type: application/json
+      template: |
+        {
+          "content": "@here ❌ Portainer deployment FAILED!",
+          "embeds": [{
+            "title": "Deployment Failure",
+            "description": "Commit: {{ commit.sha }}",
+            "color": 15158332,
+            "fields": [
+              {"name": "Branch", "value": "{{ commit.branch }}", "inline": true},
+              {"name": "Author", "value": "{{ commit.author }}", "inline": true},
+              {"name": "Pipeline", "value": "{{ build.link }}", "inline": false}
+            ]
+          }]
+        }
+    when:
+      - evaluate: 'CI_PIPELINE_STATUS == "failure"'
+
+# Matrix builds (optional - for multi-environment deployments)
+# matrix:
+#   environment:
+#     - staging
+#     - production
+#
+# steps:
+#   deploy:
+#     settings:
+#       host:
+#         from_secret: ${environment}_ip

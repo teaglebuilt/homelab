@@ -1,0 +1,423 @@
+---
+name: Deploy Portainer Stack
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'containers/compose.yaml'
+      - 'containers/config/**'
+      - '.github/workflows/deploy-portainer.yaml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      rollback:
+        description: 'Rollback to previous version'
+        required: false
+        type: boolean
+        default: false
+  # Optional: scheduled health check
+  # schedule:
+  #   - cron: '0 */6 * * *'  # Every 6 hours
+
+env:
+  COMPOSE_FILE: containers/compose.yaml
+  DEPLOYMENT_PATH: /root/homelab
+  SSH_USER: root
+  PORTAINER_HOST: ${{ secrets.PORTAINER_IP }}
+
+jobs:
+  # ============================================
+  # Phase 1: Validation & Security Checks
+  # ============================================
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0  # Full history for git diff
+
+      - name: Install Docker Compose v2.31.0
+        run: |
+          sudo curl -fsSL https://github.com/docker/compose/releases/download/v2.31.0/docker-compose-linux-x86_64 \
+            -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
+      - name: Validate Compose File Syntax
+        run: |
+          docker-compose -f ${{ env.COMPOSE_FILE }} config --quiet
+          echo "✅ Compose file syntax is valid"
+
+      - name: Check for Pinned Image Versions
+        run: |
+          if grep -q ':latest' ${{ env.COMPOSE_FILE }}; then
+            echo "⚠️  WARNING: Found :latest tags in compose file"
+            echo "🔒 SECURITY: Always pin exact image versions in production"
+            grep ':latest' ${{ env.COMPOSE_FILE }} || true
+            exit 1
+          fi
+          echo "✅ All images are pinned to specific versions"
+
+      - name: Scan for Hardcoded Secrets
+        uses: trufflesecurity/trufflehog@v3.82.13
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+      - name: Container Image Vulnerability Scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'config'
+          scan-ref: ${{ env.COMPOSE_FILE }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Generate Deployment Manifest
+        run: |
+          docker-compose -f ${{ env.COMPOSE_FILE }} config > /tmp/deployment-manifest.yaml
+          echo "📦 Generated deployment manifest:"
+          cat /tmp/deployment-manifest.yaml
+
+      - name: Upload Deployment Manifest as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-manifest
+          path: /tmp/deployment-manifest.yaml
+          retention-days: 30
+
+  # ============================================
+  # Phase 2: Pre-Deployment Backup
+  # ============================================
+  backup:
+    name: Backup Current State
+    runs-on: ubuntu-24.04
+    needs: validate
+    timeout-minutes: 10
+
+    steps:
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PORTAINER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.PORTAINER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Backup Portainer Data Volume
+        run: |
+          BACKUP_NAME="portainer-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            # Create backup directory
+            mkdir -p /mnt/local/backups
+
+            # Backup Portainer data volume
+            BACKUP_FILE="/mnt/local/backups/portainer-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+
+            # Stop containers gracefully
+            cd /root/homelab
+            docker-compose -f containers/compose.yaml stop portainer
+
+            # Backup data
+            docker run --rm \
+              -v portainer_data:/data:ro \
+              -v /mnt/local/backups:/backup \
+              alpine:3.21.0 \
+              tar czf /backup/$(basename $BACKUP_FILE) -C /data .
+
+            # Start containers
+            docker-compose -f containers/compose.yaml start portainer
+
+            echo "✅ Backup created: $BACKUP_FILE"
+
+            # Cleanup old backups (keep last 7 days)
+            find /mnt/local/backups -name "portainer-backup-*.tar.gz" -mtime +7 -delete
+          EOF
+
+      - name: Verify Backup
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            LATEST_BACKUP=$(ls -t /mnt/local/backups/portainer-backup-*.tar.gz | head -1)
+
+            if [ -f "$LATEST_BACKUP" ]; then
+              SIZE=$(du -h "$LATEST_BACKUP" | cut -f1)
+              echo "✅ Backup verified: $LATEST_BACKUP ($SIZE)"
+            else
+              echo "❌ Backup verification failed"
+              exit 1
+            fi
+          EOF
+
+  # ============================================
+  # Phase 3: Deployment
+  # ============================================
+  deploy:
+    name: Deploy to ${{ inputs.environment || 'production' }}
+    runs-on: ubuntu-24.04
+    needs: [validate, backup]
+    timeout-minutes: 15
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+      url: https://${{ secrets.PORTAINER_IP }}:9443
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PORTAINER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.PORTAINER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Pre-flight Health Check
+        id: preflight
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            echo "🔍 Pre-flight checks..."
+
+            # Check Docker daemon
+            if ! docker info > /dev/null 2>&1; then
+              echo "❌ Docker daemon is not running"
+              exit 1
+            fi
+
+            # Check disk space
+            DISK_USAGE=$(df /mnt/local | tail -1 | awk '{print $5}' | sed 's/%//')
+            if [ "$DISK_USAGE" -gt 85 ]; then
+              echo "⚠️  WARNING: Disk usage is ${DISK_USAGE}%"
+            fi
+
+            # Check current container status
+            cd /root/homelab
+            docker-compose -f containers/compose.yaml ps
+
+            echo "✅ Pre-flight checks passed"
+          EOF
+
+      - name: Sync Repository
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            cd /root/homelab
+
+            # Fetch latest changes
+            git fetch origin
+
+            # Store current commit for rollback
+            CURRENT_COMMIT=$(git rev-parse HEAD)
+            echo $CURRENT_COMMIT > /tmp/pre-deployment-commit
+
+            echo "📍 Current commit: $CURRENT_COMMIT"
+
+            # Pull latest changes
+            git reset --hard origin/main
+
+            NEW_COMMIT=$(git rev-parse HEAD)
+            echo "📍 New commit: $NEW_COMMIT"
+
+            # Show what changed
+            echo "📝 Changes:"
+            git log --oneline $CURRENT_COMMIT..$NEW_COMMIT || echo "No changes"
+          EOF
+
+      - name: Pull Container Images
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            cd /root/homelab
+
+            echo "📥 Pulling container images..."
+            docker-compose -f containers/compose.yaml pull
+
+            echo "✅ Images pulled successfully"
+          EOF
+
+      - name: Deploy Services (Rolling Update)
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            cd /root/homelab
+
+            echo "🚀 Deploying services..."
+
+            # Deploy with minimal downtime
+            docker-compose -f containers/compose.yaml up -d --remove-orphans
+
+            echo "✅ Services deployed"
+          EOF
+
+      - name: Post-Deployment Health Check
+        id: health_check
+        timeout-minutes: 5
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            cd /root/homelab
+
+            echo "🏥 Waiting for services to be healthy..."
+
+            # Wait for containers to start
+            sleep 10
+
+            # Check container status
+            FAILED_CONTAINERS=$(docker-compose -f containers/compose.yaml ps --services --filter "status=exited")
+
+            if [ -n "$FAILED_CONTAINERS" ]; then
+              echo "❌ Failed containers detected:"
+              echo "$FAILED_CONTAINERS"
+              docker-compose -f containers/compose.yaml ps
+              exit 1
+            fi
+
+            # Check Portainer API health
+            MAX_RETRIES=30
+            RETRY_COUNT=0
+
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if curl -k -f https://localhost:9443/api/system/status > /dev/null 2>&1; then
+                echo "✅ Portainer API is healthy"
+                break
+              fi
+
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⏳ Waiting for Portainer API... ($RETRY_COUNT/$MAX_RETRIES)"
+              sleep 5
+            done
+
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo "❌ Portainer API health check failed"
+              exit 1
+            fi
+
+            # Check Homepage
+            if curl -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Homepage is healthy"
+            else
+              echo "⚠️  Homepage health check failed (non-critical)"
+            fi
+
+            echo "✅ All health checks passed"
+          EOF
+
+      - name: Show Container Status
+        if: always()
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            cd /root/homelab
+            docker-compose -f containers/compose.yaml ps
+            docker-compose -f containers/compose.yaml logs --tail=50
+          EOF
+
+      - name: Create Deployment Tag
+        if: success()
+        run: |
+          git tag "deploy-portainer-$(date +%Y%m%d-%H%M%S)"
+          git push origin --tags || true
+
+  # ============================================
+  # Phase 4: Rollback (Manual Trigger)
+  # ============================================
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-24.04
+    if: ${{ inputs.rollback == true }}
+    timeout-minutes: 10
+    environment:
+      name: production
+
+    steps:
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PORTAINER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.PORTAINER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rollback to Previous Commit
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            set -euo pipefail
+
+            cd /root/homelab
+
+            if [ ! -f /tmp/pre-deployment-commit ]; then
+              echo "❌ No previous commit found"
+              exit 1
+            fi
+
+            ROLLBACK_COMMIT=$(cat /tmp/pre-deployment-commit)
+            echo "🔄 Rolling back to commit: $ROLLBACK_COMMIT"
+
+            git reset --hard $ROLLBACK_COMMIT
+
+            # Redeploy
+            docker-compose -f containers/compose.yaml up -d --remove-orphans
+
+            echo "✅ Rollback complete"
+          EOF
+
+      - name: Verify Rollback
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ env.PORTAINER_HOST }} << 'EOF'
+            cd /root/homelab
+            docker-compose -f containers/compose.yaml ps
+          EOF
+
+  # ============================================
+  # Phase 5: Notifications
+  # ============================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-24.04
+    needs: [deploy]
+    if: always()
+
+    steps:
+      - name: Deployment Success Notification
+        if: ${{ needs.deploy.result == 'success' }}
+        run: |
+          echo "✅ Deployment successful!"
+          # Add Discord/Slack webhook here
+          # curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          #   -H "Content-Type: application/json" \
+          #   -d '{"content": "✅ Portainer deployment successful!"}'
+
+      - name: Deployment Failure Notification
+        if: ${{ needs.deploy.result == 'failure' }}
+        run: |
+          echo "❌ Deployment failed!"
+          # Add Discord/Slack webhook here
+          # curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          #   -H "Content-Type: application/json" \
+          #   -d '{"content": "❌ Portainer deployment FAILED! @here"}'

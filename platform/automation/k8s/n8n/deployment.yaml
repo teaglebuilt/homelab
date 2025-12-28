@@ -28,7 +28,7 @@ spec:
         kubernetes.io/hostname: mlops-work-01
       containers:
         - name: n8n
-          image: ghcr.io/n8n-io/n8n:latest
+          image: ghcr.io/n8n-io/n8n:1.122.0
           imagePullPolicy: Always
           ports:
             - containerPort: 5678
