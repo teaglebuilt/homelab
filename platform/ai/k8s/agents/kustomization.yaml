@@ -4,3 +4,4 @@ kind: Kustomization
 
 resources:
   - security
+  - entrepreneurship

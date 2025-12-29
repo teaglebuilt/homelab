@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  app.kubernetes.io/part-of: homelab-entrepreneurship
+  kagent.dev/agent-type: entrepreneurship
+
+resources:
+  - trend-researcher-agent.yaml
+  - dev-income-agent.yaml
+  - crypto-defi-agent.yaml
+  - market-opportunities-agent.yaml
+  - automation-scout-agent.yaml
