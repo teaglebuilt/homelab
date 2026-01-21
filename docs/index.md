@@ -6,12 +6,10 @@
 </div>
 
 <div align="center">
-
-![Proxmox](https://img.shields.io/badge/Proxmox-E57000?style=for-the-badge&logo=proxmox&logoColor=white)
-![NVIDIA](https://img.shields.io/badge/NVIDIA-GTX4070-76B900?style=for-the-badge&logo=nvidia&logoColor=white)
-![Intel](https://img.shields.io/badge/Intel%20Core_i9_10th-0071C5?style=for-the-badge&logo=intel&logoColor=white)
-![Argo CD](https://img.shields.io/badge/Argo%20CD-1e0b3e?style=for-the-badge&logo=argo&logoColor=#d16044)
-
+    <img src="https://img.shields.io/badge/Proxmox-E57000?style=for-the-badge&logo=proxmox&logoColor=white">
+    <img src="https://img.shields.io/badge/NVIDIA-GTX4070-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA">
+    <img src="https://img.shields.io/badge/Intel%20Core_i9_10th-0071C5?style=for-the-badge&logo=intel&logoColor=white" alt="Intel">
+    <img src="https://img.shields.io/badge/Argo%20CD-1e0b3e?style=for-the-badge&logo=argo&logoColor=#d16044" alt="Argo CD">
 </div>
 
 ---
@@ -20,29 +18,29 @@
 
 <div class="grid cards" markdown>
 
--   :material-cog-sync:{ .lg .middle } **Automation**
+- ⚙️ **Automation**
 
     ---
 
     Workflow automation support with n8n for seamless integrations and task orchestration.
 
-    [:octicons-arrow-right-24: Learn more](platform/workflows.md)
+    [→ Learn more](platform/workflows.md)
 
--   :material-shield-lock:{ .lg .middle } **Privacy**
+- 🔒 **Privacy**
 
     ---
 
     Focus on network privacy, security, and lab sandboxes for safe experimentation.
 
-    [:octicons-arrow-right-24: Network setup](network.md)
+    [→ Network setup](network.md)
 
--   :material-brain:{ .lg .middle } **Research**
+- 🧠 **Research**
 
     ---
 
     AI powered research with self-hosted LLMs, agents, and research tools.
 
-    [:octicons-arrow-right-24: AI Platform](platform/ai.md)
+    [→ AI Platform](platform/ai.md)
 
 </div>
 

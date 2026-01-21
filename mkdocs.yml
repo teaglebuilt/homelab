@@ -6,7 +6,7 @@ site_url: https://teaglebuilt.github.io/homelab/
 repo_name: teaglebuilt/homelab
 repo_url: https://github.com/teaglebuilt/homelab
 
-docs_dir: .
+docs_dir: ./docs
 site_dir: ../site
 
 theme:
@@ -77,6 +77,9 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:pymdownx.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
   - Home: index.md
