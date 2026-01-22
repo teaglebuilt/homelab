@@ -9,7 +9,6 @@ service:
   port: 80
 
 ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
-
 extraEnvVars:
   - name: WEBUI_URL
     value: https://openwebui.homelab.internal
@@ -29,6 +28,24 @@ extraEnvVars:
     value: "false"
   - name: ENABLE_IMAGE_GENERATION
     value: "false"
+  # NVIDIA NIM Configuration (OpenAI-compatible API)
+  - name: OPENAI_API_BASE_URL
+    value: http://nim.ai.svc.cluster.local:8000/v1
+  - name: OPENAI_API_KEY
+    value: "not-required"
+  - name: ENABLE_OPENAI_API
+    value: "true"
+  # Piper TTS Configuration (via openedai-speech)
+  - name: AUDIO_TTS_ENGINE
+    value: "openai"
+  - name: AUDIO_TTS_OPENAI_API_BASE_URL
+    value: http://openedai-speech.ai.svc.cluster.local:8000/v1
+  - name: AUDIO_TTS_OPENAI_API_KEY
+    value: "not-required"
+  - name: AUDIO_TTS_MODEL
+    value: "tts-1"
+  - name: AUDIO_TTS_VOICE
+    value: "alloy"
   - name: WEBUI_SECRET_KEY
     valueFrom:
       secretKeyRef:

@@ -4,10 +4,14 @@ machine:
     - op: create
       path: /etc/cri/conf.d/20-customization.part
       content: |-
+        # Legacy CRI gRPC plugin settings (for backward compatibility)
         [plugins."io.containerd.grpc.v1.cri"]
           enable_unprivileged_ports = true
           enable_unprivileged_icmp = true
         [plugins."io.containerd.grpc.v1.cri".containerd]
           discard_unpacked_layers = false
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+          discard_unpacked_layers = false
+        # CRI v1 plugin settings for Talos 1.9+ (required for Spegel p2p registry caching)
+        [plugins."io.containerd.cri.v1.images"]
           discard_unpacked_layers = false

@@ -40,3 +40,6 @@ dist/
 chroma.sqlite3
 .idea
 *.pkl
+
+# MkDocs build output
+site/

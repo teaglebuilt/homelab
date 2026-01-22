@@ -1,3 +1,4 @@
+---
 apiVersion: gateway.kgateway.dev/v1alpha1
 kind: Backend
 metadata:
@@ -8,6 +9,8 @@ spec:
   ai:
     llm:
       anthropic:
-        model: "claude-3-5-sonnet-latest"
+        model: "claude-sonnet-4-20250514"
         authToken:
           kind: SecretRef
+          secretRef:
+            name: anthropic-api-key

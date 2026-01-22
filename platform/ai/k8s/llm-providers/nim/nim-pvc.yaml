@@ -1,0 +1,14 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nim-pvc
+  namespace: ai
+spec:
+  storageClassName: nfs-csi
+  volumeName: nim-ai-storage
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 200Gi

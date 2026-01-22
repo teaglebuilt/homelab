@@ -9,5 +9,8 @@ dependencies:
 - name: csi-driver-nfs
   repository: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
   version: 4.11.0
-digest: sha256:8ee78a86262deb154b019caa9966b395a8b2b0d12493057156ffb64ab9898515
-generated: "2025-07-19T13:54:45.213631-04:00"
+- name: reflector
+  repository: https://emberstack.github.io/helm-charts
+  version: 7.1.288
+digest: sha256:479bb1b8b98698de49b8583511b7aab8b25ed7cf6df73caef10b48bdc3620517
+generated: "2025-12-14T16:04:48.907272-05:00"

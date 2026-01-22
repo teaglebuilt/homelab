@@ -6,7 +6,7 @@ metadata:
   namespace: ai
 spec:
   storageClassName: nfs-csi
-  volumeName: ai-platform-storage
+  volumeName: ollama-ai-storage
   accessModes:
     - ReadWriteMany
   resources:

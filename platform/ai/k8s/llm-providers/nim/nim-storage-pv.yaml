@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: nfs.csi.k8s.io
+  name: nim-ai-storage
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-csi
+  mountOptions:
+    - nolock
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: nim
+    volumeAttributes:
+      server: unas.internal
+      share: /var/nfs/shared/ai_platform_data/nim
+    readOnly: false

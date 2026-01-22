@@ -69,13 +69,11 @@ tasks:
     cmds:
       - make helmfile_sync
 
-  test-cluster:
+  wait-for-external-certificate:
     dir: kubernetes
     cmds:
       - echo "waiting for external certificate"
       - kubectl get certificate external-certificate -n kube-system -w
-      - kubectl get secret external-cloudflare-tls -n kube-system
-      - kubectl get gateway homelab-external-gateway -n kube-system -o jsonpath='{.status.listeners}' | jq .
 
   reboot-cluster-node:
     dir: kubernetes
@@ -97,3 +95,8 @@ tasks:
     cmds:
       - make helmfile_lock
       - make build_chart_dependencies
+
+  copy-kubeconfig:
+    dir: kubernetes
+    cmds:
+      - cp generated/kubeconfig ~/.kube/config
