@@ -1,14 +1,27 @@
 services:
+  haproxy:
+    image: haproxy:lts-alpine
+    container_name: haproxy
+    ports:
+      - 80:80
+      - 8404:8404
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - proxy
+    restart: unless-stopped
+
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
     ports:
       - 8000:8000
       - 9443:9443
-      - 9000:9000 # for http
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - proxy
     restart: unless-stopped
 
   homepage:
@@ -18,12 +31,17 @@ services:
       HOMEPAGE_ALLOWED_HOSTS: gethomepage.dev
       PUID: 1000
       PGID: 1000
-    ports:
-      - 3000:3000
     volumes:
       - ./config:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
     restart: unless-stopped
 
 volumes:
   portainer_data:
+
+networks:
+  proxy:
+    name: proxy
+    driver: bridge

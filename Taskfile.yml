@@ -10,8 +10,6 @@ includes:
     taskfile: containers/Taskfile.yml
   platform:
     taskfile: platform/Taskfile.yml
-  docs:
-    taskfile: docs/Taskfile.yml
 
 dotenv: ['./kubernetes/.env']
 

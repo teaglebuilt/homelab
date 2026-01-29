@@ -19,12 +19,16 @@ services:
     volumes:
       - ./mnt/data/grafana:/etc/grafana/provisioning
       - grafana-data:/var/lib/grafana
+    networks:
+      - proxy
 
   influxdb:
     <<: *common
     image: influxdb:2
     ports:
       - 8086:8086
+    networks:
+      - proxy
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USERNAME}
@@ -45,6 +49,8 @@ services:
       - '8888:8888'
     volumes:
       - chronograf-storage:/var/lib/chronograf
+    networks:
+      - proxy
     depends_on:
       - influxdb
     environment:
@@ -76,3 +82,7 @@ volumes:
   grafana-data:
   influxdb-storage:
   chronograf-storage:
+
+networks:
+  proxy:
+    external: true
