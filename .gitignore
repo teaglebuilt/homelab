@@ -43,3 +43,6 @@ chroma.sqlite3
 
 # MkDocs build output
 site/
+
+# Private files (only committed on private branch)
+**/private/

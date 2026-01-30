@@ -28,6 +28,40 @@ repos:
     rev: v2.1.1
     hooks:
       - id: forbid-secrets
+  # - repo: local
+  #   hooks:
+  #     - id: block-private-files
+  #       name: Block private files on non-private branches
+  #       entry: bash -c '
+  #         branch=$(git rev-parse --abbrev-ref HEAD);
+  #         if [ "$branch" != "private" ]; then
+  #           private_files=$(git diff --cached --name-only | grep "/private/" || true);
+  #           if [ -n "$private_files" ]; then
+  #             echo "ERROR: Cannot commit private/ files on branch $branch";
+  #             echo "Switch to the private branch to commit these files:";
+  #             echo "$private_files";
+  #             exit 1;
+  #           fi;
+  #         fi'
+  #       language: system
+  #       always_run: true
+  #       pass_filenames: false
+  # - repo: local
+  #   hooks:
+  #     - id: block-private-push
+  #       name: Block pushing private branch to public origin
+  #       entry: bash -c '
+  #         remote="$1";
+  #         branch=$(git rev-parse --abbrev-ref HEAD);
+  #         if [ "$branch" = "private" ] && [ "$remote" = "origin" ]; then
+  #           echo "ERROR: Cannot push private branch to public remote origin.";
+  #           echo "Use: git push private private";
+  #           exit 1;
+  #         fi' --
+  #       language: system
+  #       always_run: true
+  #       pass_filenames: false
+  #       stages: [pre-push]
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v1.2.0
     hooks:
