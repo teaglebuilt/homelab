@@ -1,0 +1,35 @@
+# ──────────────────────────────────────────────
+# Traefik Static Configuration
+# ──────────────────────────────────────────────
+
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+
+providers:
+  # Local: containers on this LXC (Portainer, Homepage) via labels
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: proxy
+
+  # Remote: services on other LXCs via file provider
+  file:
+    filename: /etc/traefik/routes.yaml
+    watch: true
+
+log:
+  level: INFO

@@ -8,10 +8,15 @@ includes:
     taskfile: kubernetes/Taskfile.yml
   containers:
     taskfile: containers/Taskfile.yml
+  network:
+    taskfile: rack/network/Taskfile.yml
   platform:
     taskfile: platform/Taskfile.yml
 
-dotenv: ['./kubernetes/.env']
+dotenv: [
+  './kubernetes/.env',
+  './containers/.env'
+]
 
 tasks:
   help:

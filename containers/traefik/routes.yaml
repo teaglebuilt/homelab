@@ -1,0 +1,60 @@
+# ──────────────────────────────────────────────
+# Dynamic routes to services on remote LXCs
+# Mirrors the traefik labels in each compose file
+# ──────────────────────────────────────────────
+
+http:
+  routers:
+    # ── Media LXC (VLAN 30: 10.0.30.10) ──────
+    plex:
+      rule: "Host(`plex.local`)"
+      service: plex
+      entryPoints: [websecure]
+    sonarr:
+      rule: "Host(`sonarr.local`)"
+      service: sonarr
+      entryPoints: [websecure]
+    radarr:
+      rule: "Host(`radarr.local`)"
+      service: radarr
+      entryPoints: [websecure]
+    prowlarr:
+      rule: "Host(`prowlarr.local`)"
+      service: prowlarr
+      entryPoints: [websecure]
+    overseerr:
+      rule: "Host(`overseerr.local`)"
+      service: overseerr
+      entryPoints: [websecure]
+
+    # ── Downloads LXC (VLAN 40: 10.0.40.10) ──
+    qbittorrent:
+      rule: "Host(`qbit.local`)"
+      service: qbittorrent
+      entryPoints: [websecure]
+
+  services:
+    plex:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.30.10:32400"
+    sonarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.30.10:8989"
+    radarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.30.10:7878"
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.30.10:9696"
+    overseerr:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.30.10:5055"
+    qbittorrent:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.40.10:8080"

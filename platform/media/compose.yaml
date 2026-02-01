@@ -1,42 +1,4 @@
 services:
-  gluetun:
-    image: qmcgaw/gluetun:latest
-    container_name: gluetun
-    cap_add:
-      - NET_ADMIN
-    environment:
-      - TZ=America/New_York
-      # Pick ONE VPN provider config style; example env vars vary by provider.
-      - VPN_SERVICE_PROVIDER=custom
-      - VPN_TYPE=wireguard
-      # WireGuard example (fill in your values)
-      - WIREGUARD_PRIVATE_KEY=REPLACE_ME
-      - WIREGUARD_ADDRESSES=10.64.0.2/32
-      - WIREGUARD_ENDPOINT_IP=REPLACE_ME
-      - WIREGUARD_ENDPOINT_PORT=51820
-      - WIREGUARD_PUBLIC_KEY=REPLACE_ME
-    ports:
-      - "8080:8080" # qBittorrent WebUI exposed through gluetun
-      - "6881:6881"
-      - "6881:6881/udp"
-    restart: unless-stopped
-
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    network_mode: "service:gluetun"
-    depends_on:
-      - gluetun
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-      - WEBUI_PORT=8088
-    volumes:
-      - ./config/qbittorrent:/config
-      - /mnt/downloads:/downloads
-    restart: unless-stopped
-
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
@@ -49,6 +11,10 @@ services:
     ports:
       - "9696:9696"
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.local`)"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -64,6 +30,10 @@ services:
     ports:
       - "8989:8989"
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.local`)"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -79,6 +49,10 @@ services:
     ports:
       - "7878:7878"
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.local`)"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
 
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -94,6 +68,10 @@ services:
     ports:
       - "32400:32400"
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plex.rule=Host(`plex.local`)"
+      - "traefik.http.services.plex.loadbalancer.server.port=32400"
 
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
@@ -107,3 +85,7 @@ services:
     ports:
       - "5055:5055"
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.overseerr.rule=Host(`overseerr.local`)"
+      - "traefik.http.services.overseerr.loadbalancer.server.port=5055"

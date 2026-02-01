@@ -6,8 +6,8 @@ vars:
 
 tasks:
   provision:
-    dir: containers
-    summary: Standup lxc container with portainer for container management
+    dir: downloads
+    summary: Standup downloads LXC with Gluetun VPN and qBittorrent
     env:
       PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
       PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
@@ -23,9 +23,9 @@ tasks:
           -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
           -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-          -var portainer_ip=$PORTAINER_IP \
+          -var downloads_ip=$DOWNLOADS_IP \
           -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var portainer_password=$PORTAINER_PASSWORD \
+          -var vpn_service_provider=$VPN_SERVICE_PROVIDER \
           -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
           -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
           -var wireguard_addresses=$WIREGUARD_ADDRESSES \
@@ -38,9 +38,9 @@ tasks:
           -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
           -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-          -var portainer_ip=$PORTAINER_IP \
+          -var downloads_ip=$DOWNLOADS_IP \
           -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var portainer_password=$PORTAINER_PASSWORD \
+          -var vpn_service_provider=$VPN_SERVICE_PROVIDER \
           -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
           -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
           -var wireguard_addresses=$WIREGUARD_ADDRESSES \
@@ -50,12 +50,20 @@ tasks:
           -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER
 
   destroy:
-    dir: terraform
+    dir: downloads
     cmds:
       - |-
         {{.TERRAFORM}} destroy -auto-approve \
           -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
+          -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-          -var portainer_ip=$PORTAINER_IP \
+          -var downloads_ip=$DOWNLOADS_IP \
           -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var portainer_password=$PORTAINER_PASSWORD
+          -var vpn_service_provider=$VPN_SERVICE_PROVIDER \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
+          -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
+          -var wireguard_addresses=$WIREGUARD_ADDRESSES \
+          -var wireguard_endpoint_ip=$WIREGUARD_ENDPOINT_IP \
+          -var wireguard_endpoint_port=$WIREGUARD_ENDPOINT_PORT \
+          -var vpn_port_forwarding=$VPN_PORT_FORWARDING \
+          -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER
