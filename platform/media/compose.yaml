@@ -11,10 +11,10 @@ services:
     ports:
       - "9696:9696"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.local`)"
-      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.local`)"
+    #   - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -30,10 +30,10 @@ services:
     ports:
       - "8989:8989"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.local`)"
-      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.sonarr.rule=Host(`sonarr.local`)"
+    #   - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -49,10 +49,10 @@ services:
     ports:
       - "7878:7878"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.local`)"
-      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.radarr.rule=Host(`radarr.local`)"
+    #   - "traefik.http.services.radarr.loadbalancer.server.port=7878"
 
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -68,10 +68,10 @@ services:
     ports:
       - "32400:32400"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.plex.rule=Host(`plex.local`)"
-      - "traefik.http.services.plex.loadbalancer.server.port=32400"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.plex.rule=Host(`plex.local`)"
+    #   - "traefik.http.services.plex.loadbalancer.server.port=32400"
 
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
@@ -85,7 +85,7 @@ services:
     ports:
       - "5055:5055"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.overseerr.rule=Host(`overseerr.local`)"
-      - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.overseerr.rule=Host(`overseerr.local`)"
+    #   - "traefik.http.services.overseerr.loadbalancer.server.port=5055"

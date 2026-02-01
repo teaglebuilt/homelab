@@ -15,6 +15,8 @@ tasks:
       PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
       PROXMOX_VE_SSH_AGENT: "false"
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+      WIREGUARD_PUBLIC_KEY: "{{ .WIREGUARD_PUBLIC_KEY }}"
+      WIREGUARD_PRIVATE_KEY: "{{ .WIREGUARD_PRIVATE_KEY }}"
     cmds:
       - |-
         {{.TERRAFORM}} init --upgrade
@@ -50,7 +52,16 @@ tasks:
           -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER
 
   destroy:
-    dir: terraform
+    dir: containers
+    env:
+      PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
+      PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_AGENT: "false"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+      WIREGUARD_PUBLIC_KEY: "{{ .WIREGUARD_PUBLIC_KEY }}"
+      WIREGUARD_PRIVATE_KEY: "{{ .WIREGUARD_PRIVATE_KEY }}"
     cmds:
       - |-
         {{.TERRAFORM}} destroy -auto-approve \
@@ -58,4 +69,11 @@ tasks:
           -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
           -var portainer_ip=$PORTAINER_IP \
           -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var portainer_password=$PORTAINER_PASSWORD
+          -var portainer_password=$PORTAINER_PASSWORD \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
+          -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
+          -var wireguard_addresses=$WIREGUARD_ADDRESSES \
+          -var wireguard_endpoint_ip=$WIREGUARD_ENDPOINT_IP \
+          -var wireguard_endpoint_port=$WIREGUARD_ENDPOINT_PORT \
+          -var vpn_port_forwarding=$VPN_PORT_FORWARDING \
+          -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER

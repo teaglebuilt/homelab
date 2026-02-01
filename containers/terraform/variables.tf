@@ -14,8 +14,9 @@ variable proxmox_ssh_private_key {
 }
 
 variable "network_gateway" {
-  description = "ip address of proxmox network gateway"
-  type = string
+  description = "Default network gateway (UDM Pro)"
+  type    = string
+  default = "192.168.1.1"
 }
 
 variable "portainer_ip" {
@@ -35,9 +36,9 @@ variable "media_ip" {
 }
 
 variable "downloads_ip" {
-  description = "Static IP for eth2 on VLAN 40 (Downloads)"
+  description = "Static IP for eth2 on VLAN 8 (Downloads)"
   type        = string
-  default     = "10.0.40.10"
+  default     = "192.168.8.10"
 }
 
 variable "vpn_service_provider" {
