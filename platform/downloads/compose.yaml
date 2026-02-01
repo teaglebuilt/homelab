@@ -23,10 +23,10 @@ services:
       - "6881:6881"
       - "6881:6881/udp"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbit.local`)"
-      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.qbittorrent.rule=Host(`qbit.local`)"
+    #   - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
