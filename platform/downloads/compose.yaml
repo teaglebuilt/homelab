@@ -48,4 +48,10 @@ services:
 
 networks:
   downloads:
-    external: true
+    driver: macvlan
+    driver_opts:
+      parent: eth1
+    ipam:
+      config:
+        - subnet: ${SUBNET_CIDR}
+          gateway: ${GATEWAY}
