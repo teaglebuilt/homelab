@@ -62,6 +62,7 @@ services:
       - PGID=1000
       - TZ=America/New_York
       - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
       - ./config/plex:/config
       - /mnt/media:/media
