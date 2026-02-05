@@ -7,63 +7,30 @@ vars:
 tasks:
   provision:
     dir: downloads
-    summary: Standup downloads LXC with Gluetun VPN and qBittorrent
-    env:
-      PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
-      PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
-      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
-      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
-      PROXMOX_VE_SSH_AGENT: "false"
-      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    summary: Deploy downloads stack (Gluetun VPN + qBittorrent) via Portainer
     cmds:
       - |-
         {{.TERRAFORM}} init --upgrade
       - |-
         {{.TERRAFORM}} plan \
-          -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
-          -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
-          -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-          -var downloads_ip=$DOWNLOADS_IP \
-          -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var vpn_service_provider=$VPN_SERVICE_PROVIDER \
-          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
-          -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
-          -var wireguard_addresses=$WIREGUARD_ADDRESSES \
-          -var wireguard_endpoint_ip=$WIREGUARD_ENDPOINT_IP \
-          -var wireguard_endpoint_port=$WIREGUARD_ENDPOINT_PORT \
-          -var vpn_port_forwarding=$VPN_PORT_FORWARDING \
-          -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY
       - |-
         {{.TERRAFORM}} apply -auto-approve \
-          -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
-          -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
-          -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-          -var downloads_ip=$DOWNLOADS_IP \
-          -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var vpn_service_provider=$VPN_SERVICE_PROVIDER \
-          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
-          -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
-          -var wireguard_addresses=$WIREGUARD_ADDRESSES \
-          -var wireguard_endpoint_ip=$WIREGUARD_ENDPOINT_IP \
-          -var wireguard_endpoint_port=$WIREGUARD_ENDPOINT_PORT \
-          -var vpn_port_forwarding=$VPN_PORT_FORWARDING \
-          -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY
+
+  test_connection:
+    cmds:
+      - docker run --rm --network=downloads:gluetun alpine:3.22 sh -c "apk add wget && wget -qO- https://ipinfo.io"
 
   destroy:
     dir: downloads
     cmds:
       - |-
         {{.TERRAFORM}} destroy -auto-approve \
-          -var proxmox_server_ip=$PROXMOX_NODE_ONE_IP \
-          -var proxmox_ssh_public_key=$PROXMOX_NODE_ONE_PUBLIC_KEY \
-          -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY \
-          -var downloads_ip=$DOWNLOADS_IP \
-          -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-          -var vpn_service_provider=$VPN_SERVICE_PROVIDER \
-          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY \
-          -var wireguard_public_key=$WIREGUARD_PUBLIC_KEY \
-          -var wireguard_addresses=$WIREGUARD_ADDRESSES \
-          -var wireguard_endpoint_ip=$WIREGUARD_ENDPOINT_IP \
-          -var wireguard_endpoint_port=$WIREGUARD_ENDPOINT_PORT \
-          -var vpn_port_forwarding=$VPN_PORT_FORWARDING \
-          -var vpn_port_forwarding_provider=$VPN_PORT_FORWARDING_PROVIDER
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY

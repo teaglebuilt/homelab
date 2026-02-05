@@ -36,9 +36,9 @@ variable "media_ip" {
 }
 
 variable "downloads_ip" {
-  description = "Static IP for eth2 on VLAN 8 (Downloads)"
+  description = "Static IP for eth1 on VLAN 8 (Downloads)"
   type        = string
-  default     = "192.168.8.10"
+  default     = "192.168.8.2"
 }
 
 variable "vpn_service_provider" {
@@ -85,4 +85,22 @@ variable "vpn_port_forwarding_provider" {
   description = "VPN provider name for port forwarding"
   type        = string
   default     = ""
+}
+
+variable "host_sre_storage_path" {
+  description = "Host path for SRE storage bind mount"
+  type        = string
+  default     = "/mnt/sre_storage"
+}
+
+variable "host_downloads_storage_path" {
+  description = "Host path for downloads storage bind mount"
+  type        = string
+  default     = "/mnt/downloads_storage"
+}
+
+variable "host_media_storage_path" {
+  description = "Host path for media storage bind mount"
+  type        = string
+  default     = "/mnt/media_storage"
 }
