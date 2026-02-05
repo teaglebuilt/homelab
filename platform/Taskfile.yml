@@ -8,6 +8,8 @@ includes:
     taskfile: ai/Taskfile.yml
   automation:
     taskfile: automation/Taskfile.yml
+  downloads:
+    taskfile: downloads/Taskfile.yml
   observability:
     taskfile: observability/Taskfile.yml
 

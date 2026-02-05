@@ -9,3 +9,9 @@ services:
       - 3003:3000
     volumes:
       - /mnt/local/media/paperless:/app/data
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

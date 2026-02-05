@@ -61,6 +61,7 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
     networks:
       - sre
+      - proxy
 
 volumes:
   opensearch-data1:
@@ -68,4 +69,6 @@ volumes:
 
 networks:
   sre:
+    external: true
+  proxy:
     external: true

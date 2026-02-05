@@ -28,6 +28,8 @@ services:
     hostname: graylog
     restart: always
     entrypoint: /usr/bin/tini -- wait-for-it opensearch:9200 -- /docker-entrypoint.sh
+    networks:
+      - proxy
     environment:
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA}
@@ -56,3 +58,7 @@ services:
 
 volumes:
   graylog_data:
+
+networks:
+  proxy:
+    external: true
