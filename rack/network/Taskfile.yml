@@ -1,0 +1,26 @@
+---
+version: 3
+
+vars:
+  TERRAFORM: tofu -chdir=terraform
+
+tasks:
+  generate-tfvars:
+    summary: Generate terraform.tfvars from template using environment variables
+    cmds:
+      - envsubst < terraform/terraform.tfvars.tpl > terraform/terraform.tfvars
+    sources:
+      - terraform/terraform.tfvars.tpl
+
+  provision:
+    dir: rack/network
+    summary: Standup network services
+    deps:
+      - generate-tfvars
+    cmds:
+      - |-
+        {{.TERRAFORM}} init --upgrade
+      - |-
+        {{.TERRAFORM}} plan
+      - |-
+        {{.TERRAFORM}} apply -auto-approve

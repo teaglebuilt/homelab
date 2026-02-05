@@ -1,34 +1,44 @@
 services:
-  haproxy:
-    image: haproxy:lts-alpine
-    container_name: haproxy
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
     ports:
-      - 80:80
-      - 8404:8404
+      - "80:80"
+      - "8080:8080"
     volumes:
-      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik:ro
+      - traefik_certs:/certs
     networks:
       - proxy
-    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.local`)"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
+    restart: unless-stopped
     ports:
-      - 8000:8000
-      - 9443:9443
+      - "9443:9443"
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - proxy
-    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.local`)"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
 
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
+    restart: unless-stopped
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: gethomepage.dev
+      HOMEPAGE_ALLOWED_HOSTS: homepage.local
       PUID: 1000
       PGID: 1000
     volumes:
@@ -36,10 +46,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy
-    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`homepage.local`)"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
 
 volumes:
   portainer_data:
+  traefik_certs:
 
 networks:
   proxy:

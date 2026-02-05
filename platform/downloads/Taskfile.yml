@@ -1,0 +1,36 @@
+---
+version: 3
+
+vars:
+  TERRAFORM: tofu -chdir=terraform
+
+tasks:
+  provision:
+    dir: downloads
+    summary: Deploy downloads stack (Gluetun VPN + qBittorrent) via Portainer
+    cmds:
+      - |-
+        {{.TERRAFORM}} init --upgrade
+      - |-
+        {{.TERRAFORM}} plan \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY
+      - |-
+        {{.TERRAFORM}} apply -auto-approve \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY
+
+  test_connection:
+    cmds:
+      - docker run --rm --network=downloads:gluetun alpine:3.22 sh -c "apk add wget && wget -qO- https://ipinfo.io"
+
+  destroy:
+    dir: downloads
+    cmds:
+      - |-
+        {{.TERRAFORM}} destroy -auto-approve \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var wireguard_private_key=$WIREGUARD_PRIVATE_KEY
