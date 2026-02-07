@@ -1,0 +1,28 @@
+---
+version: 3
+
+vars:
+  TERRAFORM: tofu -chdir=terraform
+
+tasks:
+  provision:
+    dir: media
+    cmds:
+      - |-
+        {{.TERRAFORM}} init --upgrade
+      - |-
+        {{.TERRAFORM}} plan \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY
+      - |-
+        {{.TERRAFORM}} apply -auto-approve \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY
+
+  destroy:
+    dir: media
+    cmds:
+      - |-
+        {{.TERRAFORM}} destroy -auto-approve \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY

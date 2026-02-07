@@ -1,4 +1,13 @@
 services:
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - TZ=America/New_York
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
@@ -6,8 +15,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=America/New_York
+    networks:
+      media:
+        ipv4_address: ${MEDIA_IP}
     volumes:
-      - ./config/prowlarr:/config
+      - ./mnt/appdata/prowlarr:/config
     ports:
       - "9696:9696"
     restart: unless-stopped
@@ -24,7 +36,7 @@ services:
       - PGID=1000
       - TZ=America/New_York
     volumes:
-      - ./config/sonarr:/config
+      - ./mnt/appdata/sonarr:/config
       - /mnt/media:/media
       - /mnt/downloads:/downloads
     ports:
@@ -43,7 +55,7 @@ services:
       - PGID=1000
       - TZ=America/New_York
     volumes:
-      - ./config/radarr:/config
+      - ./mnt/appdata/radarr:/config
       - /mnt/media:/media
       - /mnt/downloads:/downloads
     ports:
@@ -64,7 +76,7 @@ services:
       - VERSION=docker
       - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
-      - ./config/plex:/config
+      - ./mnt/appdata/plex:/config
       - /mnt/media:/media
     ports:
       - "32400:32400"
@@ -90,3 +102,14 @@ services:
     #   - "traefik.enable=true"
     #   - "traefik.http.routers.overseerr.rule=Host(`overseerr.local`)"
     #   - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+
+
+networks:
+  media:
+    driver: macvlan
+    driver_opts:
+      parent: eth2
+    ipam:
+      config:
+        - subnet: ${SUBNET_CIDR}
+          gateway: ${GATEWAY}

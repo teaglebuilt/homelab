@@ -30,9 +30,9 @@ variable "portainer_password" {
 }
 
 variable "media_ip" {
-  description = "Static IP for eth1 on VLAN 30 (Media)"
+  description = "Static IP for eth2 on VLAN 8 (Media)"
   type        = string
-  default     = "10.0.30.10"
+  default     = "192.168.9.2"
 }
 
 variable "downloads_ip" {

@@ -17,9 +17,9 @@ services:
       VPN_SERVICE_PROVIDER: ${VPN_SERVICE_PROVIDER}
       VPN_TYPE: wireguard
       WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY}
+      WIREGUARD_PRESHARED_KEY: ${WIREGUARD_PRESHARED_KEY}
+      WIREGUARD_ADDRESSES: ${WIREGUARD_ADDRESSES}
       SERVER_COUNTRIES: ${SERVER_COUNTRIES}
-      FREE_ONLY: ${FREE_ONLY:-on}
-      VPN_IPV6_DISABLED: ${VPN_IPV6_DISABLED:-on}
       DOT: ${DOT:-on}
       DNS_KEEP_NAMESERVER: ${DNS_KEEP_NAMESERVER:-on}
     restart: unless-stopped
@@ -41,7 +41,7 @@ services:
       - TZ=America/New_York
       - WEBUI_PORT=8080
     volumes:
-      - ./config/qbittorrent:/config
+      - ./mnt/appdata/qbittorrent:/config
       - /mnt/downloads:/downloads
     restart: unless-stopped
 

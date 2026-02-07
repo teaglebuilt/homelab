@@ -10,6 +10,8 @@ includes:
     taskfile: automation/Taskfile.yml
   downloads:
     taskfile: downloads/Taskfile.yml
+  media:
+    taskfile: media/Taskfile.yml
   observability:
     taskfile: observability/Taskfile.yml
 

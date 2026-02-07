@@ -33,6 +33,12 @@ resource "proxmox_virtual_environment_container" "portainer" {
     vlan_id = 7
   }
 
+  network_interface {
+    name    = "eth2"
+    bridge  = "vmbr0"
+    vlan_id = 8
+  }
+
   operating_system {
     template_file_id = proxmox_virtual_environment_file.ubuntu_container_template.id
     type             = "ubuntu"
@@ -57,15 +63,15 @@ resource "proxmox_virtual_environment_container" "portainer" {
       }
     }
 
-    # ip_config {
-    #   ipv4 {
-    #     address = "${var.media_ip}/24"
-    #   }
-    # }
-
     ip_config {
       ipv4 {
         address = "${var.downloads_ip}/24"
+      }
+    }
+
+    ip_config {
+      ipv4 {
+        address = "${var.media_ip}/24"
       }
     }
 
