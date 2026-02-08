@@ -15,12 +15,12 @@ resource "proxmox_virtual_environment_container" "portainer" {
   vm_id         = 105
 
   cpu {
-    cores = 2
+    cores = 4
   }
 
   memory {
-    dedicated = 4096
-    swap      = 3096
+    dedicated = 8192
+    swap      = 4096
   }
 
   network_interface {
