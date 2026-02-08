@@ -114,28 +114,6 @@ resource "proxmox_virtual_environment_container" "portainer" {
   }
 }
 
-resource "null_resource" "gluetun_lxc_config" {
-  depends_on = [proxmox_virtual_environment_container.portainer]
-
-  connection {
-    type        = "ssh"
-    user        = "root"
-    private_key = file(var.proxmox_ssh_private_key)
-    host        = var.proxmox_server_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "pct stop ${proxmox_virtual_environment_container.portainer.vm_id} || true",
-      "grep -q 'mp0:' /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf || echo 'mp0: /mnt/pve/downloads_storage,mp=/mnt/downloads' >> /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf",
-      "grep -q 'mp1:' /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf || echo 'mp1: /mnt/pve/media_storage,mp=/mnt/media' >> /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf",
-      "grep -q 'lxc.cgroup2.devices.allow' /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf || echo 'lxc.cgroup2.devices.allow: c 10:200 rwm' >> /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf",
-      "grep -q 'lxc.mount.entry: /dev/net' /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf || echo 'lxc.mount.entry: /dev/net dev/net none bind,create=dir' >> /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf",
-      "grep -q 'lxc.cap.drop:$' /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf || echo 'lxc.cap.drop:' >> /etc/pve/lxc/${proxmox_virtual_environment_container.portainer.vm_id}.conf",
-      "pct start ${proxmox_virtual_environment_container.portainer.vm_id}"
-    ]
-  }
-}
 
 resource "random_password" "ubuntu_container_password" {
   length           = 16

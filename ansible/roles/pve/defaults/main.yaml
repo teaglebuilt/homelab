@@ -1,0 +1,15 @@
+---
+lxc_vmid: 105
+
+mount_points:
+  - id: "mp0"
+    volume: "/mnt/pve/downloads_storage"
+    mount: "/mnt/downloads"
+  - id: "mp1"
+    volume: "/mnt/pve/media_storage"
+    mount: "/mnt/media"
+
+lxc_extra_config:
+  - "lxc.cgroup2.devices.allow: c 10:200 rwm"
+  - "lxc.mount.entry: /dev/net dev/net none bind,create=dir"
+  - "lxc.cap.drop:"

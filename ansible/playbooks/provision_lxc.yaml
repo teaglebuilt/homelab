@@ -1,0 +1,6 @@
+---
+- name: Configure LXC container for media/downloads
+  hosts: proxmox
+  become: true
+  roles:
+    - role: pve

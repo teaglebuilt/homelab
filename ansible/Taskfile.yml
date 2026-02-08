@@ -7,9 +7,14 @@ tasks:
     cmds:
       - playbooks/rpi_provision_netboot.yaml
 
+  provision_lxc:
+    description: "Configure LXC container with mount points and device passthrough"
+    cmds:
+      - ansible-playbook playbooks/provision_lxc.yaml
+
   provision_gpu_passthrough:
     description: "Provision the host for GPU passthrough"
     cmds:
-      - playbooks/provision_gpu_passthrough.yaml
+      - ansible-playbook playbooks/provision_gpu_passthrough.yaml
     status:
       - nvidia-smi

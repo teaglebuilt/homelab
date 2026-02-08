@@ -1,0 +1,21 @@
+---
+- name: Stop LXC container
+  command: pct stop {{ lxc_vmid }}
+  ignore_errors: true
+
+- name: Add mount points to LXC config
+  lineinfile:
+    path: /etc/pve/lxc/{{ lxc_vmid }}.conf
+    line: "{{ item.id }}: {{ item.volume }},mp={{ item.mount }}"
+    regexp: "^{{ item.id }}:"
+  loop: "{{ mount_points }}"
+
+- name: Add extra LXC config lines
+  lineinfile:
+    path: /etc/pve/lxc/{{ lxc_vmid }}.conf
+    line: "{{ item }}"
+    regexp: "^{{ item | regex_escape }}"
+  loop: "{{ lxc_extra_config }}"
+
+- name: Start LXC container
+  command: pct start {{ lxc_vmid }}
