@@ -3,7 +3,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - crds
   - gateway.yaml
   - storage
   - llm-providers
@@ -15,6 +14,8 @@ helmCharts:
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     namespace: ai
     valuesInline:
+      kmcp:
+        enabled: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
