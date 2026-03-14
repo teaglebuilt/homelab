@@ -8,10 +8,19 @@ resources:
   - llm-providers
   - integrations
   - ui-http-route.yaml
+helmGlobals:
+  chartHome: ./charts
 helmCharts:
+  - name: agentgateway-crds
+    releaseName: agentgateway-crds
+    version: v2.2.1
+    namespace: ai
+  - name: agentgateway
+    releaseName: agentgateway
+    version: v2.2.1
+    namespace: ai
   - name: kagent
     releaseName: kagent
-    repo: oci://ghcr.io/kagent-dev/kagent/helm
     namespace: ai
     valuesInline:
       kmcp:

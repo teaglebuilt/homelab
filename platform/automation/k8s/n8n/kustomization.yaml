@@ -9,7 +9,7 @@ resources:
 - pvc.yaml
 - internal-httproute.yaml
 - external-httproute.yaml
-
+# - mcp-route.yaml
 configMapGenerator:
 - name: workflows-cm
   files:
