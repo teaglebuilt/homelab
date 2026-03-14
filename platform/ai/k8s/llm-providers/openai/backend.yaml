@@ -1,16 +1,16 @@
 ---
-apiVersion: gateway.kgateway.dev/v1alpha1
-kind: Backend
+# AgentgatewayBackend: gateway.kgateway.dev Backend does not support spec.ai in this cluster.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
 metadata:
   name: openai
   namespace: ai
 spec:
-  type: AI
   ai:
-    llm:
+    provider:
       openai:
-        model: "gpt-4o-mini"
-        authToken:
-          kind: SecretRef
-          secretRef:
-            name: openai-api-key-secret
+        model: gpt-4o-mini
+  policies:
+    auth:
+      secretRef:
+        name: openai-api-key-secret

@@ -1,17 +1,19 @@
 ---
-apiVersion: gateway.kgateway.dev/v1alpha1
-kind: Backend
+# AgentgatewayBackend: OpenAI-compatible (NVIDIA NIM). gateway.kgateway.dev Backend does not support spec.ai.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
 metadata:
   name: nvidia-nim
   namespace: ai
 spec:
-  type: AI
   ai:
-    llm:
+    provider:
+      openai:
+        model: meta/llama-3.2-3b-instruct
       host: nim.ai.svc.cluster.local
       port: 8000
-      openai:
-        model: "meta/llama-3.2-3b-instruct"
-        authToken:
-          kind: Inline
-          inline: "dev"
+  # Optional: create a secret if auth required
+  # policies:
+  #   auth:
+  #     secretRef:
+  #       name: nim-api-key
