@@ -8,6 +8,8 @@ resources:
   - llm-providers
   - integrations
   - ui-http-route.yaml
+  - mcp-route.yaml
+  - referencegrant-automation-to-mcp.yaml
 helmGlobals:
   chartHome: ./charts
 helmCharts:

@@ -1,0 +1,16 @@
+---
+# Allows HTTPRoutes in automation (e.g. n8n mcp-route) to reference AgentgatewayBackend in ai.
+# Required when backendRef is cross-namespace (automation -> mcp-backend in ai).
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-automation-to-mcp-backend
+  namespace: ai
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: automation
+  to:
+    - group: agentgateway.dev
+      kind: AgentgatewayBackend
