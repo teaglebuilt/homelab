@@ -1,0 +1,21 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rss-seed-job
+  namespace: reading
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      containers:
+        - name: configure-rss
+          image: python:3.9
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              python /opt/rss/scripts/register_feeds.py
+          volumeMounts:
+            - name: scripts-volume
+              mountPath: /scripts
+      restartPolicy: Never

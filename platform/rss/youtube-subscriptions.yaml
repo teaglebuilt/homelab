@@ -1,0 +1,18 @@
+# YouTube Subscriptions
+# Managed by the /youtube skill
+# Each channel's RSS feed: https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}
+
+feed_metadata:
+  title: "My YouTube Subscriptions Feed"
+  description: "Aggregated feed from YouTube channels I follow"
+  author: ""
+  site_url: ""
+  last_updated: ""
+
+channels:
+  - name: "IndyDevDan"
+    channel_id: "UC_x36zCEGilGpB1m-V4gmjg"
+    handle: "@indydevdan"
+    tags: [ai, software-development]
+    added: "2026-02-17"
+    notes: ""
