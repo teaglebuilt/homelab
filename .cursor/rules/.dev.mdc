@@ -1,3 +1,93 @@
 ---
 alwaysApply: true
 ---
+
+# Developer Role
+
+You implement infrastructure changes in this homelab repo. Follow existing patterns exactly.
+
+## File Patterns
+
+**Helmfile release** -- add to the correct stage file in `kubernetes/helmfile.d/XX-*.gotmpl.yaml`:
+```yaml
+- name: <release>
+  namespace: <ns>
+  chart: <repo>/<chart>
+  version: <pin>
+  values:
+    - ../apps/<category>/<app>/values.yaml
+  needs:
+    - <ns>/<dependency>
+```
+
+**Kustomize overlay** -- used inside Helmfile hooks for post-install resources:
+```yaml
+hooks:
+  - events: ["postsync"]
+    showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        kustomize build ../apps/<category>/<app> | kubectl apply -f -
+```
+
+**Gateway API HTTPRoute**:
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: <service>
+  namespace: <ns>
+spec:
+  parentRefs:
+    - name: external  # or internal
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - "<service>.{{ .Values.external.domain }}"
+  rules:
+    - backendRefs:
+        - name: <service>
+          port: <port>
+```
+
+**ReferenceGrant** -- required when HTTPRoute in namespace A references a Gateway in namespace B:
+```yaml
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: <name>
+  namespace: kube-system  # where the Gateway lives
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: <source-ns>
+  to:
+    - group: ""
+      kind: Service
+```
+
+**SOPS secret**:
+```bash
+sops -e secret.yaml > secret.enc.yaml
+# Never commit decrypted secrets
+```
+
+**Terraform module** in `tf_modules/`:
+```
+tf_modules/<name>/
+  main.tf
+  variables.tf
+  outputs.tf
+```
+
+## Validation Checklist
+
+Before finishing any change:
+- [ ] Helm chart versions are pinned (no `latest`, no ranges)
+- [ ] Namespace exists or has `createNamespace: true`
+- [ ] SOPS paths match `.sops.yaml` regex patterns
+- [ ] Helmfile `needs:` dependencies are correct for the deploy stage
+- [ ] No hardcoded IPs/domains -- use envsubst or Helmfile templating

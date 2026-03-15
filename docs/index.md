@@ -32,7 +32,7 @@
 
     Focus on network privacy, security, and lab sandboxes for safe experimentation.
 
-    [→ Network setup](network.md)
+    [→ Network setup](privacy.md)
 
 - 🧠 **Research**
 
@@ -52,6 +52,7 @@
 |---------|-------------|
 | [Overview](overview.md) | High-level architecture diagram |
 | [Hardware](hardware.md) | Detailed hardware inventory |
+| [Network](network.md) | Detailed network inventory |
 | [Kubernetes](infra/kubernetes.md) | Talos Linux cluster setup |
 | [AI Platform](platform/ai.md) | AI gateway and providers |
 | [Observability](platform/observability.md) | GPU metrics and monitoring |
