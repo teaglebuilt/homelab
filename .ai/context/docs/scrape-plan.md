@@ -76,3 +76,11 @@ URLs to scrape with `/scrape` for each technology context directory. Scrape into
 |------|-----|-------|
 | zero-trust.md | https://developers.cloudflare.com/cloudflare-one/ | Zero Trust overview |
 | dns-records.md | https://developers.cloudflare.com/dns/manage-dns-records/ | DNS management |
+
+## helmfile/
+
+| File | URL | Notes |
+|------|-----|-------|
+| best-practices.md | https://helmfile.readthedocs.io/en/latest/writing-helmfile/ | Best Practices |
+| hooks.md | https://helmfile.readthedocs.io/en/latest/#hooks| Helmfile Hooks |
+| templating.md | https://helmfile.readthedocs.io/en/latest/#templating | Templating in helmfile |

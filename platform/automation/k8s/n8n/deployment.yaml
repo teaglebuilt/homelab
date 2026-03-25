@@ -59,6 +59,8 @@ spec:
               value: https://n8n.teaglebuilt.tech
             - name: N8N_PROTOCOL
               value: https
+            - name: N8N_PROXY_HOPS
+              value: "1"
             - name: N8N_DIAGNOSTICS_ENABLED
               value: "false"
             - name: N8N_ONBOARDING_FLOW_DISABLED

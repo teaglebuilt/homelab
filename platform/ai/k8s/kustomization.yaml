@@ -13,10 +13,6 @@ resources:
 helmGlobals:
   chartHome: ./charts
 helmCharts:
-  - name: agentgateway-crds
-    releaseName: agentgateway-crds
-    version: v2.2.1
-    namespace: ai
   - name: agentgateway
     releaseName: agentgateway
     version: v2.2.1
