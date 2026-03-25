@@ -55,7 +55,7 @@ tasks:
   test:
     cmds:
       - |-
-        curl --insecure https://ollama.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
+        curl --insecure http://ai.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
 
   check-gpu:
     cmds:
