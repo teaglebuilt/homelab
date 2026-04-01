@@ -5,6 +5,7 @@ metadata:
   annotations:
     pv.kubernetes.io/provisioned-by: nfs.csi.k8s.io
   name: nim-ai-storage
+  namespace: ai
 spec:
   capacity:
     storage: 200Gi

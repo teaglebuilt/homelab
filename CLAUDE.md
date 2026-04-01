@@ -72,3 +72,7 @@ docs/                 # MkDocs documentation site
 - Always check which Helmfile stage a release belongs to before modifying. Stage ordering matters.
 - The `generated/` directory is Helmfile output. Do not edit it directly.
 - Gateway API resources (Gateway, HTTPRoute, ReferenceGrant) follow the v1 spec via kgateway.
+
+## Operation Details
+
+- `mlops-work-00` is the capable node. Time splitting is not yet enabled.

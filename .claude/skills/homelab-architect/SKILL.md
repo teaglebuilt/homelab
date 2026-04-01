@@ -1,5 +1,6 @@
 # Homelab Architect Skill
 
+
 > Use this skill when designing infrastructure, evaluating technology choices, planning deployments, reviewing architecture, or making decisions about how services fit together in the homelab.
 
 ## Agent
