@@ -38,13 +38,15 @@ services:
     container_name: homepage
     restart: unless-stopped
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: homepage.local
+      HOMEPAGE_ALLOWED_HOSTS: homelab.internal
       PUID: 1000
       PGID: 1000
     ports:
       - "3001:3000"
     volumes:
-      - ./config:/app/config
+      - ./config/settings.yaml:/app/settings.yaml
+      - ./config/widgets.yaml:/app/widgets.yaml
+      - ./config/services.yaml:/app/services.yaml
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy

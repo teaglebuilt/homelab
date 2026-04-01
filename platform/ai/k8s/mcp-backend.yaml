@@ -1,0 +1,14 @@
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: mcp-backend
+  namespace: ai
+spec:
+  mcp:
+    targets:
+      - name: mcp-servers
+        selector:
+          services:
+            matchLabels:
+              kagent.dev/mcp-service: "true"

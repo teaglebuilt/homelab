@@ -1,0 +1,11 @@
+- "Services":
+  - UniFi:
+      icon: /icons/unifi-pro.webp
+      href: https://https://xxx.xxx.xxx
+      description: Network Stats
+      widget:
+          type: unifi
+          url: https://xxx.xxx.xxx:xxxx
+          username: NAME
+          password: PASSWORD
+          fields: ["uptime", "wlan", "wlan_users", "wlan_devices"]

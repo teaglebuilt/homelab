@@ -1,20 +1,29 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: ai
 resources:
   - namespace.yaml
-  - crds
   - gateway.yaml
   - storage
   - llm-providers
   - integrations
   - ui-http-route.yaml
+  - mcp-route.yaml
+  - referencegrant-automation-to-mcp.yaml
+helmGlobals:
+  chartHome: ./charts
 helmCharts:
+  - name: agentgateway
+    releaseName: agentgateway
+    version: v2.2.1
+    namespace: ai
   - name: kagent
     releaseName: kagent
-    repo: oci://ghcr.io/kagent-dev/kagent/helm
     namespace: ai
     valuesInline:
+      kmcp:
+        enabled: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532

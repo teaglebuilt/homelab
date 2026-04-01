@@ -17,6 +17,9 @@ spec:
         - path:
             type: PathPrefix
             value: /
+        - path:
+            type: PathPrefix
+            value: /mcp-server/http
       backendRefs:
         - name: n8n-service
           port: 443

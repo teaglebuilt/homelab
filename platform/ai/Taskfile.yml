@@ -3,22 +3,61 @@ version: 3
 
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+  # Enforced on kubectl so Helm-inflated manifests without metadata.namespace cannot land in default.
+  AI_NAMESPACE: ai
 
 tasks:
+  adopt-crds:
+    desc: Label existing CRDs so Helm can adopt them
+    internal: true
+    cmds:
+      - |
+        for crd in $(kubectl get crds -o name | grep -E 'agentgateway\.dev|kgateway\.dev'); do
+          kubectl label "$crd" app.kubernetes.io/managed-by=Helm --overwrite
+          kubectl annotate "$crd" meta.helm.sh/release-name=agentgateway-crds meta.helm.sh/release-namespace=ai --overwrite
+        done
+      - |
+        for crd in $(kubectl get crds -o name | grep 'kagent\.dev'); do
+          kubectl label "$crd" app.kubernetes.io/managed-by=Helm --overwrite
+          kubectl annotate "$crd" meta.helm.sh/release-name=kagent-crds meta.helm.sh/release-namespace=ai --overwrite
+        done
+
+  install-crds:
+    desc: Install CRDs from agentgateway-crds and kagent Helm charts
+    cmds:
+      - task: adopt-crds
+      - echo "Installing agentgateway-crds..."
+      - |
+        helm upgrade --install agentgateway-crds \
+          oci://ghcr.io/kgateway-dev/charts/agentgateway-crds \
+          --version v2.2.1 \
+          --namespace ai \
+          --create-namespace \
+          --wait
+      - echo "Installing kagent-crds..."
+      - |
+        helm upgrade --install kagent-crds \
+          oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
+          --namespace ai \
+          --wait
+
   deploy:
+    desc: Deploy AI platform (CRDs must be installed first)
+    deps:
+      - install-crds
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl delete -n {{.AI_NAMESPACE}} -f -
 
   test:
     cmds:
       - |-
-        curl --insecure https://ollama.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
+        curl --insecure http://ai.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
 
   check-gpu:
     cmds:

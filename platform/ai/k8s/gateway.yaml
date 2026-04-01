@@ -4,8 +4,6 @@ kind: Gateway
 metadata:
   name: ai-gateway
   namespace: ai
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal
 spec:
   gatewayClassName: agentgateway
   listeners:

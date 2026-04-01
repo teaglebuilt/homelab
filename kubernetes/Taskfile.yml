@@ -72,8 +72,12 @@ tasks:
   wait-for-external-certificate:
     dir: kubernetes
     cmds:
-      - echo "waiting for external certificate"
-      - kubectl get certificate external-certificate -n kube-system -w
+      - echo "Waiting for external certificate to be ready..."
+      - |
+        kubectl wait certificate external-certificate \
+          -n kube-system \
+          --for=condition=Ready \
+          --timeout=5m
 
   reboot-cluster-node:
     dir: kubernetes

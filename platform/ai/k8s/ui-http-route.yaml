@@ -4,9 +4,12 @@ kind: HTTPRoute
 metadata:
   name: kgateway-http-route
   namespace: ai
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal
 spec:
   parentRefs:
-  - name: ai-gateway
+  - name: homelab-internal-gateway
+    namespace: kube-system
   hostnames:
   - "ai.homelab.internal"
   rules:

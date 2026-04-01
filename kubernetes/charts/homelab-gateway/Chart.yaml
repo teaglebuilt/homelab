@@ -7,8 +7,8 @@ version: '1.0.0'
 appVersion: 'v1.0.0'
 dependencies:
   - name: kgateway-crds
-    version: v2.1.0-main
+    version: v2.2.1
     repository: oci://cr.kgateway.dev/kgateway-dev/charts
   - name: kgateway
-    version: v2.1.0-main
+    version: v2.2.1
     repository: oci://cr.kgateway.dev/kgateway-dev/charts

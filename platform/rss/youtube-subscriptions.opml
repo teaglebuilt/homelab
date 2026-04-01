@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>My YouTube Subscriptions Feed</title>
+    <dateCreated>Tue, 17 Feb 2026 21:14:10 +0000</dateCreated>
+  </head>
+  <body>
+    <outline text="ai" title="ai">
+      <outline type="rss" text="IndyDevDan" title="IndyDevDan" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UC_x36zCEGilGpB1m-V4gmjg" htmlUrl="https://www.youtube.com/channel/UC_x36zCEGilGpB1m-V4gmjg" />
+    </outline>
+  </body>
+</opml>

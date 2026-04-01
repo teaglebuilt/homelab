@@ -1,17 +1,19 @@
 ---
-apiVersion: gateway.kgateway.dev/v1alpha1
-kind: Backend
+# AgentgatewayBackend: OpenAI-compatible (Ollama). gateway.kgateway.dev Backend does not support spec.ai.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
 metadata:
   name: ollama
   namespace: ai
 spec:
-  type: AI
   ai:
-    llm:
+    provider:
+      openai:
+        model: mistral
       host: ollama.ai.svc.cluster.local
       port: 11434
-      openai:
-        model: "mistral"
-        authToken:
-          kind: Inline
-          inline: "dev"
+  # Optional: create a secret with key Authorization and value "Bearer dev" if auth required
+  # policies:
+  #   auth:
+  #     secretRef:
+  #       name: ollama-api-key

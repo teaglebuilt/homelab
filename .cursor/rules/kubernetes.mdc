@@ -1,3 +1,49 @@
 ---
 alwaysApply: true
 ---
+
+# Kubernetes Patterns
+
+## Cluster Topology
+
+Two clusters defined in `kubernetes/clusters/`: **mlops** (GPU workloads, primary) and **administration**.
+
+Helmfile stages deploy in order:
+- `00-prepare` -- namespaces, prerequisites
+- `01-bootstrap` -- CNI (Cilium), CoreDNS, Spegel, NFS CSI
+- `02-core` -- Cloudflare tunnel, ExternalDNS, cert-manager, homelab-gateway
+- `03-hardware` -- NVIDIA device plugin, kwasm/Spin operator, metrics-server
+- `04-monitoring` -- observability stack
+
+## homelab-gateway Chart
+
+Custom umbrella chart at `kubernetes/charts/homelab-gateway/`. Wraps:
+- `kgateway-crds` v2.2.1 (CRDs for Gateway API)
+- `kgateway` v2.2.1 (control plane)
+
+Templates provide two Gateways:
+- `external-gateway.yaml` -- internet-facing via Cloudflare tunnel
+- `internal-gateway.yaml` -- LAN-only services
+
+Adding a new exposed service:
+1. Create HTTPRoute in the chart templates or the app's own kustomize directory
+2. If cross-namespace, add a ReferenceGrant
+3. For external services, ensure DNSEndpoint exists for Cloudflare
+4. For HTTPS, Certificate resources use cert-manager + Cloudflare DNS01
+
+## Kustomize Usage
+
+Kustomize is used for post-Helm resources via Helmfile hooks, NOT as a standalone deployment method. Each app directory may contain a `kustomization.yaml` that layers resources on top of its Helm release.
+
+## Common Labels
+
+```yaml
+app.kubernetes.io/name: <app>
+app.kubernetes.io/part-of: homelab
+```
+
+## Node Scheduling
+
+- GPU workloads: `nodeSelector: { nvidia.com/gpu.present: 'true' }` + `runtimeClassName: nvidia`
+- cert-manager: pinned to `mlops-work-01`
+- General workloads: no selector (schedule anywhere)

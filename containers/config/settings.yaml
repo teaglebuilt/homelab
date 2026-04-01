@@ -1,0 +1,11 @@
+title: Teaglebuilt Homelab
+theme: dark
+color: zinc
+headerStyle: clean
+useEqualHeights: true
+hideVersion: true
+target: _self
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey
