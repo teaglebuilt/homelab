@@ -14,10 +14,6 @@ configMapGenerator:
   files:
   - srOnR8PAY3u4RSwb.json=workflows/demo-workflow.json
   - srOnR8PAY3u4RSrb.json=workflows/backup-workflows.json
-- name: credentials-cm
-  files:
-  - sFfERYppMeBnFNeA.json=credentials/ollama.json
-  - sFfERYppMeBnFNeB.json=credentials/qdrant.json
 
 generatorOptions:
   disableNameSuffixHash: true
