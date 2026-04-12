@@ -8,9 +8,9 @@ tasks:
   deploy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} data | kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} data/kubernetes | kubectl apply -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} data | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} data/kubernetes | kubectl delete -f -

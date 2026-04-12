@@ -87,6 +87,15 @@ helmCharts:
           value: "meta/llama-3.2-3b-instruct"
         - name: NIM_MAX_MODEL_LEN
           value: "4096"  # Reduced from 131K to fit RTX 4070 Super 12GB VRAM, 16384 for 10GB VRAM, currently 8GB VRAM
+        # RTX 4070 SUPER (12GB) headroom tuning: weights (6.02 GiB) + KV cache (3.19 GiB)
+        # + activation peak (1.19 GiB) already fill the 10.45 GiB budget from
+        # gpu_memory_utilization=0.9, leaving no room for cudagraph capture (OOM on startup).
+        # Per NIM memory troubleshooting docs: disable cudagraphs + use expandable segments.
+        # https://docs.nvidia.com/nim/large-language-models/latest/troubleshooting/memory.html
+        - name: NIM_DISABLE_CUDA_GRAPH
+          value: "1"
+        - name: PYTORCH_ALLOC_CONF
+          value: "expandable_segments:True"
       # podAnnotations:
       #   kubernetes.io/egress-bandwidth: "1G"
       #   kubernetes.io/ingress-bandwidth: "1G"

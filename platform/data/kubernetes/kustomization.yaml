@@ -5,3 +5,4 @@ namespace: data
 resources:
   - namespace.yaml
   - redis
+  - lakefs

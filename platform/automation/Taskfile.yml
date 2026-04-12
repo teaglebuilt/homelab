@@ -8,8 +8,8 @@ tasks:
   deploy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/k8s | kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | kubectl apply -f -
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/k8s | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | kubectl delete -f -

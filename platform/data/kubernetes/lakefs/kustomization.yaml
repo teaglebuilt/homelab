@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: data
+resources:
+  - pvc.yaml
+  - job.yaml
+helmCharts:
+  - name: lakefs
+    repo: https://charts.lakefs.io
+    namespace: data
+    version: 1.8.1
+    releaseName: lakefs
+    valuesInline:
+      image:
+        repository: treeverse/lakefs
+        tag: "1.80.0"
+      # Chart templates expect a string (fromYaml in _proxy_container.tpl); a map breaks helm template.
+      lakefsConfig: |
+        database:
+          type: s3
+          local:
+            path: /lakefs/data/lakefs.db
+      resources:
+        requests:
+          memory: 256Mi
+          cpu: 100m
+        limits:
+          memory: 512Mi
+          cpu: 500m

@@ -7,8 +7,18 @@ metadata:
 spec:
   mcp:
     targets:
-      - name: mcp-servers
-        selector:
-          services:
-            matchLabels:
-              kagent.dev/mcp-service: "true"
+      - name: kagent-tools
+        static:
+          host: kagent-tools.ai.svc.cluster.local
+          port: 8084
+          path: /mcp
+      - name: kagent-querydoc
+        static:
+          host: kagent-querydoc.ai.svc.cluster.local
+          port: 8080
+          path: /mcp
+      - name: kagent-grafana
+        static:
+          host: kagent-grafana-mcp.ai.svc.cluster.local
+          port: 8000
+          path: /mcp
