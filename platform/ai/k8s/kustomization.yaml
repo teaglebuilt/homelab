@@ -5,10 +5,10 @@ namespace: ai
 resources:
   - namespace.yaml
   - gateway.yaml
-  - storage
   - llm-providers
   - integrations
   - ui-http-route.yaml
+  - mcp-backend.yaml
   - mcp-route.yaml
   - referencegrant-automation-to-mcp.yaml
 helmGlobals:

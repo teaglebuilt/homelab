@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: qdrant-pvc
-  namespace: ai
+  namespace: data
 spec:
   storageClassName: nfs-csi
   volumeName: ai-platform-storage

@@ -1,4 +1,12 @@
 ---
 services:
   commafeed:
-    image: athou/commafeed:latest
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cli/health.php"]
+      interval: 75s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
