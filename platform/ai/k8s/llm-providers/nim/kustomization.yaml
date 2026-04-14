@@ -29,10 +29,11 @@ helmCharts:
         - name: ngc-registry-secret
       model:
         ngcAPISecret: ngc-api-secret
+      terminationGracePeriodSeconds: 60
       resources:
         requests:
-          cpu: "2"
-          memory: "4Gi"
+          cpu: "4"
+          memory: "8Gi"
           nvidia.com/gpu: 1
         limits:
           cpu: "8"
@@ -96,6 +97,10 @@ helmCharts:
           value: "1"
         - name: PYTORCH_ALLOC_CONF
           value: "expandable_segments:True"
+        - name: NIM_KV_CACHE_PERCENT
+          value: "0.80"
+        - name: NIM_MAX_NUM_SEQS
+          value: "16"
       # podAnnotations:
       #   kubernetes.io/egress-bandwidth: "1G"
       #   kubernetes.io/ingress-bandwidth: "1G"
