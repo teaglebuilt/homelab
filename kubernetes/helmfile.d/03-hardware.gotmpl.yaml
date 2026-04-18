@@ -7,6 +7,8 @@ repositories:
     url: https://nvidia.github.io/k8s-device-plugin
   - name: gpu-helm-charts
     url: https://nvidia.github.io/dcgm-exporter/helm-charts
+  - name: deliveryhero
+    url: https://charts.deliveryhero.io/
   - name: kwasm
     url: http://kwasm.sh/kwasm-operator/
   - name: metrics-server
@@ -70,6 +72,30 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/nvidia | kubectl apply -f -
+
+  - name: dcgm-exporter
+    namespace: kube-system
+    chart: gpu-helm-charts/dcgm-exporter
+    version: 3.6.0
+    needs:
+      - kube-system/nvidia-device-plugin
+    values:
+      - runtimeClassName: nvidia
+        nodeSelector:
+          feature.node.kubernetes.io/pci-10de.present: "true"
+        serviceMonitor:
+          enabled: true
+          interval: 10s
+          honorLabels: true
+
+  - name: node-problem-detector
+    namespace: kube-system
+    chart: deliveryhero/node-problem-detector
+    version: 2.3.13
+    needs:
+      - kube-system/nvidia-device-plugin
+    values:
+      - ../apps/hardware/nvidia/npd-values.yaml
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator

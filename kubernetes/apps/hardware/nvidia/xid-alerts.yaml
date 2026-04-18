@@ -1,0 +1,69 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gpu-xid-recovery
+  namespace: kube-system
+spec:
+  groups:
+    - name: gpu.xid
+      rules:
+        - alert: GPUXidFatalError
+          expr: |
+            increase(DCGM_FI_DEV_XID_ERRORS{xid=~"119|79|74|13"}[2m]) > 0
+          for: 0m
+          labels:
+            severity: critical
+            component: gpu
+          annotations:
+            summary: "Fatal GPU XID {{ $labels.xid }} on {{ $labels.Hostname }}"
+            description: |
+              A fatal XID ({{ $labels.xid }}) was reported by DCGM on host
+              {{ $labels.Hostname }}. The gpu-recovery DaemonSet should be
+              attempting recovery. XID 119 = GSP RPC timeout (Thunderbolt fan
+              runaway symptom). XID 79 = GPU fallen off bus.
+
+        - alert: GPUFallenOffBus
+          expr: |
+            increase(DCGM_FI_DEV_XID_ERRORS{xid="79"}[5m]) > 0
+            or
+            absent(DCGM_FI_DEV_GPU_UTIL{Hostname="mlops-work-01"}) == 1
+          for: 2m
+          labels:
+            severity: critical
+            component: gpu
+          annotations:
+            summary: "GPU dropped off PCIe bus on {{ $labels.Hostname }}"
+
+        - alert: GPURecoveryCircuitBreakerOpen
+          expr: |
+            kube_configmap_info{namespace="kube-system", configmap="gpu-recovery-state"}
+          for: 0m
+          labels:
+            severity: critical
+            component: gpu
+          annotations:
+            summary: "GPU recovery circuit breaker tripped — manual intervention required"
+            description: |
+              The gpu-recovery DaemonSet has attempted recovery more than 3
+              times in the last hour and has stopped. Inspect the node and
+              reset the counter in configmap/gpu-recovery-state when resolved.
+          # NB: circuit breaker state is stored in the gpu-recovery-state
+          # ConfigMap. This alert is a placeholder until we expose a proper
+          # metric from the recovery DaemonSet. Once the controller exposes
+          # /metrics on port 9101, replace with:
+          #   gpu_recovery_circuit_breaker_open == 1
+
+        - alert: GPUFanRunaway
+          expr: |
+            DCGM_FI_DEV_FAN_SPEED > 95
+          for: 30s
+          labels:
+            severity: warning
+            component: gpu
+          annotations:
+            summary: "GPU fan at {{ $value }}% on {{ $labels.Hostname }}"
+            description: |
+              Fan speed sustained above 95% — on the Thunderbolt enclosure this
+              correlates with GSP hang even when no XID has been written yet.
+              Check for an imminent XID 119.

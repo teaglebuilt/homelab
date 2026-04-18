@@ -4,3 +4,18 @@ kind: Kustomization
 namespace: kube-system
 resources:
   - runtimeclass.yaml
+  - priorityclass.yaml
+  - recovery-rbac.yaml
+  - recovery-configmap.yaml
+  - recovery-daemonset.yaml
+  - xid-alerts.yaml
+configMapGenerator:
+  - name: gpu-recovery-scripts
+    files:
+      - scripts/recover.sh
+      - scripts/watch.sh
+generatorOptions:
+  # Hash suffix is appended so the DaemonSet rolls when scripts change.
+  # Kustomize rewrites the volume reference in recovery-daemonset.yaml
+  # to point at the hashed name automatically.
+  disableNameSuffixHash: false

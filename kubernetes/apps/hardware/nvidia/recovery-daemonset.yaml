@@ -1,0 +1,88 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-recovery
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: gpu-recovery
+    app.kubernetes.io/component: hardware-recovery
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gpu-recovery
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gpu-recovery
+    spec:
+      serviceAccountName: gpu-recovery
+      priorityClassName: system-node-critical
+      hostPID: true
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-01
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: recovery
+          image: bitnami/kubectl:1.30.3
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              # Install nsenter support + ensure scripts are executable.
+              cp /scripts/recover.sh /usr/local/bin/recover.sh
+              cp /scripts/watch.sh /usr/local/bin/watch.sh
+              chmod +x /usr/local/bin/recover.sh /usr/local/bin/watch.sh
+              exec /usr/local/bin/watch.sh
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POLL_SECONDS
+              value: "15"
+            - name: MAX_ATTEMPTS
+              value: "3"
+            - name: WINDOW_SECONDS
+              value: "3600"
+            - name: ENABLE_NODE_REBOOT
+              value: "false"
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            capabilities:
+              add: ["SYS_ADMIN", "SYS_PTRACE"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: host-sys
+              mountPath: /sys
+            - name: host-proc
+              mountPath: /host/proc
+            - name: state
+              mountPath: /var/lib/gpu-recovery
+            # Mount talosconfig Secret if ENABLE_NODE_REBOOT flips to true later.
+            - name: talosconfig
+              mountPath: /etc/talos
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: gpu-recovery-scripts
+            defaultMode: 0755
+        - name: host-sys
+          hostPath:
+            path: /sys
+            type: Directory
+        - name: host-proc
+          hostPath:
+            path: /proc
+            type: Directory
+        - name: state
+          hostPath:
+            path: /var/lib/gpu-recovery
+            type: DirectoryOrCreate
+        - name: talosconfig
+          secret:
+            secretName: gpu-recovery-talosconfig
+            optional: true

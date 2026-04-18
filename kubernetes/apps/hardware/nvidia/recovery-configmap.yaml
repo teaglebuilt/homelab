@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gpu-recovery-state
+  namespace: kube-system
+data:
+  # Counter window, per-node attempt count, and last recovery timestamp are
+  # written back to this ConfigMap by the recovery controller at runtime.
+  # Fields are added with keys of the form:
+  #   <node-name>.attempts      integer
+  #   <node-name>.window-start  RFC3339 timestamp
+  #   <node-name>.last-xid      integer
+  #   <node-name>.last-status   success|failed|circuit-open
+  initialized: "true"

@@ -28,6 +28,12 @@
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "hashicorp.terraform"
   },
+  "[shellscript]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.defaultFormatter": ""
+  },
   "go-template.languages": [
     "gotmpl",
     "yaml",
