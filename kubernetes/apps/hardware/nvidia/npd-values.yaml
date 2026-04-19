@@ -1,0 +1,61 @@
+---
+# Helm values for deliveryhero/node-problem-detector.
+# Adds a kernel_monitor rule that watches dmesg for NVIDIA XID errors and
+# surfaces them as the GPUXidError NodeCondition.
+settings:
+  log_monitors:
+    - /config/kernel-monitor.json
+customConfig:
+  kernel-monitor.json: |
+    {
+      "plugin": "kmsg",
+      "logPath": "/dev/kmsg",
+      "lookback": "5m",
+      "bufferSize": 10,
+      "source": "kernel-monitor",
+      "conditions": [
+        {
+          "type": "GPUXidError",
+          "reason": "NoGPUXidError",
+          "message": "No fatal NVIDIA XID errors observed"
+        }
+      ],
+      "rules": [
+        {
+          "type": "permanent",
+          "condition": "GPUXidError",
+          "reason": "119",
+          "pattern": "NVRM: Xid \\(PCI:[0-9a-fA-F:.]+\\): 119,"
+        },
+        {
+          "type": "permanent",
+          "condition": "GPUXidError",
+          "reason": "79",
+          "pattern": "NVRM: Xid \\(PCI:[0-9a-fA-F:.]+\\): 79,"
+        },
+        {
+          "type": "permanent",
+          "condition": "GPUXidError",
+          "reason": "74",
+          "pattern": "NVRM: Xid \\(PCI:[0-9a-fA-F:.]+\\): 74,"
+        },
+        {
+          "type": "permanent",
+          "condition": "GPUXidError",
+          "reason": "13",
+          "pattern": "NVRM: Xid \\(PCI:[0-9a-fA-F:.]+\\): 13,"
+        },
+        {
+          "type": "temporary",
+          "reason": "GPUFallenOffBus",
+          "pattern": "NVRM: GPU at PCI:[0-9a-fA-F:.]+ has fallen off the bus"
+        }
+      ]
+    }
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+hostNetwork: false
+tolerations:
+  - operator: Exists

@@ -7,49 +7,14 @@ repositories:
     url: https://nvidia.github.io/k8s-device-plugin
   - name: gpu-helm-charts
     url: https://nvidia.github.io/dcgm-exporter/helm-charts
+  - name: deliveryhero
+    url: https://charts.deliveryhero.io/
   - name: kwasm
     url: http://kwasm.sh/kwasm-operator/
   - name: metrics-server
     url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
-  # - name: gpu-operator
-  #   namespace: kube-system
-  #   chart: nvidia/gpu-operator
-  #   version: 25.3.0
-  #   values:
-  #     - runtimeClassName: nvidia
-  #     - operator:
-  #         defaultRuntime: nvidia
-  #       toolkit:
-  #         env:
-  #           - name: CONTAINERD_CONFIG
-  #             value: /etc/containerd/config.toml
-  #           - name: CONTAINERD_RUNTIME_CLASS
-  #             value: nvidia
-  #       driver:
-  #         enabled: false
-  #       devicePlugin:
-  #         enabled: true
-  #         runtimeClassName: nvidia
-  #       toolkit:
-  #         enabled: true
-  #       gfd:
-  #         enabled: true
-  #       migManager:
-  #         enabled: false
-  #       nfd:
-  #         enabled: true
-  #       validator:
-  #         enabled: false
-  #       dcgmExporter:
-  #         runtimeClassName: nvidia
-  #         hostNetwork: true
-  #         nodeSelector:
-  #           nvidia.com/gpu.present: 'true'
-  #         serviceMonitor:
-  #           interval: 15s
-  #           honorLabels: true
   - name: nvidia-device-plugin
     namespace: kube-system
     chart: nvidia/nvidia-device-plugin
@@ -70,6 +35,30 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/nvidia | kubectl apply -f -
+
+  - name: dcgm-exporter
+    namespace: kube-system
+    chart: gpu-helm-charts/dcgm-exporter
+    version: 3.6.0
+    needs:
+      - kube-system/nvidia-device-plugin
+    values:
+      - runtimeClassName: nvidia
+        nodeSelector:
+          feature.node.kubernetes.io/pci-10de.present: "true"
+        serviceMonitor:
+          enabled: true
+          interval: 10s
+          honorLabels: true
+
+  - name: node-problem-detector
+    namespace: kube-system
+    chart: deliveryhero/node-problem-detector
+    version: 2.3.13
+    needs:
+      - kube-system/nvidia-device-plugin
+    values:
+      - ../apps/hardware/nvidia/npd-values.yaml
 
   - name: kwasm-operator
     chart: kwasm/kwasm-operator
