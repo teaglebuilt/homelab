@@ -20,7 +20,7 @@ spec:
       priorityClassName: system-node-critical
       hostPID: true
       nodeSelector:
-        kubernetes.io/hostname: mlops-work-01
+        kubernetes.io/hostname: mlops-work-00
       tolerations:
         - operator: Exists
       containers:
