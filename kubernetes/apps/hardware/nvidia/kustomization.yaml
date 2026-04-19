@@ -15,7 +15,4 @@ configMapGenerator:
       - scripts/recover.sh
       - scripts/watch.sh
 generatorOptions:
-  # Hash suffix is appended so the DaemonSet rolls when scripts change.
-  # Kustomize rewrites the volume reference in recovery-daemonset.yaml
-  # to point at the hashed name automatically.
   disableNameSuffixHash: false

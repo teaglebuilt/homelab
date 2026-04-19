@@ -25,11 +25,10 @@ spec:
         - operator: Exists
       containers:
         - name: recovery
-          image: bitnami/kubectl:1.30.3
+          image: alpine/k8s:1.30.3
           command: ["/bin/bash", "-c"]
           args:
             - |
-              # Install nsenter support + ensure scripts are executable.
               cp /scripts/recover.sh /usr/local/bin/recover.sh
               cp /scripts/watch.sh /usr/local/bin/watch.sh
               chmod +x /usr/local/bin/recover.sh /usr/local/bin/watch.sh
