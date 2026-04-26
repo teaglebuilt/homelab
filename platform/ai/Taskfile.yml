@@ -47,12 +47,12 @@ tasks:
       - install-crds
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl apply -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | envsubst | kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/k8s | envsubst | kubectl delete -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | envsubst | kubectl delete -n {{.AI_NAMESPACE}} -f -
 
   test:
     cmds:

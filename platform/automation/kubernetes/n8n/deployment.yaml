@@ -103,8 +103,6 @@ spec:
                   name: aws-credentials
                   key: aws_secret_access_key
           volumeMounts:
-            - name: credentials
-              mountPath: /backup/credentials
             - name: workflows
               mountPath: /backup/workflows
             - name: n8n-storage
@@ -112,9 +110,6 @@ spec:
             - name: shared-data
               mountPath: /data/shared
       volumes:
-        - name: credentials
-          configMap:
-            name: credentials-cm
         - name: workflows
           configMap:
             name: workflows-cm
