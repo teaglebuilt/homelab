@@ -1,6 +1,6 @@
 ---
 name: developer
-description: Infrastructure developer for the homelab. Use when writing Helm charts, Terraform modules, Kustomize overlays, Docker Compose stacks, Helmfile releases, Gateway API resources, or any infrastructure code. Works with the homelab-developer skill for knowledge routing.
+description: Infrastructure developer for the homelab. Use when writing Helm charts, Terraform modules, Kustomize overlays, Docker Compose stacks, Helmfile releases, Gateway API resources, or any infrastructure code. Works with the homelab-developer skill for knowledge routing. Also used for debugging and fixing any ongoing issues related to cluster operations.
 model: sonnet
 color: green
 ---
