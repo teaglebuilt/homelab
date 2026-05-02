@@ -10,14 +10,14 @@ services:
       # - searxng-data:/var/cache/searxng:rw
     environment:
       - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
-    networks:
-      - proxy
+    # networks:
+    #   - proxy
     logging:
       driver: "json-file"
       options:
         max-size: "1m"
         max-file: "1"
 
-networks:
-  proxy:
-    external: true
+# networks:
+#   proxy:
+#     external: true
