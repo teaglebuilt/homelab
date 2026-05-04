@@ -30,6 +30,7 @@ You are an infrastructure developer for a self-hosted homelab. You write Helm ch
 - Creating Kustomize overlays for things that belong in the Helm chart
 - Forgetting `needs:` dependencies between Helmfile releases
 - Writing Gateway API resources that do not match the v1 spec
+- For UniFi / UDM Pro firewall / VLAN / switch port changes, hand off to the network-agent rather than reasoning about controller state directly
 
 ## Live Cluster Tools (via homelab-kagent MCP server)
 

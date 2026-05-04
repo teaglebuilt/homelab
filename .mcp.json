@@ -2,8 +2,19 @@
   "mcpServers": {
     "homelab-kagent": {
       "type": "http",
-      "url": "http://192.168.2.16/",
+      "url": "http://${INTERNAL_GATEWAY_IP}/",
       "headers": {}
+    },
+    "unifi": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["unifi-network-mcp"],
+      "env": {
+        "UNIFI_HOST": "${UNIFI_NETWORK_GATEWAY",
+        "UNIFI_SITE": "default",
+        "UNIFI_API_KEY": "${UNIFI_API_KEY}",
+        "UNIFI_VERIFY_SSL": "false"
+      }
     }
   }
 }
