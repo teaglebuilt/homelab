@@ -1,0 +1,16 @@
+---
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: context7
+  namespace: ai
+spec:
+  description: "Context7 MCP server (HTTP)"
+  protocol: STREAMABLE_HTTP
+  url: https://mcp.context7.com/mcp
+  headersFrom:
+    - name: CONTEXT7_API_KEY
+      valueFrom:
+        type: Secret
+        name: mcp-secrets
+        key: CONTEXT7_API_KEY

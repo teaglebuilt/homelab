@@ -1,0 +1,26 @@
+---
+services:
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    environment:
+      - TZ=America/New_York
+      - CRON_MIN=2,32
+      - FRESHRSS_ENV=production
+      - FRESHRSS_INSTALL=--api-enabled
+        --base-url=${FRESHRSS_BASE_URL:-http://localhost:8080}
+        --db-type=sqlite
+        --default-user=${FRESHRSS_DEFAULT_USER:-admin}
+      - FRESHRSS_USER=--password=${FRESHRSS_DEFAULT_PASSWORD:-changeme}
+    volumes:
+      - ./data/freshrss:/var/www/FreshRSS/data
+      - ./data/extensions:/var/www/FreshRSS/extensions
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(file_get_contents('http://localhost/i/?c=healthcheck') === 'ok' ? 0 : 1);"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

@@ -1,0 +1,28 @@
+---
+version: 3
+
+vars:
+  TERRAFORM: tofu -chdir=terraform
+
+tasks:
+  provision:
+    dir: news
+    cmds:
+      - |-
+        {{.TERRAFORM}} init --upgrade
+      - |-
+        {{.TERRAFORM}} apply -auto-approve \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var="freshrss_default_password=$FRESHRSS_DEFAULT_PASSWORD" \
+          -var="freshrss_base_url=http://freshrss.homelab.internal"
+
+  destroy:
+    dir: news
+    cmds:
+      - |-
+        {{.TERRAFORM}} destroy -auto-approve \
+          -var portainer_ip=$PORTAINER_IP \
+          -var portainer_api_key=$PORTAINER_API_KEY \
+          -var="freshrss_default_password=$FRESHRSS_DEFAULT_PASSWORD" \
+          -var="freshrss_base_url=http://freshrss.homelab.internal"
