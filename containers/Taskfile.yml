@@ -9,8 +9,8 @@ tasks:
     dir: containers
     summary: Standup lxc container with portainer for container management
     env:
-      PROXMOX_VE_USERNAME: "root@pam"
-      PROXMOX_VE_PASSWORD: "cosmo"
+      PROXMOX_VE_USERNAME: "${PROXMOX_USERNAME}"
+      PROXMOX_VE_PASSWORD: "${PROXMOX_PASSWORD}"
       PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
       PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
       PROXMOX_VE_SSH_AGENT: "false"

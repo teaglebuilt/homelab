@@ -3,6 +3,9 @@ version: 3
 
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+  SCRAPER_IMAGE: ghcr.io/nextgensolutions-llc/scrapers
+  SCRAPER_TAG:
+    sh: git rev-parse --short HEAD
 
 tasks:
   deploy:
@@ -13,3 +16,43 @@ tasks:
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | kubectl delete -f -
+
+  scrapers:create-pull-secret:
+    desc: Generate the SOPS-encrypted GHCR pull secret for scraper cronjobs
+    preconditions:
+      - sh: 'test -n "${GITHUB_TOKEN}" || command -v gh >/dev/null'
+        msg: "Set GITHUB_TOKEN (PAT with read:packages) or login via `gh auth login`."
+      - sh: 'command -v sops >/dev/null'
+        msg: "sops is required to encrypt the secret"
+    cmds:
+      - |
+        token="${GITHUB_TOKEN:-$(gh auth token 2>/dev/null)}"
+        if [ -z "$token" ]; then
+          echo "No GitHub token available (GITHUB_TOKEN unset and gh not authenticated)" >&2
+          exit 1
+        fi
+        out="automation/kubernetes/scrapers/secrets.enc.yaml"
+        tmp="$(mktemp)"
+        trap 'rm -f "$tmp"' EXIT
+        kubectl create secret docker-registry ghcr-secret \
+          --namespace automation \
+          --docker-server=ghcr.io \
+          --docker-username=teaglebuilt \
+          --docker-password="$token" \
+          --docker-email=dillan.teagle.va@gmail.com \
+          -o yaml > "$tmp"
+
+  scrapers:run-charleston-licenses:
+    desc: Trigger the Charleston business license CronJob manually for testing
+    cmds:
+      - kubectl -n automation create job --from=cronjob/scraper-charleston-licenses scraper-charleston-licenses-manual-$(date +%s)
+
+  scrapers:run-charleston-sales:
+    desc: Trigger the Charleston home sales CronJob manually for testing
+    cmds:
+      - kubectl -n automation create job --from=cronjob/scraper-charleston-sales scraper-charleston-sales-manual-$(date +%s)
+
+  n8n:workflows:backup:
+    desc: Run n8n workflow/credential export to S3 now
+    cmds:
+      - kubectl -n automation create job --from=cronjob/n8n-workflow-backup n8n-workflow-backup-manual-$(date +%s)

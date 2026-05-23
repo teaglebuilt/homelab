@@ -5,6 +5,8 @@ namespace: automation
 resources:
 - namespace.yaml
 - automation-platform-storage.yaml
+- postgres
 - n8n
+- scrapers
 generators:
 - secrets-generator.yaml

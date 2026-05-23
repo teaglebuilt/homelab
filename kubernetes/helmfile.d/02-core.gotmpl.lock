@@ -6,11 +6,14 @@ dependencies:
 - name: cloudflare-tunnel
   repository: https://cloudflare.github.io/helm-charts
   version: 0.3.2
+- name: cloudnative-pg
+  repository: https://cloudnative-pg.github.io/charts
+  version: 0.22.1
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
   version: 1.17.0
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
   version: 1.17.0
-digest: sha256:e43075e56e6ebfaea2ceded34cc021195bf2f01fc0659764a206e7ae6c84671d
-generated: "2026-04-19T10:38:40.439099-04:00"
+digest: sha256:b0cbaa95fcf9a894c443041fe0cad37f68b932480a257cc0eedc09290a30b60e
+generated: "2026-05-19T21:00:51.159844-04:00"

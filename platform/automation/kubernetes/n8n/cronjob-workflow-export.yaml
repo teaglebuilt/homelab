@@ -1,0 +1,200 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: n8n-workflow-backup
+  namespace: automation
+  labels:
+    app.kubernetes.io/name: n8n-workflow-backup
+    app.kubernetes.io/component: n8n
+spec:
+  schedule: "0 */6 * * *"
+  timeZone: America/New_York
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            fsGroup: 1000
+          nodeSelector:
+            kubernetes.io/hostname: mlops-work-01
+          initContainers:
+            - name: export
+              image: ghcr.io/n8n-io/n8n:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  mkdir -p /backup
+
+                  backup_has_workflows() {
+                    find /backup -type f 2>/dev/null | head -1 | grep -q .
+                  }
+
+                  export_from_db() {
+                    n8n export:workflow --all --backup --output=/backup
+                    n8n export:credentials --all --backup --output=/backup
+                  }
+
+                  copy_sqlite_for_export() {
+                    mkdir -p /tmp/n8n-home/.n8n
+                    for f in database.sqlite database.sqlite-wal database.sqlite-shm config; do
+                      if [ -e "/home/node/.n8n/${f}" ]; then
+                        cp "/home/node/.n8n/${f}" "/tmp/n8n-home/.n8n/${f}"
+                      fi
+                    done
+                  }
+
+                  export_from_sqlite() {
+                    echo "Exporting from SQLite at /home/node/.n8n/database.sqlite"
+                    rm -rf /backup/* /tmp/n8n-home
+                    mkdir -p /backup
+                    copy_sqlite_for_export
+                    (
+                      export DB_TYPE=sqlite
+                      export N8N_USER_FOLDER=/tmp/n8n-home
+                      export N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+                      unset DB_POSTGRESDB_HOST DB_POSTGRESDB_PORT DB_POSTGRESDB_DATABASE
+                      unset DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD DB_POSTGRESDB_SCHEMA
+                      unset DB_POSTGRESDB_SSL_ENABLED
+                      n8n export:workflow --all --backup --output=/backup
+                      n8n export:credentials --all --backup --output=/backup
+                    )
+                  }
+
+                  set +e
+                  export_from_db
+                  pg_rc=$?
+                  set -e
+
+                  if backup_has_workflows; then
+                    echo "Exported workflows from Postgres"
+                  elif [ -f /home/node/.n8n/database.sqlite ]; then
+                    echo "Postgres export empty or failed (rc=${pg_rc}); trying SQLite PVC"
+                    export_from_sqlite
+                  fi
+
+                  if backup_has_workflows; then
+                    wf_count="$(find /backup -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l | tr -d ' ')"
+                    echo "Backup ready: ${wf_count} workflow JSON file(s) in /backup"
+                  else
+                    echo "No workflows in Postgres or SQLite; nothing to back up"
+                    exit 0
+                  fi
+              envFrom:
+                - configMapRef:
+                    name: n8n-config
+                - secretRef:
+                    name: n8n-secrets
+              env:
+                - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+                  value: "false"
+                - name: DB_POSTGRESDB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-n8n-secret
+                      key: username
+                - name: DB_POSTGRESDB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-n8n-secret
+                      key: password
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                - name: n8n-storage
+                  mountPath: /home/node/.n8n
+                  readOnly: true
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                runAsNonRoot: true
+                runAsUser: 1000
+                seccompProfile:
+                  type: RuntimeDefault
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+          containers:
+            - name: upload
+              image: public.ecr.aws/aws-cli/aws-cli:2.27.38
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  echo "Contents of /backup:"
+                  find /backup -type f 2>/dev/null | head -20 || true
+                  file_count="$(find /backup -type f 2>/dev/null | wc -l | tr -d ' ')"
+                  if [ "${file_count}" = "0" ]; then
+                    echo "No files in /backup; skipping S3 upload (export initContainer may have found nothing)"
+                    exit 0
+                  fi
+                  bucket="${WORKFLOWS_S3_BUCKET:?}"
+                  prefix="${WORKFLOWS_S3_PREFIX:-n8n/workflows}"
+                  dest="s3://${bucket}/${prefix}/"
+                  echo "Uploading ${file_count} file(s) from /backup to ${dest}"
+                  aws s3 sync /backup/ "${dest}" --delete
+                  echo "S3 listing after sync:"
+                  aws s3 ls "${dest}" | head -20
+              envFrom:
+                - configMapRef:
+                    name: n8n-config
+              env:
+                # Same bucket key as deployment download-workflows initContainer
+                - name: WORKFLOWS_S3_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: aws_homelab_remote_state_backup
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: aws_access_key_id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: aws_secret_access_key
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                  readOnly: true
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                runAsNonRoot: true
+                runAsUser: 1000
+                seccompProfile:
+                  type: RuntimeDefault
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 128Mi
+          volumes:
+            - name: backup
+              emptyDir: {}
+            - name: n8n-storage
+              persistentVolumeClaim:
+                claimName: n8n-storage-pvc

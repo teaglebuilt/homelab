@@ -1,0 +1,40 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: data
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  storage:
+    size: 10Gi
+    storageClass: local-path
+  affinity:
+    nodeSelector:
+      kubernetes.io/hostname: mlops-work-01
+  bootstrap:
+    initdb:
+      database: leads
+      owner: scrapers
+      secret:
+        name: pg-scrapers-secret
+      postInitApplicationSQLRefs:
+        configMapRefs:
+          - name: automation-pg-init-sql
+            key: 001-business-licenses.sql
+          - name: automation-pg-init-sql
+            key: 002-home-sales.sql
+          - name: automation-pg-init-sql
+            key: 003-n8n-database.sql
+  superuserSecret:
+    name: pg-superuser-secret
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  monitoring:
+    enablePodMonitor: true

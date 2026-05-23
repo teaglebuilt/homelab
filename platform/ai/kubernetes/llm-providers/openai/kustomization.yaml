@@ -4,6 +4,5 @@ kind: Kustomization
 resources:
   - backend.yaml
   - models/gpt-4o-mini.yaml
-
 generators:
   - secrets-generator.yaml

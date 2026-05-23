@@ -12,6 +12,9 @@ includes:
     taskfile: rack/network/Taskfile.yml
   platform:
     taskfile: platform/Taskfile.yml
+  machines:
+    dir: machines
+    taskfile: machines/Taskfile.yml
 
 dotenv: [
   './kubernetes/.env',

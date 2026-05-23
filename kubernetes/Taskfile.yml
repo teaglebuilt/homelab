@@ -6,6 +6,8 @@ includes:
     taskfile: ".taskfiles/talos/Taskfile.yaml"
   debug:
     taskfile: ".taskfiles/debug/Taskfile.yaml"
+  gpu:
+    taskfile: ".taskfiles/gpu/Taskfile.yaml"
 
 vars:
   TERRAFORM: tofu -chdir=terraform

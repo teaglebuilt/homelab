@@ -9,6 +9,8 @@ repositories:
     url: https://kubernetes-sigs.github.io/external-dns
   - name: jetstack
     url: https://charts.jetstack.io
+  - name: cnpg
+    url: https://cloudnative-pg.github.io/charts
 
 releases:
   - name: cloudflare-tunnel
@@ -71,3 +73,16 @@ releases:
       - external:
           domain: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
+
+  - name: cnpg
+    namespace: cnpg-system
+    chart: cnpg/cloudnative-pg
+    version: 0.22.1
+    createNamespace: true
+    values:
+      - nodeSelector:
+          kubernetes.io/hostname: mlops-work-01
+        monitoring:
+          podMonitorEnabled: true
+          grafanaDashboard:
+            create: true

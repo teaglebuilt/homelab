@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: automation
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "data"
+    reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "data"
+configMapGenerator:
+  - name: automation-pg-init-sql
+    files:
+      - 001-business-licenses.sql
+      - 002-home-sales.sql
+      - 003-n8n-database.sql

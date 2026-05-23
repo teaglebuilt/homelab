@@ -1,0 +1,39 @@
+---
+version: 3
+
+vars:
+  TERRAFORM: tofu -chdir=terraform
+
+tasks:
+  provision_nixos:
+    dir: nixos
+    env:
+      # Ensure nothing in the caller environment turns API verification back on for broken/split-brain certs.
+      PROXMOX_VE_INSECURE: "true"
+      PROXMOX_VE_USERNAME: "${PROXMOX_USERNAME}"
+      PROXMOX_VE_PASSWORD: "${PROXMOX_PASSWORD}"
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_AGENT: "false"
+      PROXMOX_VE_SSH_PUBLIC_KEY: "{{.PROXMOX_NODE_ONE_PUBLIC_KEY}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    vars:
+      # Must match the actual node name reported by `hostname -s` and present under /etc/pve/nodes/<name>/
+      # Mismatched names cause Proxmox to return HTTP 596 / SSL routines::certificate verify failed.
+      PROXMOX_NODE: '{{.PROXMOX_NODE_ONE_NAME | default "pve"}}'
+    cmds:
+      - |-
+        {{.TERRAFORM}} init --upgrade \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var vm_id=200 \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY
+      - |-
+        {{.TERRAFORM}} plan \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var vm_id=200 \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY
+      - |-
+        {{.TERRAFORM}} apply -auto-approve \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var vm_id=200 \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY

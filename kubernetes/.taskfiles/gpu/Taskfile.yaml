@@ -1,0 +1,111 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# GPU recovery break-glass operations. The DaemonSet at
+# kubernetes/apps/hardware/nvidia/recovery-daemonset.yaml watches NodeConditions
+# automatically; these tasks are for when the watcher is dead, hung, or missed
+# a signal you can see on the node.
+version: "3"
+
+vars:
+  NS: kube-system
+  DAEMONSET: gpu-recovery
+  JOB_MANIFEST: '{{.ROOT_DIR}}/kubernetes/apps/hardware/nvidia/recovery-job.yaml'
+
+tasks:
+  recover:
+    desc: |
+      Create a one-shot GPU recovery Job from recovery-job.yaml.
+      Override with NODE=, REASON=, REBOOT=true.
+      Example: task kubernetes:gpu:recover NODE=mlops-work-01 REASON=manual-xid79 REBOOT=true
+    vars:
+      NODE: '{{.NODE | default "mlops-work-00"}}'
+      REASON: '{{.REASON | default "manual"}}'
+      REBOOT: '{{.REBOOT | default "false"}}'
+    cmds:
+      # Resolve the hashed ConfigMap name from the live DaemonSet so script
+      # changes flow through to manual runs without re-applying this file.
+      # kubectl converts the YAML template to JSON for us so jq can patch it.
+      - |
+        scripts_cm="$(kubectl -n {{.NS}} get ds {{.DAEMONSET}} -o jsonpath='{.spec.template.spec.volumes[?(@.name=="scripts")].configMap.name}')"
+        if [ -z "$scripts_cm" ]; then
+          echo "could not resolve scripts ConfigMap from ds/{{.DAEMONSET}} — is the DaemonSet applied?" >&2
+          exit 1
+        fi
+        kubectl create -f "{{.JOB_MANIFEST}}" --dry-run=client --validate=false -o json \
+          | jq --arg cm "$scripts_cm" \
+               --arg node "{{.NODE}}" \
+               --arg reason "{{.REASON}}" \
+               --arg reboot "{{.REBOOT}}" '
+              (.spec.template.spec.volumes[] | select(.name=="scripts").configMap.name) = $cm
+              | .spec.template.spec.nodeSelector["kubernetes.io/hostname"] = $node
+              | .spec.template.spec.containers[0].env |= (
+                  map(select(.name != "DETECTED_XID" and .name != "ENABLE_NODE_REBOOT"))
+                  + [{name:"DETECTED_XID", value:$reason},
+                     {name:"ENABLE_NODE_REBOOT", value:$reboot}]
+                )
+            ' \
+          | kubectl -n {{.NS}} create -f - -o name | tee /tmp/.gpu-recover-job
+      - |
+        job="$(cut -d/ -f2 </tmp/.gpu-recover-job)"
+        echo "Created $job on {{.NODE}} (reason={{.REASON}}, reboot={{.REBOOT}})"
+        kubectl -n {{.NS}} wait --for=condition=Ready pod -l job-name="$job" --timeout=60s || true
+        kubectl -n {{.NS}} logs -f -l job-name="$job" --tail=-1 || true
+        kubectl -n {{.NS}} get job "$job" -o jsonpath='{.status}{"\n"}'
+    preconditions:
+      - sh: test -f "{{.JOB_MANIFEST}}"
+        msg: "manifest not found at {{.JOB_MANIFEST}}"
+      - sh: kubectl -n {{.NS}} get ds {{.DAEMONSET}} >/dev/null 2>&1
+        msg: "DaemonSet {{.NS}}/{{.DAEMONSET}} not found — apply kubernetes/apps/hardware/nvidia/ first"
+      - sh: command -v jq >/dev/null
+        msg: "jq is required (brew install jq)"
+
+  logs:
+    desc: Tail logs of the most recent manual GPU recovery Job.
+    cmds:
+      - |
+        latest="$(kubectl -n {{.NS}} get jobs \
+          -l app.kubernetes.io/component=hardware-recovery-manual \
+          --sort-by=.metadata.creationTimestamp \
+          -o jsonpath='{.items[-1:].metadata.name}')"
+        if [ -z "$latest" ]; then
+          echo "no manual recovery jobs found in {{.NS}}"
+          exit 1
+        fi
+        echo "=== $latest ==="
+        kubectl -n {{.NS}} logs -f -l job-name="$latest" --tail=-1
+
+  status:
+    desc: Show recovery circuit-breaker state and current GPU-related node conditions.
+    cmds:
+      - echo "=== gpu-recovery-state ==="
+      - kubectl -n {{.NS}} get cm gpu-recovery-state -o jsonpath='{.data}{"\n"}' || true
+      - echo
+      - echo "=== node conditions (GPUXidError / KernelDeadlock) ==="
+      - |
+        kubectl get nodes -o json \
+          | jq -r '.items[]
+              | . as $n
+              | $n.status.conditions[]
+              | select(.type=="GPUXidError" or .type=="KernelDeadlock")
+              | "\($n.metadata.name)\t\(.type)=\(.status)\treason=\(.reason)\tmsg=\(.message)"'
+      - echo
+      - echo "=== recent recovery jobs ==="
+      - kubectl -n {{.NS}} get jobs -l app.kubernetes.io/component=hardware-recovery-manual --sort-by=.metadata.creationTimestamp || true
+
+  reset-breaker:
+    desc: |
+      Reset the recovery circuit breaker for a node (run after a hardware fix).
+      Example: task kubernetes:gpu:reset-breaker NODE=mlops-work-00
+    vars:
+      NODE: '{{.NODE | default "mlops-work-00"}}'
+    cmds:
+      - |
+        kubectl -n {{.NS}} patch cm gpu-recovery-state --type=json -p='[
+          {"op":"remove","path":"/data/{{.NODE}}.attempts"},
+          {"op":"remove","path":"/data/{{.NODE}}.window-start"},
+          {"op":"remove","path":"/data/{{.NODE}}.last-status"}
+        ]' 2>/dev/null || \
+        kubectl -n {{.NS}} patch cm gpu-recovery-state --type=merge -p='{
+          "data":{"{{.NODE}}.attempts":"0","{{.NODE}}.last-status":"reset-by-operator"}
+        }'
+      - echo "circuit breaker reset for {{.NODE}}"

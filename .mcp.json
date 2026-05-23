@@ -5,12 +5,19 @@
       "url": "http://${INTERNAL_GATEWAY_IP}/",
       "headers": {}
     },
+    "n8n": {
+      "type": "http",
+      "url": "http://n8n.homelab.internal/mcp-server/http",
+      "headers": {
+        "Authorization": "Bearer ${N8N_API_KEY}"
+      }
+    },
     "unifi": {
       "type": "stdio",
       "command": "uvx",
       "args": ["unifi-network-mcp"],
       "env": {
-        "UNIFI_HOST": "${UNIFI_NETWORK_GATEWAY",
+        "UNIFI_HOST": "${UNIFI_NETWORK_GATEWAY}",
         "UNIFI_SITE": "default",
         "UNIFI_API_KEY": "${UNIFI_API_KEY}",
         "UNIFI_VERIFY_SSL": "false"

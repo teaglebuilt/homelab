@@ -1,0 +1,79 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scraper-charleston-licenses
+  namespace: automation
+  labels:
+    app.kubernetes.io/name: scraper-charleston-licenses
+    app.kubernetes.io/component: scraper
+spec:
+  schedule: "0 6 * * *"
+  timeZone: "America/New_York"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          nodeSelector:
+            kubernetes.io/hostname: mlops-work-01
+          imagePullSecrets:
+            - name: ghcr-secret
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: scraper
+              image: ghcr.io/nextgensolutions-llc/scrapers:latest
+              imagePullPolicy: Always
+              args:
+                - scrapers.energov_business_licenses
+              env:
+                - name: ENERGOV_BASE_URL
+                  value: "https://egcss.charleston-sc.gov/EnerGov_Prod/selfservice"
+                - name: ENERGOV_TENANT_ID
+                  value: "1"
+                - name: ENERGOV_TENANT_NAME
+                  value: "CharlestonSC"
+                - name: ENERGOV_CITY_LABEL
+                  value: "Charleston"
+                - name: LOOKBACK_DAYS
+                  value: "2"
+                - name: PAGE_SIZE
+                  value: "100"
+                - name: PGHOST
+                  value: "postgres-rw.data.svc.cluster.local"
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: "leads"
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-scrapers-secret
+                      key: username
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-scrapers-secret
+                      key: password
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
