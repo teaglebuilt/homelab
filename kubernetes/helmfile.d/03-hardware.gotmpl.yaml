@@ -27,6 +27,22 @@ releases:
           enabled: true
         nfd:
           enabled: true
+      # Time-slicing advertises a single physical GPU as N logical replicas so
+      # multiple pods (NIM + ComfyUI) can schedule. CUDA contexts time-share on
+      # the SM. There is NO VRAM isolation — pods must coexist within the card's
+      # physical memory (12 GB on RTX 4070 Super).
+      - config:
+          default: "default"
+          map:
+            default: |-
+              version: v1
+              flags:
+                migStrategy: none
+              sharing:
+                timeSlicing:
+                  resources:
+                    - name: nvidia.com/gpu
+                      replicas: 2
     hooks:
       - events: ["presync"]
         showlogs: true

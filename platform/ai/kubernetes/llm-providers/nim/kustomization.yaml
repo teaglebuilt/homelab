@@ -98,9 +98,9 @@ helmCharts:
         - name: PYTORCH_ALLOC_CONF
           value: "expandable_segments:True"
         - name: NIM_KV_CACHE_PERCENT
-          value: "0.80"
+          value: "0.40"
         - name: NIM_MAX_NUM_SEQS
-          value: "16"
+          value: "4"
       # podAnnotations:
       #   kubernetes.io/egress-bandwidth: "1G"
       #   kubernetes.io/ingress-bandwidth: "1G"
