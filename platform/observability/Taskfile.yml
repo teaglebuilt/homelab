@@ -51,3 +51,20 @@ tasks:
           -var influxdb_bucket="$INFLUXDB_BUCKET" \
           -var graylog_password_secret="$GRAYLOG_PASSWORD_SECRET" \
           -var graylog_root_password_sha="$GRAYLOG_ROOT_PASSWORD_SHA"
+
+  destroy:
+    dir: observability
+    cmds:
+      - |-
+        {{.TERRAFORM}} destroy -auto-approve \
+          -var portainer_ip="$PORTAINER_IP" \
+          -var portainer_api_key="$PORTAINER_API_KEY" \
+          -var grafana_username="$GRAFANA_USERNAME" \
+          -var grafana_password="$GRAFANA_PASSWORD" \
+          -var influxdb_admin_username="$INFLUXDB_ADMIN_USERNAME" \
+          -var influxdb_admin_password="$INFLUXDB_ADMIN_PASSWORD" \
+          -var influxdb_admin_token="$INFLUXDB_ADMIN_TOKEN" \
+          -var influxdb_org="$INFLUXDB_ORG" \
+          -var influxdb_bucket="$INFLUXDB_BUCKET" \
+          -var graylog_password_secret="$GRAYLOG_PASSWORD_SECRET" \
+          -var graylog_root_password_sha="$GRAYLOG_ROOT_PASSWORD_SHA"
