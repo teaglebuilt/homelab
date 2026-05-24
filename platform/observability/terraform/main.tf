@@ -55,19 +55,4 @@ resource "portainer_stack" "observability" {
     name  = "GRAYLOG_ROOT_PASSWORD_SHA"
     value = var.graylog_root_password_sha
   }
-
-  env {
-    name  = "UNIFI_USER"
-    value = var.unifi_user
-  }
-
-  env {
-    name  = "UNIFI_PASS"
-    value = var.unifi_pass
-  }
-
-  env {
-    name  = "UNIFI_NETWORK_GATEWAY"
-    value = var.unifi_network_gateway
-  }
 }
