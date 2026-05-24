@@ -18,7 +18,8 @@ includes:
 
 dotenv: [
   './kubernetes/.env',
-  './containers/.env'
+  './containers/.env',
+  './platform/observability/.env',
 ]
 
 tasks:
