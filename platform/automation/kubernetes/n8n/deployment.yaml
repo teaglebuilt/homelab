@@ -92,6 +92,19 @@ spec:
                 echo "No files in S3 backup; skipping import"
                 exit 0
               fi
+              # postgres-rw has zero endpoints until CNPG promotes the primary;
+              # Cilium socket-LB returns EPERM on connect() in that window.
+              echo "Waiting for ${DB_POSTGRESDB_HOST}:${DB_POSTGRESDB_PORT}..."
+              attempts=0
+              until pg_isready -h "${DB_POSTGRESDB_HOST}" -p "${DB_POSTGRESDB_PORT}" -U "${DB_POSTGRESDB_USER}" -d "${DB_POSTGRESDB_DATABASE}" -t 3 >/dev/null 2>&1; do
+                attempts=$((attempts + 1))
+                if [ "$attempts" -ge 60 ]; then
+                  echo "Postgres not ready after 5 minutes; giving up"
+                  exit 1
+                fi
+                sleep 5
+              done
+              echo "Postgres is ready"
               # Do not use --backup on the root dir: export leaves workflow *.json at the root
               # and credentials under credentials/, so reading the root hits EISDIR on subdirs.
               if [ -d /workflow-backup/workflows ]; then

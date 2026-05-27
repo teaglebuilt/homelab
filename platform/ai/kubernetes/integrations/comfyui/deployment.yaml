@@ -16,6 +16,7 @@ spec:
         app: comfyui
     spec:
       runtimeClassName: nvidia
+
       tolerations:
       - key: restriction
         operator: "Equal"
@@ -23,9 +24,11 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: comfyui
-        image: registry.svc.snowgoons.ro/snowgoons/comfyui:2024-07-02
+        image:
         args: [ "--listen", "0.0.0.0" ]
         imagePullPolicy: Always
+        imagePullSecrets:
+          - name: ghcr-secret
         resources:
           limits:
             nvidia.com/gpu: 1

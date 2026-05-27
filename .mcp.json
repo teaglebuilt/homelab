@@ -2,7 +2,7 @@
   "mcpServers": {
     "homelab-kagent": {
       "type": "http",
-      "url": "http://${INTERNAL_GATEWAY_IP}/",
+      "url": "http://${AI_GATEWAY_IP}/mcp",
       "headers": {}
     },
     "n8n": {

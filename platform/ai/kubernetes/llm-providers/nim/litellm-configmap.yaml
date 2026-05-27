@@ -1,0 +1,64 @@
+---
+# LiteLLM: Anthropic /v1/messages (Claude Code) -> OpenAI /v1/chat/completions (NIM)
+#
+# Claude Code sends POST /v1/messages with model strings like
+# "claude-sonnet-4-20250514" / "claude-haiku-4-5-...". LiteLLM's default behavior
+# on /v1/messages is to look up an "anthropic messages provider config" for the
+# resolved upstream model. When the upstream is OpenAI-compatible (NIM), that
+# lookup fails with:
+#   ValueError: Anthropic messages provider config not found for model: meta/llama-3.2-3b-instruct
+#
+# Fix:
+# 1. Alias every Claude Code default model name to the NIM backend.
+# 2. Force LiteLLM to route /v1/messages through the chat/completions bridge
+#    instead of trying to resolve an Anthropic-native messages config. This is
+#    the documented escape hatch for OpenAI-compatible backends:
+#    https://docs.litellm.ai/docs/proxy/config_settings (use_chat_completions_url_for_anthropic_messages)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-nim-config
+  namespace: ai
+  labels:
+    app: litellm-nim
+    component: llm-provider
+data:
+  config.yaml: |
+    model_list:
+      - model_name: meta/llama-3.2-3b-instruct
+        litellm_params:
+          model: openai/meta/llama-3.2-3b-instruct
+          api_base: http://nim.ai.svc.cluster.local:8000/v1
+          api_key: not-used
+      # Claude Code default model aliases -> same NIM backend.
+      - model_name: claude-sonnet-4-20250514
+        litellm_params:
+          model: openai/meta/llama-3.2-3b-instruct
+          api_base: http://nim.ai.svc.cluster.local:8000/v1
+          api_key: not-used
+      - model_name: claude-3-5-sonnet-20241022
+        litellm_params:
+          model: openai/meta/llama-3.2-3b-instruct
+          api_base: http://nim.ai.svc.cluster.local:8000/v1
+          api_key: not-used
+      - model_name: claude-haiku-4-5-20251001
+        litellm_params:
+          model: openai/meta/llama-3.2-3b-instruct
+          api_base: http://nim.ai.svc.cluster.local:8000/v1
+          api_key: not-used
+      # Catch-all: any other claude-* string Claude Code might send.
+      - model_name: claude-*
+        litellm_params:
+          model: openai/meta/llama-3.2-3b-instruct
+          api_base: http://nim.ai.svc.cluster.local:8000/v1
+          api_key: not-used
+
+    litellm_settings:
+      master_key: sk-litellm-nim-local
+      drop_params: true
+
+    general_settings:
+      master_key: sk-litellm-nim-local
+      # Route Anthropic /v1/messages through OpenAI /v1/chat/completions so we
+      # don't need an Anthropic-native messages provider config for NIM.
+      use_chat_completions_url_for_anthropic_messages: true

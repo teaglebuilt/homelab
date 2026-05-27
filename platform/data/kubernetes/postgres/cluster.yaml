@@ -25,10 +25,15 @@ spec:
             key: 001-business-licenses.sql
           - name: automation-pg-init-sql
             key: 002-home-sales.sql
-          - name: automation-pg-init-sql
-            key: 003-n8n-database.sql
   superuserSecret:
     name: pg-superuser-secret
+  managed:
+    roles:
+      - name: n8n
+        ensure: present
+        login: true
+        passwordSecret:
+          name: pg-n8n-secret
   resources:
     requests:
       cpu: 100m
