@@ -15,3 +15,5 @@ configMapGenerator:
     files:
       - scripts/db-health.sh
       - scripts/import-workflows.sh
+      - scripts/export-workflows.sh
+      - scripts/upload-workflows.sh
