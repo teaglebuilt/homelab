@@ -80,53 +80,36 @@ spec:
             limits:
               cpu: 500m
               memory: 128Mi
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "/scripts/db-health.sh"]
+          envFrom:
+            - configMapRef:
+                name: n8n-config
+          volumeMounts:
+            - name: n8n-scripts
+              mountPath: /scripts
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
         - name: import-workflows
           image: ghcr.io/n8n-io/n8n:latest
           imagePullPolicy: IfNotPresent
-          command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              if ! find /workflow-backup -type f 2>/dev/null | head -1 | grep -q .; then
-                echo "No files in S3 backup; skipping import"
-                exit 0
-              fi
-              # postgres-rw has zero endpoints until CNPG promotes the primary;
-              # Cilium socket-LB returns EPERM on connect() in that window.
-              echo "Waiting for ${DB_POSTGRESDB_HOST}:${DB_POSTGRESDB_PORT}..."
-              attempts=0
-              until pg_isready -h "${DB_POSTGRESDB_HOST}" -p "${DB_POSTGRESDB_PORT}" -U "${DB_POSTGRESDB_USER}" -d "${DB_POSTGRESDB_DATABASE}" -t 3 >/dev/null 2>&1; do
-                attempts=$((attempts + 1))
-                if [ "$attempts" -ge 60 ]; then
-                  echo "Postgres not ready after 5 minutes; giving up"
-                  exit 1
-                fi
-                sleep 5
-              done
-              echo "Postgres is ready"
-              # Do not use --backup on the root dir: export leaves workflow *.json at the root
-              # and credentials under credentials/, so reading the root hits EISDIR on subdirs.
-              if [ -d /workflow-backup/workflows ]; then
-                echo "Importing workflows from /workflow-backup/workflows"
-                n8n import:workflow --separate --input=/workflow-backup/workflows
-              else
-                echo "Importing workflow JSON files from /workflow-backup"
-                wf_count=0
-                set +e
-                for f in /workflow-backup/*.json; do
-                  [ -f "$f" ] || continue
-                  if n8n import:workflow --input="$f"; then
-                    wf_count=$((wf_count + 1))
-                  fi
-                done
-                set -e
-                echo "Imported ${wf_count} workflow file(s)"
-              fi
-              if [ -d /workflow-backup/credentials ]; then
-                echo "Importing credentials from /workflow-backup/credentials"
-                n8n import:credentials --separate --input=/workflow-backup/credentials
-              fi
+          command: ["/bin/sh", "/scripts/import-workflows.sh"]
           envFrom:
             - configMapRef:
                 name: n8n-config
@@ -148,6 +131,9 @@ spec:
           volumeMounts:
             - name: workflow-backup
               mountPath: /workflow-backup
+              readOnly: true
+            - name: n8n-scripts
+              mountPath: /scripts
               readOnly: true
           securityContext:
             allowPrivilegeEscalation: false
@@ -264,3 +250,6 @@ spec:
           emptyDir: {}
         - name: workflow-backup
           emptyDir: {}
+        - name: n8n-scripts
+          configMap:
+            name: n8n-scripts

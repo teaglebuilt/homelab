@@ -7,10 +7,6 @@ resources:
   - nim-pvc.yaml
   - backend.yaml
   - nim-httproute.yaml
-  - litellm-configmap.yaml
-  - litellm-deployment.yaml
-  - litellm-service.yaml
-  - litellm-httproute.yaml
   - models
 generators:
   - secrets-generator.yaml
