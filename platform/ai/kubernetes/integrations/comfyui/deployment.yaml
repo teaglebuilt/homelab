@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: comfyui
+  namespace: ai
   labels:
     app: comfyui
 spec:
@@ -16,29 +17,27 @@ spec:
         app: comfyui
     spec:
       runtimeClassName: nvidia
-
-      tolerations:
-      - key: restriction
-        operator: "Equal"
-        value: "CUDAonly"
-        effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/hostname: mlops-work-00
+        nvidia.com/gpu.present: "true"
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
-      - name: comfyui
-        image:
-        args: [ "--listen", "0.0.0.0" ]
-        imagePullPolicy: Always
-        imagePullSecrets:
-          - name: ghcr-secret
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-        ports:
-        - containerPort: 8188
-          name: comfyui
-        volumeMounts:
-        - mountPath: /usr/local/ComfyUI/models
-          name: model-folder
+        - name: comfyui
+          image: ghcr.io/nextgensolutions-llc/comfyui:test
+          imagePullPolicy: Always
+          args: ["--listen", "0.0.0.0"]
+          ports:
+            - containerPort: 8188
+              name: http
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          volumeMounts:
+            - name: model-folder
+              mountPath: /usr/local/ComfyUI/models
       volumes:
-      - name: model-folder
-        hostPath:
-          path: /usr/local/ai/models/comfyui
+        - name: model-folder
+          hostPath:
+            path: /usr/local/ai/models/comfyui
+            type: DirectoryOrCreate

@@ -16,7 +16,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /comfyui
+            value: /
       backendRefs:
-        - name: comfyui-service
+        - name: comfyui
           port: 80

@@ -6,4 +6,4 @@ resources:
   - openwebui
   - openedai-speech
   - litellm
-  # - comfyui
+  - comfyui

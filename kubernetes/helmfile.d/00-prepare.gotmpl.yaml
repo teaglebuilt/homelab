@@ -16,6 +16,14 @@ hooks:
           ../apps/secrets/aws.enc.yaml /dev/stdin | kubectl apply -f -
   - events: ["prepare"]
     showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        sops --decrypt --input-type yaml --output-type yaml \
+          ../apps/secrets/docker.enc.yaml /dev/stdin | kubectl apply -f -
+  - events: ["prepare"]
+    showlogs: true
     command: "kubectl"
     args:
       - apply
