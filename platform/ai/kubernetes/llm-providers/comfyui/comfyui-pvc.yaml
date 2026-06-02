@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: comfyui-models
+  namespace: ai
+spec:
+  storageClassName: nfs-csi
+  volumeName: comfyui-ai-storage
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Gi

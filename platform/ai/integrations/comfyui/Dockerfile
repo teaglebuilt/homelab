@@ -14,6 +14,7 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /app
 # Install Python dependencies
 RUN pip3 install --no-cache-dir torch torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install GitPython
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 

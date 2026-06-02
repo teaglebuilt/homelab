@@ -1,4 +1,5 @@
 #!/bin/sh
+
 set -e
 
 echo "Waiting for ${DB_POSTGRESDB_HOST}:${DB_POSTGRESDB_PORT}..."
