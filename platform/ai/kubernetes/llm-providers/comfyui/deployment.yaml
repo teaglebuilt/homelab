@@ -31,8 +31,8 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "2"
+              memory: 8Gi
           volumeMounts:
             - name: comfyui-data
               mountPath: /app/models
