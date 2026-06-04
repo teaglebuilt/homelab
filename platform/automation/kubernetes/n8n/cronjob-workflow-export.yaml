@@ -33,62 +33,21 @@ spec:
                 - -c
                 - |
                   set -e
-                  mkdir -p /backup
+                  mkdir -p /backup/workflows /backup/credentials
 
-                  backup_has_workflows() {
-                    find /backup -type f 2>/dev/null | head -1 | grep -q .
-                  }
+                  # `--backup` writes one file per entity as <output>/<id>.json.
+                  # Workflows and credentials go into separate subdirs so the
+                  # import-on-bootstrap script can distinguish them (n8n CLI does not).
+                  n8n export:workflow --all --backup --output=/backup/workflows
+                  n8n export:credentials --all --backup --output=/backup/credentials
 
-                  export_from_db() {
-                    n8n export:workflow --all --backup --output=/backup
-                    n8n export:credentials --all --backup --output=/backup
-                  }
-
-                  copy_sqlite_for_export() {
-                    mkdir -p /tmp/n8n-home/.n8n
-                    for f in database.sqlite database.sqlite-wal database.sqlite-shm config; do
-                      if [ -e "/home/node/.n8n/${f}" ]; then
-                        cp "/home/node/.n8n/${f}" "/tmp/n8n-home/.n8n/${f}"
-                      fi
-                    done
-                  }
-
-                  export_from_sqlite() {
-                    echo "Exporting from SQLite at /home/node/.n8n/database.sqlite"
-                    rm -rf /backup/* /tmp/n8n-home
-                    mkdir -p /backup
-                    copy_sqlite_for_export
-                    (
-                      export DB_TYPE=sqlite
-                      export N8N_USER_FOLDER=/tmp/n8n-home
-                      export N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
-                      unset DB_POSTGRESDB_HOST DB_POSTGRESDB_PORT DB_POSTGRESDB_DATABASE
-                      unset DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD DB_POSTGRESDB_SCHEMA
-                      unset DB_POSTGRESDB_SSL_ENABLED
-                      n8n export:workflow --all --backup --output=/backup
-                      n8n export:credentials --all --backup --output=/backup
-                    )
-                  }
-
-                  set +e
-                  export_from_db
-                  pg_rc=$?
-                  set -e
-
-                  if backup_has_workflows; then
-                    echo "Exported workflows from Postgres"
-                  elif [ -f /home/node/.n8n/database.sqlite ]; then
-                    echo "Postgres export empty or failed (rc=${pg_rc}); trying SQLite PVC"
-                    export_from_sqlite
-                  fi
-
-                  if backup_has_workflows; then
-                    wf_count="$(find /backup -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l | tr -d ' ')"
-                    echo "Backup ready: ${wf_count} workflow JSON file(s) in /backup"
-                  else
-                    echo "No workflows in Postgres or SQLite; nothing to back up"
+                  wf_count="$(find /backup/workflows -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l | tr -d ' ')"
+                  cred_count="$(find /backup/credentials -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l | tr -d ' ')"
+                  if [ "${wf_count}" = "0" ] && [ "${cred_count}" = "0" ]; then
+                    echo "Postgres has no workflows or credentials; nothing to back up"
                     exit 0
                   fi
+                  echo "Backup ready: ${wf_count} workflow(s), ${cred_count} credential(s) in /backup"
               envFrom:
                 - configMapRef:
                     name: n8n-config
@@ -110,9 +69,6 @@ spec:
               volumeMounts:
                 - name: backup
                   mountPath: /backup
-                - name: n8n-storage
-                  mountPath: /home/node/.n8n
-                  readOnly: true
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -195,6 +151,3 @@ spec:
           volumes:
             - name: backup
               emptyDir: {}
-            - name: n8n-storage
-              persistentVolumeClaim:
-                claimName: n8n-storage-pvc

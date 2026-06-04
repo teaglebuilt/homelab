@@ -8,12 +8,12 @@ dependencies:
   version: 0.3.2
 - name: cloudnative-pg
   repository: https://cloudnative-pg.github.io/charts
-  version: 0.22.1
+  version: 0.28.2
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
   version: 1.17.0
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
   version: 1.17.0
-digest: sha256:b0cbaa95fcf9a894c443041fe0cad37f68b932480a257cc0eedc09290a30b60e
-generated: "2026-05-19T21:00:51.159844-04:00"
+digest: sha256:ffd834d153b1647fbfe6b975fed8f8d72b2a35af7a5d4996399ea79d42e88eea
+generated: "2026-05-27T11:13:21.998221-04:00"

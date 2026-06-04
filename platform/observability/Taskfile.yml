@@ -7,11 +7,13 @@ vars:
 
 tasks:
   deploy:
+    dir: observability
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} . | kubectl apply -f -
 
   destroy:
+    dir: observability
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} . | kubectl delete -f -

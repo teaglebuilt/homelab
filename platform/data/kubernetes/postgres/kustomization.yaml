@@ -4,3 +4,11 @@ kind: Kustomization
 namespace: data
 resources:
   - cluster.yaml
+  - databases/n8n.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: automation-pg-init-sql
+    files:
+      - 001-business-licenses.sql
+      - 002-home-sales.sql

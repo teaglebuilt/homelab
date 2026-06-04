@@ -3,13 +3,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: comfyui
+  namespace: ai
   labels:
     app: comfyui
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-  - port: 80
-    name: http
-    targetPort: 8188
+    - name: http
+      port: 80
+      targetPort: 8188
   selector:
     app: comfyui

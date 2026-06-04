@@ -1,0 +1,99 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-nim
+  namespace: ai
+  labels:
+    app: litellm-nim
+    component: llm-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm-nim
+  template:
+    metadata:
+      labels:
+        app: litellm-nim
+        component: llm-proxy
+    spec:
+      # The litellm-non_root image declares "USER nobody" (a name, not a UID).
+      # Kubernetes' runAsNonRoot enforcement requires a numeric uid to verify,
+      # so we set runAsUser: 65534 (the conventional uid for "nobody") and
+      # fsGroup: 65534 so the /tmp emptyDir is writable by that user.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      # No initContainer wait: NIM can take 15-30+ min on first load. LiteLLM starts
+      # immediately and returns errors until NIM passes /v1/health/ready.
+      containers:
+        - name: litellm
+          # Pinned to a recent -stable tag that includes the OpenAI-backed
+          # /v1/messages bridge fixes. The previously pinned main-v1.65.0-stable
+          # raised "Anthropic messages provider config not found" when routing
+          # Claude Code to the NIM OpenAI backend.
+          #
+          # Use the non_root variant: the default litellm image declares
+          # USER root, which the cluster's runAsNonRoot enforcement rejects
+          # ("image has non-numeric user (root), cannot verify user is non-root").
+          image: ghcr.io/berriai/litellm-non_root:v1.83.10-stable
+          imagePullPolicy: IfNotPresent
+          env:
+            # Belt-and-suspenders: even with general_settings flag set, also
+            # honor the env var (see issue BerriAI/litellm#23841).
+            - name: LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES
+              value: "true"
+          args:
+            - --config
+            - /app/config.yaml
+            - --port
+            - "4000"
+            - --host
+            - "0.0.0.0"
+          ports:
+            - name: http
+              containerPort: 4000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: litellm-nim-config
+        - name: tmp
+          emptyDir: {}

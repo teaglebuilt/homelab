@@ -30,14 +30,17 @@ helmCharts:
       model:
         ngcAPISecret: ngc-api-secret
       terminationGracePeriodSeconds: 60
+      # mlops-work-00 has only ~15.5 GiB allocatable memory. Previous limit of
+      # 16Gi caused the kernel cgroup to OOM-kill (exit 137) during model load.
+      # Lowering ceiling to fit the node while leaving headroom for kubelet/system.
       resources:
         requests:
           cpu: "4"
-          memory: "8Gi"
+          memory: "6Gi"
           nvidia.com/gpu: 1
         limits:
           cpu: "8"
-          memory: "16Gi"
+          memory: "12Gi"
           nvidia.com/gpu: 1
       persistence:
         enabled: true
@@ -98,9 +101,13 @@ helmCharts:
         - name: PYTORCH_ALLOC_CONF
           value: "expandable_segments:True"
         - name: NIM_KV_CACHE_PERCENT
-          value: "0.80"
+          value: "0.40"
         - name: NIM_MAX_NUM_SEQS
-          value: "16"
+          value: "4"
+        # Tool calling (OpenAI tools format). MCP clients still run in Claude Code / kagent;
+        # NIM only parses tool calls in chat completions — see NVIDIA NIM tool-calling docs.
+        - name: NIM_PASSTHROUGH_ARGS
+          value: "--enable-auto-tool-choice --tool-call-parser llama3_json"
       # podAnnotations:
       #   kubernetes.io/egress-bandwidth: "1G"
       #   kubernetes.io/ingress-bandwidth: "1G"

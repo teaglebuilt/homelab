@@ -39,3 +39,8 @@ Relevant tool families:
 - `kagent-tools_cilium_*` — BPF maps, endpoint health, identities, IP cache, encryption state
 
 Prefer reading over modifying: architecture work should almost always use the `get_*`/`describe_*`/`list_*` tools. If a design decision hinges on current cluster state (node capacity, current CNI config, what charts are already installed), query it directly instead of guessing from the repo.
+
+## Homelab Tools
+
+Use `task` cli for a useful tool for debugging
+`Taskfile.yaml`

@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - openwebui
   - openedai-speech
+  # - litellm

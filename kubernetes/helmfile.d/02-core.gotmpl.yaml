@@ -39,6 +39,7 @@ releases:
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager
+    version: v1.20.2
     createNamespace: true
     needs:
       - external-dns/external-dns
@@ -77,7 +78,7 @@ releases:
   - name: cnpg
     namespace: cnpg-system
     chart: cnpg/cloudnative-pg
-    version: 0.22.1
+    version: 0.28.2
     createNamespace: true
     values:
       - nodeSelector:
@@ -86,3 +87,12 @@ releases:
           podMonitorEnabled: true
           grafanaDashboard:
             create: true
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kubectl rollout restart deployment -n cnpg-system cnpg-cloudnative-pg
+            kubectl rollout status deployment -n cnpg-system cnpg-cloudnative-pg --timeout=2m

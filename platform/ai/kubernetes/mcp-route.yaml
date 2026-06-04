@@ -9,7 +9,11 @@ spec:
   - name: ai-gateway
     namespace: ai
   rules:
-  - backendRefs:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /mcp
+    backendRefs:
     - name: mcp-backend
       group: agentgateway.dev
       kind: AgentgatewayBackend

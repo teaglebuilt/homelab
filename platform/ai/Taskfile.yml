@@ -3,7 +3,6 @@ version: 3
 
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
-  # Enforced on kubectl so Helm-inflated manifests without metadata.namespace cannot land in default.
   AI_NAMESPACE: ai
 
 tasks:
@@ -47,12 +46,12 @@ tasks:
       - install-crds
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | envsubst | kubectl apply -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | envsubst | kubectl delete -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl delete -n {{.AI_NAMESPACE}} -f -
 
   test:
     cmds:

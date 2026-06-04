@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+x-vars: &vars
+  TOKEN: $(gh auth token)
+  REGISTRY: ghcr.io/nextgensolutions-llc
+  USERNAME: teaglebuilt
+
+tasks:
+  auth:
+    cmds:
+      - echo $TOKEN | docker login ghcr.io -u {{.USERNAME}} --password-stdin
+
+  build:
+    vars:
+      IMAGE: "{{.IMAGE}}"
+    cmds:
+      - docker build -t {{.REGISTRY}}/{{.IMAGE}}:latest .
+
+  push:
+    deps:
+      - auth
+    cmds:
+      - docker push {{.REGISTRY}}/{{.IMAGE}}:latest

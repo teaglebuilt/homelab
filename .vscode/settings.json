@@ -30,9 +30,8 @@
   },
   "[shellscript]": {
     "editor.insertSpaces": true,
-    "editor.tabSize": 4,
-    "editor.detectIndentation": false,
-    "editor.defaultFormatter": ""
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false
   },
   "go-template.languages": [
     "gotmpl",

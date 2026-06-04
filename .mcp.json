@@ -2,8 +2,15 @@
   "mcpServers": {
     "homelab-kagent": {
       "type": "http",
-      "url": "http://${INTERNAL_GATEWAY_IP}/",
+      "url": "http://${AI_GATEWAY_IP}/mcp",
       "headers": {}
+    },
+    "comfyui": {
+      "command": "npx",
+      "args": ["-y", "comfyui-mcp"],
+      "env": {
+        "COMFYUI_URL": "http://comfyui.homelab.internal"
+      }
     },
     "n8n": {
       "type": "http",
