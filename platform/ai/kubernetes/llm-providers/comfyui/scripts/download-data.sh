@@ -22,6 +22,7 @@ mkdir -p \
   "${MODELS_DIR}/hypernetworks" \
   "${MODELS_DIR}/unet" \
   "${MODELS_DIR}/diffusers" \
+  "${MODELS_DIR}/diffusion_models" \
   "${MODELS_DIR}/gligen" \
   "${MODELS_DIR}/photomaker" \
   "${MODELS_DIR}/configs" \
@@ -30,30 +31,41 @@ mkdir -p \
   "${OUTPUT_DIR}" \
   "${USER_DIR}"
 
-# Idempotent download: skip if file already exists, resume if partial.
+# Skip download when dest exists and is non-empty; resume partial downloads otherwise.
+# Usage: download <url> <dest_dir> [rename_to]
 download() {
   url="$1"
   dest_dir="$2"
-  filename="$(basename "${url}")"
-  if [ -f "${dest_dir}/${filename}" ]; then
-    echo "[skip] ${dest_dir}/${filename} already present"
-  else
-    echo "[get ] ${url} -> ${dest_dir}/"
-    wget -c -q --show-progress -P "${dest_dir}" "${url}"
+  filename="${3:-$(basename "${url}")}"
+  dest="${dest_dir}/${filename}"
+
+  if [ -s "${dest}" ]; then
+    echo "[skip] ${dest} already present"
+    return 0
   fi
+
+  rm -f "${dest}"
+  echo "[get ] ${url} -> ${dest}"
+  wget -c -q --show-progress -O "${dest}" "${url}" || {
+    rm -f "${dest}"
+    echo "[err ] failed to download ${url}"
+    return 1
+  }
 }
 
+# Clone custom node only when missing; skip if already on the PVC.
 clone_node() {
   repo="$1"
   name="$(basename "${repo}" .git)"
   target="${NODES_DIR}/${name}"
-  if [ -d "${target}/.git" ]; then
-    echo "[pull] ${name}"
-    git -C "${target}" pull --ff-only || echo "[warn] pull failed for ${name}, leaving as-is"
-  else
-    echo "[git ] cloning ${repo}"
-    git clone --depth 1 "${repo}" "${target}"
+
+  if [ -d "${target}/.git" ] || [ -f "${target}/__init__.py" ]; then
+    echo "[skip] ${name} already present at ${target}"
+    return 0
   fi
+
+  echo "[git ] cloning ${repo}"
+  git clone --depth 1 "${repo}" "${target}"
 }
 
 echo "=== Checkpoints ==="
@@ -66,6 +78,14 @@ download \
 download \
   "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0.safetensors" \
   "${MODELS_DIR}/checkpoints"
+download \
+  "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16" \
+  "${MODELS_DIR}/checkpoints" \
+  "dreamshaper_8.safetensors"
+download \
+  "https://huggingface.co/Lykon/DreamShaper/resolve/main/DreamShaper_5_beta2_noVae_half_pruned.safetensors?download=true" \
+  "${MODELS_DIR}/checkpoints" \
+  "dreamshaper5.safetensors"
 
 echo "=== VAE ==="
 download \
@@ -82,5 +102,15 @@ download \
 
 echo "=== Custom nodes ==="
 clone_node "https://github.com/ltdrdata/ComfyUI-Manager"
+clone_node "https://github.com/lum3on/ComfyUI-StableAudioX"
+
+echo "=== AudioX (StableAudioX) ==="
+download \
+  "https://huggingface.co/HKUSTAudio/AudioX/resolve/main/model.ckpt" \
+  "${MODELS_DIR}/diffusion_models" \
+  "AudioX.ckpt"
+download \
+  "https://huggingface.co/HKUSTAudio/AudioX/resolve/main/config.json" \
+  "${MODELS_DIR}/diffusion_models"
 
 echo "=== Bootstrap complete ==="

@@ -23,9 +23,16 @@ spec:
         - name: ghcr-secret
       initContainers:
         - name: comfyui-downloader
-          image: ghcr.io/nextgensolutions-llc/comfyui:test
+          image: ghcr.io/nextgensolutions-llc/comfyui:latest
           imagePullPolicy: Always
           command: ["/bin/sh", "/app/scripts/download-data.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
           volumeMounts:
             - name: comfyui-data
               mountPath: /app/models
@@ -47,7 +54,7 @@ spec:
               readOnly: true
       containers:
         - name: comfyui
-          image: ghcr.io/nextgensolutions-llc/comfyui:test
+          image: ghcr.io/nextgensolutions-llc/comfyui:latest
           imagePullPolicy: Always
           workingDir: /app
           command: ["/bin/sh", "/app/scripts/start-comfyui.sh"]
@@ -55,7 +62,12 @@ spec:
             - containerPort: 8188
               name: http
           resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
             limits:
+              cpu: "4"
+              memory: 8Gi
               nvidia.com/gpu: 1
           volumeMounts:
             - name: comfyui-data

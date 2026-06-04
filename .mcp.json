@@ -5,6 +5,13 @@
       "url": "http://${AI_GATEWAY_IP}/mcp",
       "headers": {}
     },
+    "comfyui": {
+      "command": "npx",
+      "args": ["-y", "comfyui-mcp"],
+      "env": {
+        "COMFYUI_URL": "http://comfyui.homelab.internal"
+      }
+    },
     "n8n": {
       "type": "http",
       "url": "http://n8n.homelab.internal/mcp-server/http",

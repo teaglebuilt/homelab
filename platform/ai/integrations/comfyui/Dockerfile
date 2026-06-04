@@ -1,8 +1,18 @@
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
 # Install system dependencies
+# - ffmpeg, libsndfile1-dev, build-essential: required by ComfyUI-StableAudioX
+#   for video/audio I/O and native Python package builds.
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-venv git wget && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        python3-venv \
+        git \
+        wget \
+        ffmpeg \
+        libsndfile1-dev \
+        build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 # Create working directory

@@ -3,7 +3,6 @@ version: 3
 
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
-  # Enforced on kubectl so Helm-inflated manifests without metadata.namespace cannot land in default.
   AI_NAMESPACE: ai
 
 tasks:
