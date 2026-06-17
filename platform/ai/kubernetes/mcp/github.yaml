@@ -4,6 +4,8 @@ kind: MCPServer
 metadata:
   name: github-mcp-server
   namespace: ai
+  labels:
+    app: github-mcp-server
 spec:
   deployment:
     args:

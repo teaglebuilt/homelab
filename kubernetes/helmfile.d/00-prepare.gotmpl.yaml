@@ -21,7 +21,10 @@ hooks:
       - -c
       - |
         sops --decrypt --input-type yaml --output-type yaml \
-          ../apps/secrets/docker.enc.yaml /dev/stdin | kubectl apply -f -
+          ../apps/secrets/ghcr-credentials.enc.yaml /dev/stdin | kubectl apply -f -
+        kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
+        kubectl apply -f ../apps/security/secrets/create-docker-secret.yaml
+        kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
   - events: ["prepare"]
     showlogs: true
     command: "kubectl"

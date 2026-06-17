@@ -7,6 +7,7 @@ resources:
   - gateway.yaml
   - llm-providers
   - integrations
+  - mcp
   - ui-http-route.yaml
   - mcp-backend.yaml
   - mcp-route.yaml

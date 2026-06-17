@@ -11,7 +11,7 @@ generators:
 replacements:
   - source:
       kind: Secret
-      name: github-mcp-token
+      name: mcp-secrets
       fieldPath: stringData.GITHUB_PERSONAL_ACCESS_TOKEN
     targets:
       - select:

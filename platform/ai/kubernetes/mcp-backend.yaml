@@ -7,6 +7,11 @@ metadata:
 spec:
   mcp:
     targets:
+      - name: github-mcp-server
+        selector:
+          services:
+            matchLabels:
+              app: github-mcp-server
       - name: kagent-tools
         static:
           host: kagent-tools.ai.svc.cluster.local
