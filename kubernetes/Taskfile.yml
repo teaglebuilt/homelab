@@ -71,6 +71,12 @@ tasks:
     cmds:
       - make helmfile_sync
 
+  sync-ghcr-secret:
+    desc: Apply GHCR credentials and recreate the cluster-wide ghcr-secret
+    dir: kubernetes
+    cmds:
+      - bash apps/security/secrets/sync-ghcr-secret.sh
+
   wait-for-external-certificate:
     dir: kubernetes
     cmds:

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cluster-secrets
+description: Hook anchor for cluster-wide secret bootstrap jobs
+version: 0.1.0
+type: application
