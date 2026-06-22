@@ -102,18 +102,24 @@ print(response.choices[0].message.content)
 
 ### 3. Deploy NIM on Kubernetes with Helm
 
-```bash
-# Add NVIDIA Helm repository
-helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+NIM charts are distributed as OCI artifacts on `nvcr.io`, not from a classic
+HTTPS chart repo. Authenticate first, then pull/install by OCI ref:
 
-# Deploy NIM microservice
-helm install my-nim nvidia/nim \
-  --set image.repository=nvcr.io/nvidia/nim/llama-3-8b-instruct \
-  --set image.tag=latest \
-  --set replicaCount=3 \
-  --set resources.limits.nvidia.com/gpu=1
+```bash
+# Authenticate to NGC (NGC_API_KEY must be set)
+helm registry login nvcr.io -u '$oauthtoken' -p "$NGC_API_KEY"
+
+# Install a NIM chart directly from its OCI reference
+helm upgrade --install my-nim \
+  oci://nvcr.io/nim/meta/llama-3.2-3b-instruct \
+  --version <chart-version> \
+  --set image.repository=nvcr.io/nim/meta/llama-3.2-3b-instruct \
+  --set resources.limits."nvidia\.com/gpu"=1
 ```
-*Scale NIM inference across Kubernetes cluster with GPU allocation*
+
+Do NOT `helm repo add` an `https://helm.ngc.nvidia.com/...` URL — those product
+paths (e.g. `holoscan-for-media`) require per-org entitlement and return 403
+under a generic NGC key, which then breaks every subsequent `helm repo update`.
 
 ### 4. Access NIM via REST API
 

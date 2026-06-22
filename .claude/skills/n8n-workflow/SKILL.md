@@ -15,3 +15,7 @@ Pass the agent:
 - Whether this is a NEW workflow or modification of an existing one (and the ID if known)
 
 After the agent returns, surface the workflow URL and JSON path to the user.
+
+## Plugin
+
+- n8n-mcp-skills - use skills or plugin for extended information that you can use such as workflow patterns, syntax, node configuration, etc...

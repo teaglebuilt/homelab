@@ -44,3 +44,7 @@ Prefer reading over modifying: architecture work should almost always use the `g
 
 Use `task` cli for a useful tool for debugging
 `Taskfile.yaml`
+
+## Multi Agent Coordination
+
+- `kubernetes-architect`

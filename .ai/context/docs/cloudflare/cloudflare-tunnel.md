@@ -1,25 +1,74 @@
 # Cloudflare Tunnel
 
-> **Source:** https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/
+Connect your origin servers, APIs, and services to Cloudflare without a publicly routable IP address
 
-Cloudflare Tunnel provides you with a secure way to connect your resources to Cloudflare without a publicly routable IP address. With Tunnel, you do not send traffic to an external IP — instead, a lightweight daemon in your infrastructure (`cloudflared`) creates [outbound-only connections](#outbound-only-connections) to Cloudflare's global network. Cloudflare Tunnel can connect HTTP web servers, [SSH servers](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/use-cases/ssh/), [remote desktops](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/use-cases/rdp/), and other protocols safely to Cloudflare. This way, your origins can serve traffic through Cloudflare without being vulnerable to attacks that bypass Cloudflare.
+> Links below point directly to Markdown versions of each page. Any page can also be retrieved as Markdown by sending an `Accept: text/markdown` header to the page's URL without the `index.md` suffix (for example, `curl -H "Accept: text/markdown" https://developers.cloudflare.com/tunnel/`).
+>
+> For other Cloudflare products, see the [Cloudflare documentation directory](https://developers.cloudflare.com/llms.txt).
 
-Refer to our [reference architecture](https://developers.cloudflare.com/reference-architecture/architectures/sase/) for details on how to implement Cloudflare Tunnel into your existing infrastructure.
+## Overview
 
-## How it works
+- [Cloudflare Tunnel](https://developers.cloudflare.com/tunnel/index.md): Securely connect your origin servers, APIs, and services to Cloudflare with post-quantum encrypted tunnels â€” no public IPs required.
 
-`cloudflared` establishes [outbound connections](#outbound-only-connections) (tunnels) between your resources and Cloudflare's global network. Tunnels are persistent objects that route traffic to DNS records. Within the same tunnel, you can run as many `cloudflared` processes (connectors) as needed. These processes will establish connections to Cloudflare and send traffic to the nearest Cloudflare data center.
+## Setup
 
-![How an HTTP request reaches a private application connected with Cloudflare Tunnel](https://developers.cloudflare.com/_astro/handshake.eh3a-Ml1_1IcAgC.webp)
+- [Setup](https://developers.cloudflare.com/tunnel/setup/index.md): Create your first Cloudflare Tunnel and publish an application in under 5 minutes.
 
-### Outbound-only connections
+## Routing
 
-Cloudflare Tunnel uses an outbound-only connection model to enable bidirectional communication. When you install and run `cloudflared`, `cloudflared` initiates an outbound connection through your firewall from the origin to the Cloudflare global network.
+- [Routing](https://developers.cloudflare.com/tunnel/routing/index.md): Route traffic to private networks and services through Cloudflare Tunnel.
 
-Once the connection is established, traffic flows in both directions over the tunnel between your origin and Cloudflare. Most firewalls allow outbound traffic by default. `cloudflared` takes advantage of this standard by connecting out to the Cloudflare network from the server you installed `cloudflared` on. You can then configure your firewall to allow only these outbound connections and block all inbound traffic, effectively blocking access to your origin from anything other than Cloudflare. This setup ensures that all traffic to your origin is securely routed through the tunnel.
+## Configuration
 
-## Next steps
+- [Configuration](https://developers.cloudflare.com/tunnel/configuration/index.md): Configure tunnel ingress rules, origins, and protocol settings.
 
-- Create a tunnel using the [Cloudflare dashboard](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/) or [API](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel-api/).
-- [Download cloudflared](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/), the server-side daemon that connects your infrastructure to Cloudflare.
-- Review useful [Tunnel terms](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/tunnel-useful-terms/) to familiarize yourself with the concepts used in Tunnel documentation.
+## Monitoring
+
+- [Monitoring](https://developers.cloudflare.com/tunnel/monitoring/index.md): Monitor tunnel health, connectors, and connection status.
+
+## Integrations
+
+- [Integrations](https://developers.cloudflare.com/tunnel/integrations/index.md): Use Cloudflare Tunnel with Cloudflare One, Workers VPC, Load Balancing, Access, Spectrum, and other Cloudflare services.
+
+## Troubleshooting
+
+- [Troubleshooting](https://developers.cloudflare.com/tunnel/troubleshooting/index.md): Resolve common Cloudflare Tunnel connection and configuration issues.
+
+## Tutorials
+
+- [Tutorials](https://developers.cloudflare.com/tunnel/tutorials/index.md): Tutorials for Cloudflare Tunnel integrations and monitoring.
+- [Monitor Cloudflare Tunnel with Grafana](https://developers.cloudflare.com/tunnel/tutorials/grafana/index.md): This tutorial covers how to create the metrics endpoint and set up the Prometheus server.
+
+## Downloads
+
+- [Downloads](https://developers.cloudflare.com/tunnel/downloads/index.md): Download the cloudflared daemon for your operating system.
+- [System requirements](https://developers.cloudflare.com/tunnel/downloads/system-requirements/index.md): System requirements for running cloudflared.
+- [Update cloudflared](https://developers.cloudflare.com/tunnel/downloads/update-cloudflared/index.md): Update cloudflared to the latest version.
+
+## Changelog
+
+- [Changelog](https://developers.cloudflare.com/tunnel/changelog/index.md): Review recent changes to Cloudflare Tunnel.
+
+## advanced
+
+- [Granular permissions](https://developers.cloudflare.com/tunnel/advanced/granular-permissions/index.md): Scope Cloudflare member permissions to individual Cloudflare Tunnel instances.
+- [Linux](https://developers.cloudflare.com/tunnel/advanced/local-management/as-a-service/linux/index.md): Install and run cloudflared as a systemd service on Linux.
+- [macOS](https://developers.cloudflare.com/tunnel/advanced/local-management/as-a-service/macos/index.md): Install and run cloudflared as a launch agent on macOS.
+- [Windows](https://developers.cloudflare.com/tunnel/advanced/local-management/as-a-service/windows/index.md): Install and run cloudflared as a Windows service.
+- [Configuration file](https://developers.cloudflare.com/tunnel/advanced/local-management/configuration-file/index.md): Configure locally-managed tunnels with a YAML configuration file.
+- [Create a locally-managed tunnel](https://developers.cloudflare.com/tunnel/advanced/local-management/create-local-tunnel/index.md): Create and configure a locally-managed Cloudflare Tunnel.
+- [Useful terms](https://developers.cloudflare.com/tunnel/advanced/local-management/local-tunnel-terms/index.md): Key terms for working with locally-managed Cloudflare Tunnels.
+- [Tunnel permissions](https://developers.cloudflare.com/tunnel/advanced/local-management/tunnel-permissions/index.md): File and directory permissions required by cloudflared.
+- [Useful commands](https://developers.cloudflare.com/tunnel/advanced/local-management/tunnel-useful-commands/index.md): Common cloudflared commands for managing tunnels.
+- [Origin parameters](https://developers.cloudflare.com/tunnel/advanced/origin-parameters/index.md): Parameters for configuring the connection between cloudflared and your origin.
+- [Run parameters](https://developers.cloudflare.com/tunnel/advanced/run-parameters/index.md): Command-line flags for running cloudflared tunnel.
+- [Tunnel tokens](https://developers.cloudflare.com/tunnel/advanced/tunnel-tokens/index.md): Manage tunnel authentication tokens for remote and local tunnels.
+
+## deployment-guides
+
+- [Ansible](https://developers.cloudflare.com/tunnel/deployment-guides/ansible/index.md): Deploy Cloudflare Tunnel with Ansible automation.
+- [AWS](https://developers.cloudflare.com/tunnel/deployment-guides/aws/index.md): Deploy Cloudflare Tunnel on Amazon Web Services.
+- [Azure](https://developers.cloudflare.com/tunnel/deployment-guides/azure/index.md): Deploy Cloudflare Tunnel on Microsoft Azure.
+- [GCP](https://developers.cloudflare.com/tunnel/deployment-guides/google-cloud-platform/index.md): Deploy Cloudflare Tunnel on Google Cloud Platform.
+- [Kubernetes](https://developers.cloudflare.com/tunnel/deployment-guides/kubernetes/index.md): Deploy Cloudflare Tunnel on Kubernetes clusters.
+- [Terraform](https://developers.cloudflare.com/tunnel/deployment-guides/terraform/index.md): Learn how to deploy a Cloudflare Tunnel using Terraform and our lightweight server-side daemon, cloudflared.

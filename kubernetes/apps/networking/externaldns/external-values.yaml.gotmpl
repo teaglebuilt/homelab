@@ -13,7 +13,7 @@ extraArgs:
   - --zone-id-filter={{ requiredEnv "CLOUDFLARE_ZONE_ID" }}
 triggerLoopOnEvent: true
 policy: sync
-sources: ["gateway-httproute"]
+sources: ["gateway-httproute", "crd"]
 txtOwnerId: default
 txtPrefix: k8s.
 domainFilters: [{{ requiredEnv "CLOUDFLARE_DOMAIN" | quote }}]

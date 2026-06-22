@@ -7,6 +7,13 @@ cloudflare:
   ingress:
     - hostname: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
       service: https://cilium-gateway-homelab-external-gateway.kube-system.svc.cluster.local
+      originRequest:
+        noTLSVerify: true
+        originServerName: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
+    - hostname: "*.{{ requiredEnv "CLOUDFLARE_DOMAIN" }}"
+      service: https://cilium-gateway-homelab-external-gateway.kube-system.svc.cluster.local
+      originRequest:
+        noTLSVerify: true
 
 image:
   tag: "2025.11.1"

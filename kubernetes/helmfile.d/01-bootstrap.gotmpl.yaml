@@ -17,6 +17,16 @@ releases:
     namespace: kube-system
     chart: emberstack/reflector
     version: 7.1.288
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
+            kustomize build --enable-exec ../apps/security/secrets | kubectl apply -f -
+            kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
 
   - name: cilium
     namespace: kube-system
