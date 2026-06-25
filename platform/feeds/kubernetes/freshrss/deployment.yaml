@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freshrss
+  namespace: feeds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: freshrss
+  template:
+    metadata:
+      labels:
+        app: freshrss
+    spec:
+      containers:
+        - name: freshrss
+          image: freshrss/freshrss:latest
+          env:
+            - name: DB_BASE
+              value: pgsql
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: freshrss
+            - name: DB_USER
+              value: freshrss
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: TZ
+              value: America/New_York
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /var/www/FreshRSS/data
+              name: data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: freshrss-data
