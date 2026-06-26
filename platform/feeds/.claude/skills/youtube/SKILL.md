@@ -61,6 +61,24 @@ Run `scripts/generate_opml.py` to produce an OPML file importable into any RSS r
 python3 scripts/generate_opml.py [--input youtube-subscriptions.yaml] [--output youtube-subscriptions.opml]
 ```
 
+### FreshRSS (Kubernetes) integration
+
+This repo's FreshRSS deployment auto-imports YouTube subscriptions on every cluster
+spin-up. The canonical OPML for the cluster lives at
+`kubernetes/freshrss/opml/youtube-subscriptions.opml` and is bundled into the
+`freshrss-opml` ConfigMap; the FreshRSS `provision` initContainer imports every
+`*.opml` under that directory idempotently (deduped by feed URL).
+
+After editing `youtube-subscriptions.yaml`, regenerate the cluster OPML and redeploy:
+
+```bash
+task feeds:gen-opml      # regenerate kubernetes/freshrss/opml/youtube-subscriptions.opml
+task feeds:kdeploy       # rolls out FreshRSS, re-importing feeds (also runs gen-opml)
+```
+
+`task feeds:kdeploy` runs `gen-opml` automatically, so the cluster OPML always
+reflects the YAML source of truth.
+
 ### Refresh feed
 
 Re-run the RSS generation script to pull latest videos. This is what the user means by "update my rss feed".

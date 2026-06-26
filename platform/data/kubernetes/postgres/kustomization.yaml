@@ -5,6 +5,7 @@ namespace: data
 resources:
   - cluster.yaml
   - databases/n8n.yaml
+  - databases/freshrss.yaml
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:

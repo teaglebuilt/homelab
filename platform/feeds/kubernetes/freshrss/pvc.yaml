@@ -5,7 +5,7 @@ metadata:
   name: freshrss-data
   namespace: feeds
 spec:
-  storageClassName: nfs-csi
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce
   resources:

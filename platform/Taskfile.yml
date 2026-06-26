@@ -14,6 +14,8 @@ includes:
     taskfile: media/Taskfile.yml
   observability:
     taskfile: observability/Taskfile.yml
+  feeds:
+    taskfile: feeds/Taskfile.yml
 
 tasks:
   deploy:
@@ -24,14 +26,15 @@ tasks:
       - task: ai:deploy
       - task: automation:deploy
       - task: observability:deploy
+      - task: feeds:deploy
       - kubectl rollout restart deployment reflector -n kube-system
 
-  destroy:
-    dir: platform
-    summary: 'destroy all platform services running on kubernetes'
-    cmds:
-      - task: ai:destroy
-      - task: automation:destroy
+  # destroy:
+  #   dir: platform
+  #   summary: 'destroy all platform services running on kubernetes'
+  #   cmds:
+  #     - task: ai:destroy
+  #     - task: automation:destroy
 
   test:
     dir: platform

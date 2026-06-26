@@ -4,8 +4,12 @@ kind: Deployment
 metadata:
   name: freshrss
   namespace: feeds
+  labels:
+    app: freshrss
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: freshrss
@@ -14,33 +18,71 @@ spec:
       labels:
         app: freshrss
     spec:
-      containers:
-        - name: freshrss
+      initContainers:
+        - name: provision
           image: freshrss/freshrss:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "/scripts/provision.sh"]
           env:
-            - name: DB_BASE
-              value: pgsql
+            - name: DEFAULT_USER
+              value: teaglebuilt
+            - name: BASE_URL
+              value: https://feeds.homelab.internal
             - name: DB_HOST
-              value: postgres
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_NAME
+              value: postgres-rw.data.svc.cluster.local
+            - name: DB_BASE
               value: freshrss
             - name: DB_USER
-              value: freshrss
+              valueFrom:
+                secretKeyRef:
+                  name: pg-freshrss-secret
+                  key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
-                  key: POSTGRES_PASSWORD
+                  name: pg-freshrss-secret
+                  key: password
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: freshrss-admin
+                  key: admin-password
+            - name: ADMIN_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: freshrss-admin
+                  key: admin-api-password
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/FreshRSS/data
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: opml
+              mountPath: /opml
+              readOnly: true
+      containers:
+        - name: freshrss
+          image: freshrss/freshrss:latest
+          imagePullPolicy: IfNotPresent
+          env:
             - name: TZ
               value: America/New_York
+            - name: CRON_MIN
+              value: "*/20"
           ports:
             - containerPort: 80
           volumeMounts:
-            - mountPath: /var/www/FreshRSS/data
-              name: data
+            - name: data
+              mountPath: /var/www/FreshRSS/data
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: freshrss-data
+        - name: scripts
+          configMap:
+            name: freshrss-scripts
+            defaultMode: 0o555
+        - name: opml
+          configMap:
+            name: freshrss-opml

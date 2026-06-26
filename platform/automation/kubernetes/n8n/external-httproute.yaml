@@ -17,6 +17,9 @@ spec:
         - path:
             type: PathPrefix
             value: /rest/oauth2-credential/
+        - path:
+            type: PathPrefix
+            value: /rest/settings
       backendRefs:
         - name: n8n-service
           port: 443

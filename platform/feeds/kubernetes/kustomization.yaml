@@ -5,6 +5,6 @@ namespace: feeds
 resources:
   - namespace.yaml
   - freshrss
-  - http-route.yaml
-# generators:
-#   - secrets-generator.yaml
+  - httproute.yaml
+generators:
+  - secrets-generator.yaml

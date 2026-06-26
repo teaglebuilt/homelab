@@ -5,8 +5,30 @@ vars:
   TERRAFORM: tofu -chdir=terraform
 
 tasks:
-  provision:
-    dir: news
+  gen-opml:
+    dir: feeds
+    summary: 'Generate FreshRSS OPML seeds from the YouTube subscriptions source of truth'
+    cmds:
+      - |-
+        python3 .claude/skills/youtube/scripts/generate_opml.py \
+          --input youtube-subscriptions.yaml \
+          --output kubernetes/freshrss/opml/youtube-subscriptions.opml
+
+  kdeploy:
+    dir: feeds
+    deps: [gen-opml]
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | kubectl apply -f -
+
+  kdestroy:
+    dir: feeds
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | kubectl delete -f -
+
+  tdeploy:
+    dir: feeds
     cmds:
       - |-
         {{.TERRAFORM}} init --upgrade
@@ -17,8 +39,8 @@ tasks:
           -var="freshrss_default_password=$FRESHRSS_DEFAULT_PASSWORD" \
           -var="freshrss_base_url=http://freshrss.homelab.internal"
 
-  destroy:
-    dir: news
+  tdestroy:
+    dir: feeds
     cmds:
       - |-
         {{.TERRAFORM}} destroy -auto-approve \
