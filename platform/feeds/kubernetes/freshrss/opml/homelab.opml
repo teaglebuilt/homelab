@@ -1,14 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Declarative FreshRSS feed list (feeds-as-code).
-  Imported idempotently on every pod start via cli/import-for-user.php
-  (feeds are deduplicated by xmlUrl, so re-import is safe).
-
-  To add a feed: add an <outline type="rss" .../> entry under a category
-  <outline> and redeploy. To capture the current live state back into git:
-    kubectl -n feeds exec deploy/freshrss -c freshrss -- \
-      php /var/www/FreshRSS/cli/export-opml-for-user.php --user teaglebuilt
--->
 <opml xmlns:frss="https://freshrss.org/opml" version="2.0">
   <head>
     <title>FreshRSS</title>

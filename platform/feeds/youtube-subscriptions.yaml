@@ -1,7 +1,4 @@
-# YouTube Subscriptions
-# Managed by the /youtube skill
-# Each channel's RSS feed: https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}
-
+---
 feed_metadata:
   title: "My YouTube Subscriptions Feed"
   description: "Aggregated feed from YouTube channels I follow"
@@ -15,4 +12,10 @@ channels:
     handle: "@indydevdan"
     tags: [ai, software-development]
     added: "2026-02-17"
+    notes: ""
+  - name: "DuckDB"
+    channel_id: "UCQli51lMp-oW0gUHrcIj0jA"
+    handle: "@duckdb"
+    tags: [data-engineering]
+    added: "2026-06-27"
     notes: ""

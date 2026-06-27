@@ -72,12 +72,12 @@ spin-up. The canonical OPML for the cluster lives at
 After editing `youtube-subscriptions.yaml`, regenerate the cluster OPML and redeploy:
 
 ```bash
-task feeds:gen-opml      # regenerate kubernetes/freshrss/opml/youtube-subscriptions.opml
-task feeds:kdeploy       # rolls out FreshRSS, re-importing feeds (also runs gen-opml)
+task platform:feeds:kdeploy   # gen-opml + apply + rollout (re-imports feeds)
 ```
 
-`task feeds:kdeploy` runs `gen-opml` automatically, so the cluster OPML always
-reflects the YAML source of truth.
+`kdeploy` runs `gen-opml` automatically (regenerates OPML + a content checksum), applies
+manifests, and rolls the FreshRSS pod when OPML or `provision.sh` changes. The
+`provision` initContainer re-imports every `*.opml` on each pod start.
 
 ### Refresh feed
 

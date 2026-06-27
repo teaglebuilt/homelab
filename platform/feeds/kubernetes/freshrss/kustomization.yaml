@@ -6,6 +6,8 @@ resources:
   - deployment.yaml
   - service.yaml
   - pvc.yaml
+generatorOptions:
+  disableNameSuffixHash: true
 configMapGenerator:
   - name: freshrss-scripts
     files:
@@ -14,3 +16,17 @@ configMapGenerator:
     files:
       - opml/homelab.opml
       - opml/youtube-subscriptions.opml
+      - opml/.checksum
+replacements:
+  - source:
+      kind: ConfigMap
+      name: freshrss-opml
+      fieldPath: data.[.checksum]
+    targets:
+      - select:
+          kind: Deployment
+          name: freshrss
+        fieldPaths:
+          - spec.template.metadata.annotations.[checksum.opml]
+        options:
+          create: true

@@ -2,11 +2,14 @@
 <opml version="2.0">
   <head>
     <title>My YouTube Subscriptions Feed</title>
-    <dateCreated>Fri, 26 Jun 2026 22:24:43 +0000</dateCreated>
+    <dateCreated>Sat, 27 Jun 2026 18:31:10 +0000</dateCreated>
   </head>
   <body>
     <outline text="ai" title="ai">
       <outline type="rss" text="IndyDevDan" title="IndyDevDan" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UC_x36zCEGilGpB1m-V4gmjg" htmlUrl="https://www.youtube.com/channel/UC_x36zCEGilGpB1m-V4gmjg" />
+    </outline>
+    <outline text="data-engineering" title="data-engineering">
+      <outline type="rss" text="DuckDB" title="DuckDB" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCQli51lMp-oW0gUHrcIj0jA" htmlUrl="https://www.youtube.com/channel/UCQli51lMp-oW0gUHrcIj0jA" />
     </outline>
   </body>
 </opml>

@@ -6,29 +6,36 @@ vars:
 
 tasks:
   gen-opml:
-    dir: feeds
+    dir: '{{.TASKFILE_DIR}}'
     summary: 'Generate FreshRSS OPML seeds from the YouTube subscriptions source of truth'
     cmds:
       - |-
         python3 .claude/skills/youtube/scripts/generate_opml.py \
           --input youtube-subscriptions.yaml \
           --output kubernetes/freshrss/opml/youtube-subscriptions.opml
+      - |-
+        {
+          sha256sum kubernetes/freshrss/opml/*.opml
+          sha256sum kubernetes/freshrss/scripts/provision.sh
+        } | sha256sum | awk '{print $1}' > kubernetes/freshrss/opml/.checksum
 
   kdeploy:
-    dir: feeds
+    dir: '{{.TASKFILE_DIR}}'
     deps: [gen-opml]
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | kubectl apply -f -
+      - |-
+        kubectl rollout status deployment/freshrss -n feeds --timeout=180s
 
   kdestroy:
-    dir: feeds
+    dir: '{{.TASKFILE_DIR}}'
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | kubectl delete -f -
 
   tdeploy:
-    dir: feeds
+    dir: '{{.TASKFILE_DIR}}'
     cmds:
       - |-
         {{.TERRAFORM}} init --upgrade
@@ -40,7 +47,7 @@ tasks:
           -var="freshrss_base_url=http://freshrss.homelab.internal"
 
   tdestroy:
-    dir: feeds
+    dir: '{{.TASKFILE_DIR}}'
     cmds:
       - |-
         {{.TERRAFORM}} destroy -auto-approve \

@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: freshrss
+      annotations:
+        checksum.opml: placeholder
     spec:
       initContainers:
         - name: provision
