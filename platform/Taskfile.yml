@@ -16,6 +16,8 @@ includes:
     taskfile: observability/Taskfile.yml
   feeds:
     taskfile: feeds/Taskfile.yml
+  research:
+    taskfile: research/Taskfile.yml
 
 tasks:
   deploy:
@@ -27,6 +29,7 @@ tasks:
       - task: automation:deploy
       - task: observability:deploy
       - task: feeds:deploy
+      - task: research:deploy
       - kubectl rollout restart deployment reflector -n kube-system
 
   # destroy:

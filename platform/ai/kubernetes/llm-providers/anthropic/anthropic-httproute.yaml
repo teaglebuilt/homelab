@@ -16,6 +16,7 @@ spec:
       filters:
         - type: URLRewrite
           urlRewrite:
+            hostname: api.anthropic.com
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /

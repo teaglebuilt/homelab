@@ -1,16 +1,17 @@
 ---
-# AgentgatewayBackend: gateway.kgateway.dev Backend does not support spec.ai in this cluster.
 apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayBackend
 metadata:
   name: anthropic
   namespace: ai
 spec:
-  ai:
-    provider:
-      anthropic:
-        model: claude-sonnet-4-20250514
+  # Plain TLS passthrough to the Anthropic API. We intentionally do NOT use the
+  # `ai:` backend here: it parses/re-marshals the request body into agentgateway's
+  # internal LLM schema, which fails on Claude Code's native /v1/messages payloads
+  # ("missing field `type`"). Claude Code sends its own Authorization: Bearer token
+  # (ANTHROPIC_AUTH_TOKEN), so the gateway only needs to proxy + originate TLS.
+  static:
+    host: api.anthropic.com
+    port: 443
   policies:
-    auth:
-      secretRef:
-        name: anthropic-api-key
+    tls: {}

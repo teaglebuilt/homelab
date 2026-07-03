@@ -1,23 +1,31 @@
 services:
+  tor:
+    image: osminogin/tor-simple:latest
+    container_name: tor
+    restart: unless-stopped
+    networks:
+      - research
+
   searxng:
     container_name: searxng
     image: docker.io/searxng/searxng:latest
     restart: unless-stopped
+    depends_on:
+      - tor
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - ./searxng:/etc/searxng:rw
-      # - searxng-data:/var/cache/searxng:rw
+      - ./searxng:/etc/searxng:ro
     environment:
       - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
-    # networks:
-    #   - proxy
+    networks:
+      - research
     logging:
       driver: "json-file"
       options:
         max-size: "1m"
         max-file: "1"
 
-# networks:
-#   proxy:
-#     external: true
+networks:
+  research:
+    driver: bridge

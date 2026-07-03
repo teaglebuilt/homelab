@@ -20,11 +20,35 @@ Load these files from `.ai/context/docs/` based on the task at hand. Do NOT load
 |-------------|---------------|
 | Helm chart authoring | `helm/` |
 | Kustomize overlays | `kustomize/` |
-| HTTPRoute / Gateway resources | `kgateway/`, `gateway-api/` |
-| Terraform / Talos provisioning | (read existing `tf_modules/` and `kubernetes/terraform/` as reference) |
+| HTTPRoute / Gateway resources | `kgateway/` |
 | Cloudflare tunnel config | `cloudflare/` |
 | kagent / AI platform | `kagent/`, `agentgateway/` |
 | AI gateway routing | `kgateway/` (AI gateway section) |
+
+## Skill Routing
+
+Claude code skills relevant to the tools and technologies used in this repository
+
+| Task Domain | Files to Load |
+|-------------|---------------|
+| HTTPRoute / Gateway resources / KGateway | `kgateway` `agentgateway` |
+| kagent / AI Agents / Agent Harness / MCP | `kagent`, `agentgateway` |
+| AI gateway routing | `kgateway` (AI gateway section) |
+
+### AgentGateway Skill
+
+Use this skill when the user needs help with:
+- Deploying or configuring agentgateway (open-source or enterprise)
+- LLM gateway setup and multi-provider routing (OpenAI, Anthropic, Bedrock, Azure, Gemini, etc.)
+- MCP (Model Context Protocol) gateway configuration and server aggregation
+- A2A (agent-to-agent) communication patterns
+- Agentgateway security: authentication (JWT, API keys), authorization (RBAC, Cedar policies)
+- Traffic management: rate limiting, CORS, external processing, routing policies
+- Observability: OpenTelemetry integration, tracing, metrics
+- Troubleshooting agentgateway deployments or connectivity issues
+- Agent skills, MCP servers, or tool virtualization
+- Migrating from traditional API gateways to agentgateway
+- Any task involving "agentgateway", "MCP gateway", or AI agent infrastructure
 
 ## Procedures
 

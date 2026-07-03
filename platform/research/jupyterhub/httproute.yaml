@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: jupyterhub
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: jupyterhub.homelab.internal
+spec:
+  parentRefs:
+    - name: homelab-internal-gateway
+      namespace: kube-system
+  hostnames:
+    - jupyterhub.homelab.internal
+  rules:
+    - backendRefs:
+        - name: proxy-public
+          port: 80

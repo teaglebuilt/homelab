@@ -1,0 +1,93 @@
+---
+hub:
+  config:
+    JupyterHub:
+      authenticator_class: dummy
+      admin_access: true
+    Authenticator:
+      admin_users:
+        - teaglebuilt
+  extraConfig:
+    auth-password.py: |
+      import os
+      c.DummyAuthenticator.password = os.environ["DUMMY_PASSWORD"]
+    proxy-trust.py: |
+      c.JupyterHub.trusted_downstream_ips = [
+          "10.0.0.0/8",
+          "192.168.0.0/16",
+          "172.16.0.0/12",
+      ]
+  extraEnv:
+    DUMMY_PASSWORD:
+      valueFrom:
+        secretKeyRef:
+          name: jupyterhub-secrets
+          key: dummy_password
+  db:
+    type: sqlite-pvc
+    pvc:
+      storage: 2Gi
+      storageClassName: local-path
+  nodeSelector:
+    kubernetes.io/hostname: mlops-work-00
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+proxy:
+  service:
+    type: ClusterIP
+  chp:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+singleuser:
+  defaultUrl: /lab
+  storage:
+    type: dynamic
+    capacity: 10Gi
+    dynamic:
+      storageClass: nfs-csi
+      storageAccessModes:
+        - ReadWriteOnce
+  cpu:
+    guarantee: 0.1
+    limit: 2
+  memory:
+    guarantee: 512M
+    limit: 4G
+  image:
+    name: quay.io/jupyter/scipy-notebook
+    tag: "2024-10-14"
+
+scheduling:
+  userScheduler:
+    enabled: false
+  userPlaceholder:
+    enabled: false
+
+prePuller:
+  hook:
+    enabled: true
+  continuous:
+    enabled: false
+
+cull:
+  enabled: true
+  timeout: 3600
+  every: 600
+
+ingress:
+  enabled: false
+
+httpRoute:
+  enabled: false

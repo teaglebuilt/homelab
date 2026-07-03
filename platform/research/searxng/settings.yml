@@ -169,39 +169,21 @@ ui:
 #
 outgoing:
   # default timeout in seconds, can be override by engine
-  request_timeout: 3.0
+  request_timeout: 10.0
   # the maximum timeout in seconds
-  # max_request_timeout: 10.0
+  max_request_timeout: 30.0
   # suffix of searxng_useragent, could contain information like an email address
   # to the administrator
   useragent_suffix: ""
   # The maximum number of concurrent connections that may be established.
   pool_connections: 100
-  # Allow the connection pool to maintain keep-alive connections below this
-  # point.
-  pool_maxsize: 20
-  # See https://www.python-httpx.org/http2/
-  enable_http2: true
-  # uncomment below section if you want to use a custom server certificate
-  # see https://www.python-httpx.org/advanced/#changing-the-verification-defaults
-  # and https://www.python-httpx.org/compatibility/#ssl-configuration
-  #  verify: ~/.mitmproxy/mitmproxy-ca-cert.cer
-  #
-  # uncomment below section if you want to use a proxyq see: SOCKS proxies
-  #   https://2.python-requests.org/en/latest/user/advanced/#proxies
-  # are also supported: see
-  #   https://2.python-requests.org/en/latest/user/advanced/#socks
-  #
-  #  proxies:
-  #    all://:
-  #      - http://proxy1:8080
-  #      - http://proxy2:8080
-  #
-  #  using_tor_proxy: true
-  #
-  # Extra seconds to add in order to account for the time taken by the proxy
-  #
-  #  extra_proxy_timeout: 10
+  pool_maxsize: 5
+  enable_http2: false
+  proxies:
+    all://:
+      - socks5h://tor:9050
+  using_tor_proxy: true
+  extra_proxy_timeout: 10
   #
   # uncomment below section only if you have more than one network interface
   # which can be the source of outgoing search requests
@@ -245,7 +227,7 @@ plugins:
     active: false
 
   searx.plugins.tor_check.SXNGPlugin:
-    active: false
+    active: true
 
   searx.plugins.tracker_url_remover.SXNGPlugin:
     active: true
@@ -434,13 +416,11 @@ engines:
     shortcut: aps
     disabled: true
 
-  # Requires Tor
+  # Requires Tor (global outgoing.proxies); onions + general index
   - name: ahmia
     engine: ahmia
-    # Might do up to two requests to perform a search.
-    # Since Tor is already slow by nature, the timeout is set very high.
     timeout: 20.0
-    categories: onions
+    categories: [onions, general]
     enable_http: true
     shortcut: ah
 
@@ -527,9 +507,7 @@ engines:
   - name: wikipedia
     engine: wikipedia
     shortcut: wp
-    # add "list" to the array to get results in the results list
-    display_type: ["infobox"]
-    categories: [general]
+    disabled: true
 
   - name: bilibili
     engine: bilibili
@@ -810,16 +788,12 @@ engines:
   - name: wikidata
     engine: wikidata
     shortcut: wd
-    timeout: 3.0
-    weight: 2
-    # add "list" to the array to get results in the results list
-    display_type: ["infobox"]
-    tests: *tests_infobox
-    categories: [general]
+    disabled: true
 
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
+    disabled: true
 
   - name: duckduckgo images
     engine: duckduckgo_extra
@@ -1050,36 +1024,27 @@ engines:
   - name: google
     engine: google
     shortcut: go
-    # additional_tests:
-    #   android: *test_android
+    disabled: true
 
   - name: google images
     engine: google_images
     shortcut: goi
-    # additional_tests:
-    #   android: *test_android
-    #   dali:
-    #     matrix:
-    #       query: ['Dali Christ']
-    #       lang: ['en', 'de', 'fr', 'zh-CN']
-    #     result_container:
-    #       - ['one_title_contains', 'Salvador']
+    disabled: true
 
   - name: google news
     engine: google_news
     shortcut: gon
-    # additional_tests:
-    #   android: *test_android
+    disabled: true
 
   - name: google videos
     engine: google_videos
     shortcut: gov
-    # additional_tests:
-    #   android: *test_android
+    disabled: true
 
   - name: google scholar
     engine: google_scholar
     shortcut: gos
+    disabled: true
 
   - name: google play apps
     engine: google_play
@@ -1432,7 +1397,6 @@ engines:
 
   - name: mwmbl
     engine: mwmbl
-    # api_url: https://api.mwmbl.org
     shortcut: mwm
     disabled: true
 
@@ -2018,20 +1982,21 @@ engines:
     shortcut: sp
     startpage_categ: web
     categories: [general, web]
-    additional_tests:
-      rosebud: *test_rosebud
+    disabled: true
 
   - name: startpage news
     engine: startpage
     startpage_categ: news
     categories: [news, web]
     shortcut: spn
+    disabled: true
 
   - name: startpage images
     engine: startpage
     startpage_categ: images
     categories: [images, web]
     shortcut: spi
+    disabled: true
 
   - name: steam
     engine: steam
@@ -2092,7 +2057,7 @@ engines:
     shortcut: tm
     disabled: true
 
-  # Requires Tor
+  # Requires Tor (global outgoing.proxies)
   - name: torch
     engine: xpath
     paging: true
@@ -2105,6 +2070,7 @@ engines:
     categories: onions
     enable_http: true
     shortcut: tch
+    timeout: 20.0
 
   # TubeArchivist is a self-hosted Youtube archivist software.
   # https://docs.searxng.org/dev/engines/online/tubearchivist.html
@@ -2207,7 +2173,7 @@ engines:
     content_query: Snippet
     categories: [general, web]
     shortcut: wib
-    disabled: true
+    timeout: 15.0
     about:
       website: https://wiby.me/
 
@@ -2659,7 +2625,7 @@ engines:
     paging: true
     categories: [general, web]
     brave_category: search
-    # brave_spellcheck: true
+    disabled: true
 
   - name: brave.images
     engine: brave
@@ -2667,6 +2633,7 @@ engines:
     shortcut: brimg
     categories: [images, web]
     brave_category: images
+    disabled: true
 
   - name: brave.videos
     engine: brave
@@ -2674,6 +2641,7 @@ engines:
     shortcut: brvid
     categories: [videos, web]
     brave_category: videos
+    disabled: true
 
   - name: brave.news
     engine: brave
@@ -2681,6 +2649,7 @@ engines:
     shortcut: brnews
     categories: news
     brave_category: news
+    disabled: true
 
   # - name: brave.goggles
   #   engine: brave

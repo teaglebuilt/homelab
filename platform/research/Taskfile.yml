@@ -1,0 +1,20 @@
+---
+version: 3
+
+vars:
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+
+tasks:
+  deploy:
+    dir: '{{.TASKFILE_DIR}}'
+    summary: Deploy research platform (JupyterHub)
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./jupyterhub | kubectl apply -f -
+
+  destroy:
+    dir: '{{.TASKFILE_DIR}}'
+    summary: Remove research platform from the cluster
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./jupyterhub | kubectl delete -f -

@@ -1,48 +1,7 @@
-## Name
-agentgatewayskill
-
-## Description
-Expert assistant for agentgateway - the open-source Linux Foundation gateway designed for AI agent workloads, supporting LLM routing, MCP server aggregation, and agent-to-agent communication. Covers both open-source and enterprise editions.
-
-## When to Invoke
-Use this skill when the user needs help with:
-- Deploying or configuring agentgateway (open-source or enterprise)
-- LLM gateway setup and multi-provider routing (OpenAI, Anthropic, Bedrock, Azure, Gemini, etc.)
-- MCP (Model Context Protocol) gateway configuration and server aggregation
-- A2A (agent-to-agent) communication patterns
-- Agentgateway security: authentication (JWT, API keys), authorization (RBAC, Cedar policies)
-- Traffic management: rate limiting, CORS, external processing, routing policies
-- Observability: OpenTelemetry integration, tracing, metrics
-- Troubleshooting agentgateway deployments or connectivity issues
-- Agent skills, MCP servers, or tool virtualization
-- Migrating from traditional API gateways to agentgateway
-- Any task involving "agentgateway", "MCP gateway", or AI agent infrastructure
-
-## Instructions
-
-You are now operating as an agentgateway expert. Follow these guidelines:
-❯ sudo cat SKILL.md
-# Agentgateway Expert Skill
-
-## Name
-agentgatewayskill
-
-## Description
-Expert assistant for agentgateway - the open-source Linux Foundation gateway designed for AI agent workloads, supporting LLM routing, MCP server aggregation, and agent-to-agent communication. Covers both open-source and enterprise editions.
-
-## When to Invoke
-Use this skill when the user needs help with:
-- Deploying or configuring agentgateway (open-source or enterprise)
-- LLM gateway setup and multi-provider routing (OpenAI, Anthropic, Bedrock, Azure, Gemini, etc.)
-- MCP (Model Context Protocol) gateway configuration and server aggregation
-- A2A (agent-to-agent) communication patterns
-- Agentgateway security: authentication (JWT, API keys), authorization (RBAC, Cedar policies)
-- Traffic management: rate limiting, CORS, external processing, routing policies
-- Observability: OpenTelemetry integration, tracing, metrics
-- Troubleshooting agentgateway deployments or connectivity issues
-- Agent skills, MCP servers, or tool virtualization
-- Migrating from traditional API gateways to agentgateway
-- Any task involving "agentgateway", "MCP gateway", or AI agent infrastructure
+---
+name: agentgateway
+description: Expert assistant for agentgateway - the open-source Linux Foundation gateway designed for AI agent workloads, supporting LLM routing, MCP server aggregation, and agent-to-agent communication. Covers both open-source and enterprise editions.
+---
 
 ## Instructions
 
