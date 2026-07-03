@@ -31,7 +31,7 @@ releases:
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: 1.17.3
+    version: 1.18.11
     createNamespace: true
     values:
       - ../apps/networking/cilium/values.yaml
