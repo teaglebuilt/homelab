@@ -17,6 +17,10 @@ module "talos_cluster" {
     kubernetes_version  = "1.32.2"
     proxmox_cluster     = "mlops"
     logging_server      = var.graylog_ip
+    # Explicit (matches the prior Talos default). administration uses 10.245.0.0/16
+    # so pod CIDRs stay non-overlapping for ClusterMesh.
+    pod_subnet          = "10.244.0.0/16"
+    service_subnet      = "10.96.0.0/12"
   }
 
   nodes = {

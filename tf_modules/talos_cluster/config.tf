@@ -24,6 +24,8 @@ data "talos_machine_configuration" "this" {
       node_ip         = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
       cluster_name    = var.cluster.proxmox_cluster
       network_gateway = var.cluster.gateway
+      pod_subnet      = var.cluster.pod_subnet
+      service_subnet  = var.cluster.service_subnet
     }),
     file("${path.module}/patches/controlplane/api-server-access.yaml"),
     file("${path.module}/patches/local-path-storage.yaml"),

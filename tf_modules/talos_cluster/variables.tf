@@ -20,6 +20,10 @@ variable "cluster" {
     kubernetes_version  = string
     proxmox_cluster     = string
     logging_server      = string
+    # Pod/Service CIDRs must be non-overlapping across clusters for Cilium ClusterMesh.
+    # Defaults match Talos defaults so existing single-cluster behaviour is unchanged.
+    pod_subnet          = optional(string, "10.244.0.0/16")
+    service_subnet      = optional(string, "10.96.0.0/12")
   })
 }
 

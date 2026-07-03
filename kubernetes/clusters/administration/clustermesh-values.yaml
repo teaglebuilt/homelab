@@ -1,0 +1,37 @@
+# Cilium ClusterMesh overlay for the administration cluster.
+#
+# Layered ON TOP of kubernetes/apps/networking/cilium/values.yaml. Carries this
+# cluster's identity and its peering to the mlops cluster.
+#
+# NOT YET WIRED into the deploy pipeline. The administration cluster does not
+# exist in Terraform yet (see kubernetes/terraform/administration-cluster.tf —
+# gated on real node IPs / VM IDs / Proxmox host). Values validated against
+# cilium chart 1.18.11.
+
+cluster:
+  name: administration
+  id: 2
+
+# Supernet covering both pod CIDRs (mlops 10.244.0.0/16 + administration
+# 10.245.0.0/16). administration MUST be provisioned with podSubnet
+# 10.245.0.0/16 (Talos module `cluster.pod_subnet`) so CIDRs stay disjoint.
+ipv4NativeRoutingCIDR: 10.244.0.0/15
+
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    service:
+      type: LoadBalancer
+      annotations:
+        io.cilium/lb-ipam-ips: "192.168.2.248"
+    tls:
+      authMode: cluster
+      server:
+        extraDnsNames:
+          - clustermesh-administration.homelab
+  config:
+    enabled: true
+    clusters:
+      - name: mlops
+        address: "192.168.2.240"
+        port: 2379

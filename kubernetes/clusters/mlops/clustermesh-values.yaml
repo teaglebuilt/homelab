@@ -1,0 +1,44 @@
+# Cilium ClusterMesh overlay for the mlops cluster.
+#
+# Layered ON TOP of kubernetes/apps/networking/cilium/values.yaml. Carries this
+# cluster's identity and its peering to the administration cluster.
+#
+# NOT YET WIRED into the deploy pipeline — activation (helmfile environment or
+# per-cluster helmfile) is a gated step. See kubernetes/clusters/README once the
+# wiring mechanism is chosen. Values validated against cilium chart 1.18.11.
+
+cluster:
+  name: mlops
+  id: 1
+
+# Native routing across clusters: supernet covering both pod CIDRs
+# (mlops 10.244.0.0/16 + administration 10.245.0.0/16). Required so cross-cluster
+# pod traffic is treated as natively routed (not masqueraded).
+ipv4NativeRoutingCIDR: 10.244.0.0/15
+
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    service:
+      type: LoadBalancer
+      annotations:
+        # Pin the apiserver to a stable IP inside this cluster's LB-IPAM pool.
+        io.cilium/lb-ipam-ips: "192.168.2.240"
+    tls:
+      # Shared-CA trust model. The cilium-ca secret (identical in both clusters,
+      # applied from clusters/_shared/) is the trust anchor; the operator signs
+      # mesh certs from it. Do NOT use tls.auto method:helm — that mints a
+      # DIFFERENT CA per cluster and breaks mutual trust.
+      authMode: cluster
+      server:
+        extraDnsNames:
+          - clustermesh-mlops.homelab
+  # Declarative peering: list the OTHER cluster's apiserver. The operator
+  # auto-generates the cilium-clustermesh secret (remote etcd + client certs)
+  # from this + the shared CA. Replaces `cilium clustermesh connect`.
+  config:
+    enabled: true
+    clusters:
+      - name: administration
+        address: "192.168.2.248"
+        port: 2379

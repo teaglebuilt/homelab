@@ -1,0 +1,13 @@
+# mlops LB-IPAM pool. Both clusters share the 192.168.2.0/24 L2 broadcast domain,
+# so their pools MUST be disjoint or they collide on the wire.
+#
+# Replaces the shared kubernetes/apps/networking/cilium/ip-pool.yaml (proxmox-pool,
+# .12-.255) at activation. The clustermesh-apiserver pins .240 from this range.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: mlops-pool
+spec:
+  blocks:
+    - start: 192.168.2.12
+      stop: 192.168.2.240
