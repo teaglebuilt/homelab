@@ -6,5 +6,6 @@ resources:
   - anthropic-httproute.yaml
   - models/claude-3-5-sonnet.yaml
   - models/claude-4-sonnet.yaml
+  - models/claude-opus-4-5.yaml
 generators:
   - secrets-generator.yaml

@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: ai
 resources:
   - namespace.yaml
-  - gateway.yaml
+  - aigateway
   - llm-providers
   - integrations
   - mcp
@@ -51,3 +51,32 @@ helmCharts:
           model: "llama3.2"
           config:
             host: ollama.ai.svc.cluster.local:11434
+      controller:
+        substrate:
+          enabled: true
+          ateApiEndpoint: "dns:///api.ate-system.svc:443"
+          ateApiInsecure: true
+      substrateWorkerPool:
+        create: true
+      agents:
+        istio-agent:
+          enabled: false
+        argo-rollouts-agent:
+          enabled: false
+        helm-agent:
+          enabled: false
+      otel:
+        tracing:
+          enabled: false
+          exporter:
+            otlp:
+              endpoint: http://otel-collector-collector-headless.monitoring.svc.cluster.local:4317
+              timeout: 15
+              insecure: true
+        logging:
+          enabled: false
+          exporter:
+            otlp:
+              endpoint: http://otel-collector-collector-headless.monitoring.svc.cluster.local:4317
+              timeout: 15
+              insecure: true
