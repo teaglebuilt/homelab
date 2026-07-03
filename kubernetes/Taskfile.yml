@@ -106,3 +106,118 @@ tasks:
     dir: kubernetes
     cmds:
       - cp generated/kubeconfig ~/.kube/config
+
+  # ---------------------------------------------------------------------------
+  # ClusterMesh: administration cluster (pve1) + declarative Cilium mesh
+  # ---------------------------------------------------------------------------
+
+  provision-administration:
+    summary: Provision the administration Talos cluster on pve1 (separate TF root)
+    dir: kubernetes
+    env:
+      # Point Proxmox at pve1 (node one) instead of the default pve2.
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    cmds:
+      - tofu -chdir=terraform/administration init --upgrade
+      - |-
+        tofu -chdir=terraform/administration plan \
+          -var admin_k8s_api_server_ip=${ADMIN_K8S_API_SERVER_IP} \
+          -var admin_master_node_ip=${ADMIN_MASTER_NODE_IP} \
+          -var admin_worker_node_ip=${ADMIN_WORKER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var graylog_ip=${GRAYLOG_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
+      - |-
+        tofu -chdir=terraform/administration apply -auto-approve \
+          -var admin_k8s_api_server_ip=${ADMIN_K8S_API_SERVER_IP} \
+          -var admin_master_node_ip=${ADMIN_MASTER_NODE_IP} \
+          -var admin_worker_node_ip=${ADMIN_WORKER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var graylog_ip=${GRAYLOG_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
+
+  destroy-administration:
+    dir: kubernetes
+    env:
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    cmds:
+      - |-
+        tofu -chdir=terraform/administration destroy -auto-approve \
+          -var admin_k8s_api_server_ip=${ADMIN_K8S_API_SERVER_IP} \
+          -var admin_master_node_ip=${ADMIN_MASTER_NODE_IP} \
+          -var admin_worker_node_ip=${ADMIN_WORKER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var graylog_ip=${GRAYLOG_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
+
+  sync-cluster-mesh:
+    summary: Sync a cluster via its per-cluster helmfile (Cilium + ClusterMesh overlay)
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+    env:
+      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
+    cmds:
+      - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+
+  apply-shared-ca:
+    summary: Decrypt and apply the shared Cilium CA to a cluster (mesh trust anchor)
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+    env:
+      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
+    status:
+      # No-op until the encrypted CA exists (see clusters/_shared/README.md).
+      - test ! -f clusters/_shared/cilium-ca.sops.yaml
+    cmds:
+      - sops -d clusters/_shared/cilium-ca.sops.yaml | kubectl apply -f -
+
+  clustermesh-lb-cutover:
+    summary: Swap the shared LB pool for the per-cluster pool (mutates running LB-IPAM)
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+    env:
+      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
+    cmds:
+      - kubectl apply -f clusters/{{.CLUSTER}}/lb-ippool.yaml
+      # Remove the shared pool so ranges don't overlap on the shared L2.
+      - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
+
+  clustermesh-routes:
+    summary: Print per-node podCIDR -> nodeIP table for the UniFi static routes
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+    env:
+      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
+    cmds:
+      - 'echo "# {{.CLUSTER}}: dest podCIDR -> next-hop nodeIP (one route per node)"'
+      - kubectl get nodes -o jsonpath='{range .items[*]}{.spec.podCIDR}{" via "}{.status.addresses[?(@.type=="InternalIP")].address}{"  # "}{.metadata.name}{"\n"}{end}'
+
+  clustermesh-status:
+    summary: Read-only ClusterMesh health for a cluster
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+    env:
+      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
+    cmds:
+      - kubectl -n kube-system get svc clustermesh-apiserver
+      - kubectl -n kube-system get secret cilium-clustermesh --ignore-not-found
+      - kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose | grep -A6 ClusterMesh || true

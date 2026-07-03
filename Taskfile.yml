@@ -49,6 +49,40 @@ tasks:
       - task: platform:deploy
       - task: platform:test
 
+  deploy-administration-cluster:
+    summary: Standup the administration Kubernetes cluster on pve1
+    cmds:
+      - task: kubernetes:provision-administration
+      - task: kubernetes:apply-shared-ca
+        vars: { CLUSTER: administration }
+      - task: kubernetes:sync-cluster-mesh
+        vars: { CLUSTER: administration }
+
+  deploy-clustermesh:
+    summary: >-
+      Activate Cilium ClusterMesh across mlops and administration. Requires both
+      clusters up (run deploy-administration-cluster first) and the shared CA
+      generated (see kubernetes/clusters/_shared/README.md). Run the LB cutover
+      (kubernetes:clustermesh-lb-cutover CLUSTER=<name>) and apply the printed
+      UniFi routes via the network-agent to complete native cross-cluster routing.
+    cmds:
+      - task: kubernetes:apply-shared-ca
+        vars: { CLUSTER: mlops }
+      - task: kubernetes:apply-shared-ca
+        vars: { CLUSTER: administration }
+      - task: kubernetes:sync-cluster-mesh
+        vars: { CLUSTER: mlops }
+      - task: kubernetes:sync-cluster-mesh
+        vars: { CLUSTER: administration }
+      - task: kubernetes:clustermesh-routes
+        vars: { CLUSTER: mlops }
+      - task: kubernetes:clustermesh-routes
+        vars: { CLUSTER: administration }
+      - task: kubernetes:clustermesh-status
+        vars: { CLUSTER: mlops }
+      - task: kubernetes:clustermesh-status
+        vars: { CLUSTER: administration }
+
   spin-up-*:
     summary: Used for launching any platform service locally.
     vars:
