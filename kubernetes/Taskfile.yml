@@ -9,9 +9,6 @@ includes:
   gpu:
     taskfile: ".taskfiles/gpu/Taskfile.yaml"
 
-vars:
-  TERRAFORM: tofu -chdir=terraform
-
 env:
   PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
   PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
@@ -22,13 +19,13 @@ env:
   # TF_LOG: DEBUG
 
 tasks:
-  provision-cluster:
+  provision-mlops:
     dir: kubernetes
     cmds:
       - |-
-        {{.TERRAFORM}} init --upgrade
+        tofu -chdir=terraform/mlops init --upgrade
       - |-
-        {{.TERRAFORM}} plan \
+        tofu -chdir=terraform/mlops plan \
           -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var master_node_ip=${MASTER_NODE_IP} \
@@ -37,7 +34,7 @@ tasks:
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
       - |-
-        {{.TERRAFORM}} apply -auto-approve \
+        tofu -chdir=terraform/mlops apply -auto-approve \
           -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var master_node_ip=${MASTER_NODE_IP} \
@@ -46,13 +43,13 @@ tasks:
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
-  destroy-cluster:
+  destroy-mlops:
     dir: kubernetes
     cmds:
       - |-
-        {{.TERRAFORM}} init --upgrade
+        tofu -chdir=terraform/mlops init --upgrade
       - |-
-        {{.TERRAFORM}} destroy -auto-approve \
+        tofu -chdir=terraform/mlops destroy -auto-approve \
           -var k8s_api_server_ip=${MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var master_node_ip=${MASTER_NODE_IP} \
@@ -107,15 +104,10 @@ tasks:
     cmds:
       - cp generated/kubeconfig ~/.kube/config
 
-  # ---------------------------------------------------------------------------
-  # ClusterMesh: administration cluster (pve1) + declarative Cilium mesh
-  # ---------------------------------------------------------------------------
-
   provision-administration:
     summary: Provision the administration Talos cluster on pve1 (separate TF root)
     dir: kubernetes
     env:
-      # Point Proxmox at pve1 (node one) instead of the default pve2.
       PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
       PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
@@ -165,6 +157,10 @@ tasks:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
       - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+      # Apply this cluster's disjoint LB pool and retire the legacy shared pool
+      # (idempotent — safe to re-run, no-ops once cut over).
+      - kubectl apply -f clusters/{{.CLUSTER}}/lb-ippool.yaml
+      - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
 
   apply-shared-ca:
     summary: Decrypt and apply the shared Cilium CA to a cluster (mesh trust anchor)
@@ -180,20 +176,6 @@ tasks:
       - test ! -f clusters/_shared/cilium-ca.sops.yaml
     cmds:
       - sops -d clusters/_shared/cilium-ca.sops.yaml | kubectl apply -f -
-
-  clustermesh-lb-cutover:
-    summary: Swap the shared LB pool for the per-cluster pool (mutates running LB-IPAM)
-    dir: kubernetes
-    requires:
-      vars: [CLUSTER]
-    vars:
-      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
-    env:
-      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
-    cmds:
-      - kubectl apply -f clusters/{{.CLUSTER}}/lb-ippool.yaml
-      # Remove the shared pool so ranges don't overlap on the shared L2.
-      - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
 
   clustermesh-routes:
     summary: Print per-node podCIDR -> nodeIP table for the UniFi static routes

@@ -37,17 +37,24 @@ tasks:
     cmd: noop() { :; }
 
   deploy-mlops-cluster:
-    summary: Standup kubernetes cluster and platform services
+    summary: Standup the mlops kubernetes cluster and platform services
     cmds:
       - task: kubernetes:provision-cluster
       - task: kubernetes:cluster-health
         vars: { CONTROL_PLANE: $MASTER_NODE_IP}
       - task: kubernetes:bootstrap-cluster
-      - task: kubernetes:sync-cluster
+      - task: kubernetes:sync-cluster-mesh
+        vars: { CLUSTER: mlops }
       - task: kubernetes:wait-for-external-certificate
       - task: kubernetes:copy-kubeconfig
       - task: platform:deploy
       - task: platform:test
+
+  deploy-homelab:
+    cmds:
+      - task: kubernetes:provision-mlops
+      - task: kubernetes:provision-administration
+      - task: deploy-clustermesh
 
   deploy-administration-cluster:
     summary: Standup the administration Kubernetes cluster on pve1
