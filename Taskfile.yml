@@ -36,42 +36,17 @@ tasks:
     silent: true
     cmd: noop() { :; }
 
-  deploy-mlops-cluster:
-    summary: Standup the mlops kubernetes cluster and platform services
+  deploy-homelab:
     cmds:
-      - task: kubernetes:provision-cluster
-      - task: kubernetes:cluster-health
-        vars: { CONTROL_PLANE: $MASTER_NODE_IP}
-      - task: kubernetes:bootstrap-cluster
-      - task: kubernetes:sync-cluster-mesh
-        vars: { CLUSTER: mlops }
+      - task: kubernetes:provision-mlops
+      - task: kubernetes:provision-administration
+      - task: connect-clusters
       - task: kubernetes:wait-for-external-certificate
       - task: kubernetes:copy-kubeconfig
       - task: platform:deploy
       - task: platform:test
 
-  deploy-homelab:
-    cmds:
-      - task: kubernetes:provision-mlops
-      - task: kubernetes:provision-administration
-      - task: deploy-clustermesh
-
-  deploy-administration-cluster:
-    summary: Standup the administration Kubernetes cluster on pve1
-    cmds:
-      - task: kubernetes:provision-administration
-      - task: kubernetes:apply-shared-ca
-        vars: { CLUSTER: administration }
-      - task: kubernetes:sync-cluster-mesh
-        vars: { CLUSTER: administration }
-
-  deploy-clustermesh:
-    summary: >-
-      Activate Cilium ClusterMesh across mlops and administration. Requires both
-      clusters up (run deploy-administration-cluster first) and the shared CA
-      generated (see kubernetes/clusters/_shared/README.md). Run the LB cutover
-      (kubernetes:clustermesh-lb-cutover CLUSTER=<name>) and apply the printed
-      UniFi routes via the network-agent to complete native cross-cluster routing.
+  connect-clusters:
     cmds:
       - task: kubernetes:apply-shared-ca
         vars: { CLUSTER: mlops }
