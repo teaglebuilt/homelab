@@ -1,3 +1,17 @@
 ---
-bases:
-  - ../../defaults.yaml
+# mlops deploy entrypoint. Composes the staged helmfile.d/ deploys and injects
+# this cluster's ClusterMesh overlay into the cilium (bootstrap) release.
+#
+#   helmfile -f clusters/mlops/helmfile.yaml sync
+#
+# Paths in `clusterOverlay` are relative to helmfile.d/ (where the cilium release
+# is defined). Synced directly (`helmfile sync .` from kubernetes/) the overlay is
+# absent and mlops deploys exactly as before.
+helmfiles:
+  - path: ../../helmfile.d/00-prepare.gotmpl.yaml
+  - path: ../../helmfile.d/01-bootstrap.gotmpl.yaml
+    values:
+      - clusterOverlay: ../clusters/mlops/clustermesh-values.yaml
+  - path: ../../helmfile.d/02-core.gotmpl.yaml
+  - path: ../../helmfile.d/03-hardware.gotmpl.yaml
+  - path: ../../helmfile.d/04-monitoring.gotmpl.yaml

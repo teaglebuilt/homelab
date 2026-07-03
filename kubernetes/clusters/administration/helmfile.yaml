@@ -1,3 +1,14 @@
 ---
-bases:
-  - ../../defaults.yaml
+# administration deploy entrypoint. Minimal admin cluster — bootstrap networking
+# (Cilium + ClusterMesh) plus secret prep. Append 02-core/03-hardware/04-monitoring
+# stages here if the admin cluster grows to need them.
+#
+#   helmfile -f clusters/administration/helmfile.yaml sync
+#
+# Requires the administration cluster to exist (kubernetes/terraform/administration)
+# and the active kube-context to point at it.
+helmfiles:
+  - path: ../../helmfile.d/00-prepare.gotmpl.yaml
+  - path: ../../helmfile.d/01-bootstrap.gotmpl.yaml
+    values:
+      - clusterOverlay: ../clusters/administration/clustermesh-values.yaml

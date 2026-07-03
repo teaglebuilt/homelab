@@ -35,6 +35,13 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/cilium/values.yaml
+      {{- $overlay := .Values | get "clusterOverlay" "" }}
+      {{- if $overlay }}
+      # Per-cluster ClusterMesh overlay (identity + peering), injected by
+      # clusters/<name>/helmfile.yaml. Empty by default → single-cluster behaviour
+      # unchanged when synced directly from helmfile.d.
+      - {{ $overlay }}
+      {{- end }}
     hooks:
       - events: ["postsync"]
         showlogs: true
