@@ -16,17 +16,13 @@ module "talos_cluster" {
     kubernetes_version = "1.32.2"
     proxmox_cluster    = "administration"
     logging_server     = var.graylog_ip
-    # Disjoint from mlops (10.244.0.0/16) — hard requirement for ClusterMesh.
     pod_subnet         = "10.245.0.0/16"
     service_subnet     = "10.97.0.0/16"
   }
 
-  # Minimal control-plane + worker on the standalone pve1 host. VM IDs are local
-  # to pve1 so they don't collide with mlops (which lives on pve2). Adjust sizing
-  # to the admin workload once real hardware headroom is known.
   nodes = {
     "administration-ctrl-00" = {
-      host_node     = "pve1"
+      host_node     = "pve"
       machine_type  = "controlplane"
       ip            = var.admin_master_node_ip
       vm_id         = 100
@@ -35,7 +31,7 @@ module "talos_cluster" {
       ram_dedicated = 4096
     }
     "administration-work-00" = {
-      host_node     = "pve1"
+      host_node     = "pve"
       machine_type  = "worker"
       ip            = var.admin_worker_node_ip
       vm_id         = 101

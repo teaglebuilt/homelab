@@ -24,6 +24,10 @@ variable "cluster" {
     # Defaults match Talos defaults so existing single-cluster behaviour is unchanged.
     pod_subnet          = optional(string, "10.244.0.0/16")
     service_subnet      = optional(string, "10.96.0.0/12")
+    # Whether Proxmox verifies the TLS cert when downloading the Talos factory
+    # image. Default true. Set false only for a host whose Proxmox Perl HTTP client
+    # (LWP) fails verification even though the OS (curl) trusts the cert.
+    verify_image_download = optional(bool, true)
   })
 }
 
