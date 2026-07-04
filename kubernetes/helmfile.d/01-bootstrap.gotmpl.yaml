@@ -21,16 +21,16 @@ releases:
     namespace: kube-system
     chart: emberstack/reflector
     version: 7.1.288
-    hooks:
-      - events: ["postsync"]
-        showlogs: true
-        command: "bash"
-        args:
-          - -c
-          - |
-            kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
-            kustomize build --enable-exec ../apps/security/secrets | kubectl apply -f -
-            kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
+    # hooks:
+    #   - events: ["postsync"]
+    #     showlogs: true
+    #     command: "bash"
+    #     args:
+    #       - -c
+    #       - |
+    #         kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
+    #         kustomize build --enable-exec ../apps/security/secrets | kubectl apply -f -
+    #         kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
 
   - name: cilium
     namespace: kube-system
@@ -59,7 +59,16 @@ releases:
         args:
           - -c
           - |
+            set -euo pipefail
+
+            for crd in ciliuml2announcementpolicies.cilium.io ciliumloadbalancerippools.cilium.io; do
+              until kubectl get crd "$crd" >/dev/null 2>&1; do
+                echo "waiting for CRD $crd to be registered by cilium-operator..."; sleep 3
+              done
+              kubectl wait --for=condition=established --timeout=120s "crd/$crd"
+            done
             kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
+
             # This cluster's disjoint LB-IPAM pool. Co-located with Cilium (like the L2
             # announcement above) so it's applied on every cilium sync — including the
             # Phase 2 mesh-upgrade, guaranteeing clustermesh-apiserver has a pool for its
