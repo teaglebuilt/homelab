@@ -64,7 +64,10 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+      # Absolute path — helmfile chdir's into the helmfile's dir while processing, so
+      # a relative KUBECONFIG would resolve to a missing file and silently fall back to
+      # ~/.kube/config (or .envrc's KUBECONFIG=mlops), targeting the WRONG cluster.
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
@@ -82,6 +85,10 @@ tasks:
 
   wait-for-external-certificate:
     dir: kubernetes
+    # External cert lives on mlops (02-core homelab-gateway). Pin the kubeconfig so
+    # this doesn't depend on ambient KUBECONFIG / current-context.
+    env:
+      KUBECONFIG: '{{.TASKFILE_DIR}}/generated/kubeconfig'
     cmds:
       - echo "Waiting for external certificate to be ready..."
       - |
@@ -169,16 +176,13 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     preconditions:
       - sh: 'test -f clusters/_shared/cilium-ca.sops.yaml'
         msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml (see clusters/_shared/README.md) and apply it to BOTH clusters first — authMode:cluster needs it or clustermesh-apiserver never goes Ready."
     cmds:
-      # Helm UPGRADE of just the cilium release, layering the clustermesh overlay on
-      # top of identity. --selector confines the sync to cilium so the other
-      # bootstrap releases (coredns, spegel, csi-driver-nfs, ...) are not re-run.
       - helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
 
   apply-shared-ca:
@@ -187,7 +191,7 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     status:
@@ -202,7 +206,7 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
@@ -215,7 +219,10 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+      # Absolute path — helmfile chdir's into the helmfile's dir while processing, so
+      # a relative KUBECONFIG would resolve to a missing file and silently fall back to
+      # ~/.kube/config (or .envrc's KUBECONFIG=mlops), targeting the WRONG cluster.
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:

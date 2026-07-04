@@ -50,7 +50,7 @@ tasks:
       # Phase 2 — cross-cluster barrier: shared CA + ClusterMesh helm upgrade + routes.
       - task: connect-clusters
       - task: kubernetes:wait-for-external-certificate
-      - task: kubernetes:copy-kubeconfig
+      # - task: kubernetes:copy-kubeconfig
       - task: platform:deploy
       - task: platform:test
 

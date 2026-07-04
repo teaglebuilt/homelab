@@ -102,4 +102,9 @@ releases:
         args:
           - -c
           - |
-            kustomize build --enable-exec --enable-helm ../apps/storage/nfs/overlays/{{ $cluster }} | kubectl apply -f -
+            manifests=$(kustomize build --enable-exec --enable-helm ../apps/storage/nfs/overlays/{{ $cluster }})
+            if [ -n "$manifests" ]; then
+              echo "$manifests" | kubectl apply -f -
+            else
+              echo "No NFS storage resources for cluster '{{ $cluster }}' — skipping."
+            fi
