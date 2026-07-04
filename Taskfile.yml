@@ -38,24 +38,34 @@ tasks:
 
   deploy-homelab:
     cmds:
+      # Provision both Talos clusters (Terraform).
       - task: kubernetes:provision-administration
       - task: kubernetes:provision-mlops
-      - task: kubernetes:provision-administration
+      # Phase 1 — base bootstrap each cluster independently (plain Cilium + identity
+      # + LB pool). No cross-cluster deps, so neither can wedge on the other.
+      - task: kubernetes:bootstrap-cluster
+        vars: { CLUSTER: mlops }
+      - task: kubernetes:bootstrap-cluster
+        vars: { CLUSTER: administration }
+      # Phase 2 — cross-cluster barrier: shared CA + ClusterMesh helm upgrade + routes.
       - task: connect-clusters
       - task: kubernetes:wait-for-external-certificate
       - task: kubernetes:copy-kubeconfig
       - task: platform:deploy
       - task: platform:test
 
+  # Phase 2 barrier — runs only AFTER both clusters are bootstrapped and healthy.
+  # Order matters: the shared CA must exist in both clusters BEFORE the ClusterMesh
+  # helm upgrade (authMode:cluster signs mesh certs from it).
   connect-clusters:
     cmds:
       - task: kubernetes:apply-shared-ca
         vars: { CLUSTER: mlops }
       - task: kubernetes:apply-shared-ca
         vars: { CLUSTER: administration }
-      - task: kubernetes:sync-cluster-mesh
+      - task: kubernetes:mesh-upgrade
         vars: { CLUSTER: mlops }
-      - task: kubernetes:sync-cluster-mesh
+      - task: kubernetes:mesh-upgrade
         vars: { CLUSTER: administration }
       - task: kubernetes:clustermesh-routes
         vars: { CLUSTER: mlops }

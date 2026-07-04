@@ -1,0 +1,16 @@
+# Cilium IDENTITY overlay for the administration cluster (Phase 1 — base bootstrap).
+#
+# Layered ON TOP of kubernetes/apps/networking/cilium/values.yaml by
+# clusters/administration/helmfile.yaml. Carries ONLY this cluster's identity and
+# the native-routing supernet — NO ClusterMesh. Boots healthy standalone.
+#
+# ClusterMesh activation is a separate Phase 2 helm upgrade — see
+# clusters/administration/clustermesh-values.yaml.gotmpl + .../mesh.yaml.
+cluster:
+  name: administration
+  id: 2
+
+# Supernet covering both pod CIDRs (mlops 10.244.0.0/16 + administration
+# 10.245.0.0/16). administration MUST be provisioned with podSubnet 10.245.0.0/16
+# (Talos module `cluster.pod_subnet`) so CIDRs stay disjoint.
+ipv4NativeRoutingCIDR: 10.244.0.0/15

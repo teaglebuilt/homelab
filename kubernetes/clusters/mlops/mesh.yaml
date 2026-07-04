@@ -1,0 +1,16 @@
+---
+# Phase 2 — ClusterMesh activation for mlops. Re-syncs ONLY the cilium release
+# as a helm UPGRADE, layering the clustermesh overlay on top of identity. Run by
+# `task connect-clusters` AFTER both clusters are bootstrapped (Phase 1), the
+# shared CA is applied to both, and LB pools exist.
+#
+#   helmfile -f clusters/mlops/mesh.yaml sync --selector name=cilium
+#
+# The selector confines the sync to cilium so the other bootstrap releases
+# (coredns, spegel, csi-driver-nfs, ...) are not re-run.
+helmfiles:
+  - path: ../../helmfile.d/01-bootstrap.gotmpl.yaml
+    values:
+      - cluster: mlops
+      - identityOverlay: ../clusters/mlops/identity-values.yaml.gotmpl
+      - meshOverlay: ../clusters/mlops/clustermesh-values.yaml.gotmpl

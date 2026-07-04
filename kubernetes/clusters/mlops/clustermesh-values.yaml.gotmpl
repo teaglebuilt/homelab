@@ -1,21 +1,15 @@
-# Cilium ClusterMesh overlay for the mlops cluster.
+# Cilium CLUSTERMESH overlay for the mlops cluster (Phase 2 — mesh activation).
 #
-# Layered ON TOP of kubernetes/apps/networking/cilium/values.yaml. Carries this
-# cluster's identity and its peering to the administration cluster.
+# Layered ON TOP of apps/networking/cilium/values.yaml AND identity-values.yaml.gotmpl
+# by clusters/mlops/mesh.yaml, applied as a helm UPGRADE (task: connect-clusters).
 #
-# NOT YET WIRED into the deploy pipeline — activation (helmfile environment or
-# per-cluster helmfile) is a gated step. See kubernetes/clusters/README once the
-# wiring mechanism is chosen. Values validated against cilium chart 1.18.11.
-
-cluster:
-  name: mlops
-  id: 1
-
-# Native routing across clusters: supernet covering both pod CIDRs
-# (mlops 10.244.0.0/16 + administration 10.245.0.0/16). Required so cross-cluster
-# pod traffic is treated as natively routed (not masqueraded).
-ipv4NativeRoutingCIDR: 10.244.0.0/15
-
+# Prerequisites (or clustermesh-apiserver never goes Ready):
+#   1. Both clusters already bootstrapped (Phase 1) and healthy.
+#   2. Shared CA (clusters/_shared/cilium-ca.sops.yaml) applied to kube-system in
+#      BOTH clusters — authMode:cluster signs mesh certs from it.
+#   3. This cluster's LB-IPAM pool present (clusters/mlops/lb-ippool.yaml) so the
+#      apiserver LoadBalancer can pin its IP.
+# Values validated against cilium chart 1.18.11.
 clustermesh:
   useAPIServer: true
   apiserver:

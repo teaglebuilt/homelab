@@ -26,20 +26,20 @@ tasks:
         tofu -chdir=terraform/mlops init --upgrade
       - |-
         tofu -chdir=terraform/mlops plan \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+          -var k8s_api_server_ip=${MLOPS_MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var master_node_ip=${MLOPS_MASTER_NODE_IP} \
+          -var worker_one_node_ip=${MLOPS_WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${MLOPS_WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
       - |-
         tofu -chdir=terraform/mlops apply -auto-approve \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+          -var k8s_api_server_ip=${MLOPS_MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var master_node_ip=${MLOPS_MASTER_NODE_IP} \
+          -var worker_one_node_ip=${MLOPS_WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${MLOPS_WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
@@ -50,18 +50,30 @@ tasks:
         tofu -chdir=terraform/mlops init --upgrade
       - |-
         tofu -chdir=terraform/mlops destroy -auto-approve \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+          -var k8s_api_server_ip=${MLOPS_MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var master_node_ip=${MLOPS_MASTER_NODE_IP} \
+          -var worker_one_node_ip=${MLOPS_WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${MLOPS_WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
   bootstrap-cluster:
+    summary: Phase 1 — base bootstrap for a cluster (plain Cilium + identity, no mesh) and its LB-IPAM pool
     dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
+    env:
+      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
-      - make helmfile_apply
+      - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+      # This cluster's disjoint LB-IPAM pool (envsubst-templated ranges) + retire
+      # the legacy shared proxmox-pool. Needed by ANY LoadBalancer in the cluster,
+      # so it belongs in base bootstrap — not gated behind the mesh.
+      - envsubst < clusters/{{.CLUSTER}}/lb-ippool.yaml | kubectl apply -f -
+      - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
 
   sync-cluster:
     dir: kubernetes
@@ -117,8 +129,6 @@ tasks:
       - sh: '[ -n "$ADMIN_WORKER_NODE_IP" ]'
         msg: "ADMIN_WORKER_NODE_IP is not set — add it to kubernetes/.env."
     cmds:
-      # Single control-plane: the API endpoint IS the control-plane node IP,
-      # matching the mlops convention (k8s_api_server_ip=${MASTER_NODE_IP}).
       - tofu -chdir=terraform/administration init --upgrade
       - |-
         tofu -chdir=terraform/administration plan \
@@ -153,8 +163,8 @@ tasks:
           -var graylog_ip=${GRAYLOG_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
 
-  sync-cluster-mesh:
-    summary: Sync a cluster via its per-cluster helmfile (Cilium + ClusterMesh overlay)
+  mesh-upgrade:
+    summary: Phase 2 — activate ClusterMesh on a cluster (Cilium helm upgrade with the clustermesh overlay)
     dir: kubernetes
     requires:
       vars: [CLUSTER]
@@ -162,12 +172,14 @@ tasks:
       KUBECONFIG_FILE: '{{if eq .CLUSTER "administration"}}generated/administration/kubeconfig{{else}}generated/kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
+    preconditions:
+      - sh: 'test -f clusters/_shared/cilium-ca.sops.yaml'
+        msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml (see clusters/_shared/README.md) and apply it to BOTH clusters first — authMode:cluster needs it or clustermesh-apiserver never goes Ready."
     cmds:
-      - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
-      # Apply this cluster's disjoint LB pool and retire the legacy shared pool
-      # (idempotent — safe to re-run, no-ops once cut over).
-      - kubectl apply -f clusters/{{.CLUSTER}}/lb-ippool.yaml
-      - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
+      # Helm UPGRADE of just the cilium release, layering the clustermesh overlay on
+      # top of identity. --selector confines the sync to cilium so the other
+      # bootstrap releases (coredns, spegel, csi-driver-nfs, ...) are not re-run.
+      - helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
 
   apply-shared-ca:
     summary: Decrypt and apply the shared Cilium CA to a cluster (mesh trust anchor)

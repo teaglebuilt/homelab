@@ -1,22 +1,14 @@
-# Cilium ClusterMesh overlay for the administration cluster.
+# Cilium CLUSTERMESH overlay for the administration cluster (Phase 2 — activation).
 #
-# Layered ON TOP of kubernetes/apps/networking/cilium/values.yaml. Carries this
-# cluster's identity and its peering to the mlops cluster.
+# Layered ON TOP of apps/networking/cilium/values.yaml AND identity-values.yaml.gotmpl
+# by clusters/administration/mesh.yaml, applied as a helm UPGRADE (connect-clusters).
 #
-# NOT YET WIRED into the deploy pipeline. The administration cluster does not
-# exist in Terraform yet (see kubernetes/terraform/administration-cluster.tf —
-# gated on real node IPs / VM IDs / Proxmox host). Values validated against
-# cilium chart 1.18.11.
-
-cluster:
-  name: administration
-  id: 2
-
-# Supernet covering both pod CIDRs (mlops 10.244.0.0/16 + administration
-# 10.245.0.0/16). administration MUST be provisioned with podSubnet
-# 10.245.0.0/16 (Talos module `cluster.pod_subnet`) so CIDRs stay disjoint.
-ipv4NativeRoutingCIDR: 10.244.0.0/15
-
+# Prerequisites (or clustermesh-apiserver never goes Ready):
+#   1. Both clusters already bootstrapped (Phase 1) and healthy.
+#   2. Shared CA (clusters/_shared/cilium-ca.sops.yaml) applied to kube-system in
+#      BOTH clusters — authMode:cluster signs mesh certs from it.
+#   3. This cluster's LB-IPAM pool present (clusters/administration/lb-ippool.yaml).
+# Values validated against cilium chart 1.18.11.
 clustermesh:
   useAPIServer: true
   apiserver:

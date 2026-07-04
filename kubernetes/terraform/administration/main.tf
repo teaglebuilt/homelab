@@ -25,7 +25,7 @@ module "talos_cluster" {
       host_node     = "pve"
       machine_type  = "controlplane"
       ip            = var.admin_master_node_ip
-      vm_id         = 100
+      vm_id         = 500
       cpu           = 4
       disk_size     = 20
       ram_dedicated = 4096
@@ -34,7 +34,7 @@ module "talos_cluster" {
       host_node     = "pve"
       machine_type  = "worker"
       ip            = var.admin_worker_node_ip
-      vm_id         = 101
+      vm_id         = 501
       cpu           = 4
       disk_size     = 40
       ram_dedicated = 8192
