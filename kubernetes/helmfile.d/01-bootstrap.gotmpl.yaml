@@ -60,6 +60,11 @@ releases:
           - -c
           - |
             kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
+            # This cluster's disjoint LB-IPAM pool. Co-located with Cilium (like the L2
+            # announcement above) so it's applied on every cilium sync — including the
+            # Phase 2 mesh-upgrade, guaranteeing clustermesh-apiserver has a pool for its
+            # pinned IP. Ranges come from env (.envrc); envsubst renders them here.
+            envsubst < ../clusters/{{ $cluster }}/lb-ippool.yaml | kubectl apply -f -
 
   - name: coredns
     namespace: kube-system

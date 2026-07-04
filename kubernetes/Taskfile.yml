@@ -64,19 +64,40 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      # Absolute path — helmfile chdir's into the helmfile's dir while processing, so
-      # a relative KUBECONFIG would resolve to a missing file and silently fall back to
-      # ~/.kube/config (or .envrc's KUBECONFIG=mlops), targeting the WRONG cluster.
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
     env:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
+      - |
+        echo "Waiting for {{.CLUSTER}} kube-apiserver to be reachable..."
+        for i in $(seq 1 60); do
+          if kubectl get --raw='/readyz' >/dev/null 2>&1; then
+            echo "{{.CLUSTER}} API server ready."; exit 0
+          fi
+          echo "  ($i/60) not ready yet — retrying in 10s"; sleep 10
+        done
+        echo "ERROR: {{.CLUSTER}} API server not reachable after 10m" >&2; exit 1
       - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
-      # This cluster's disjoint LB-IPAM pool (envsubst-templated ranges) + retire
-      # the legacy shared proxmox-pool. Needed by ANY LoadBalancer in the cluster,
-      # so it belongs in base bootstrap — not gated behind the mesh.
-      - envsubst < clusters/{{.CLUSTER}}/lb-ippool.yaml | kubectl apply -f -
-      - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
+
+  connect-clusters:
+    dir: kubernetes
+    cmds:
+      - task: apply-shared-ca
+        vars: { CLUSTER: mlops }
+      - task: apply-shared-ca
+        vars: { CLUSTER: administration }
+      - task: mesh-upgrade
+        vars: { CLUSTER: mlops }
+      - task: mesh-upgrade
+        vars: { CLUSTER: administration }
+      - task: clustermesh-routes
+        vars: { CLUSTER: mlops }
+      - task: clustermesh-routes
+        vars: { CLUSTER: administration }
+      - task: clustermesh-status
+        vars: { CLUSTER: mlops }
+      - task: clustermesh-status
+        vars: { CLUSTER: administration }
 
   sync-cluster:
     dir: kubernetes

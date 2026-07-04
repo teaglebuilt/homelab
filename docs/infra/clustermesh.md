@@ -69,15 +69,20 @@ references a missing file).
 
 ### Step 3 — LB pool cutover
 Both clusters share the `192.168.2.0/24` L2, so the single shared
-`apps/networking/cilium/ip-pool.yaml` (proxmox-pool `.12–.255`) must be replaced by
-the disjoint per-cluster pools:
-- Remove `ip-pool.yaml` from `apps/networking/cilium/kustomization.yaml`.
-- Apply `clusters/mlops/lb-ippool.yaml` (`.200–.240`) on mlops and
-  `clusters/administration/lb-ippool.yaml` (`.241–.254`) on administration.
-  Pools start at `.200` so they never overlap the static node IPs (mlops
-  `.19/.20/.195`, admin `.6/.7`) or hosts (`.100/.101`).
-> This renames the pool CR on the running mlops cluster — do it during the mesh
-> activation window, confirming existing LoadBalancer IPs stay assigned.
+`proxmox-pool` (`.12–.255`) is replaced by the disjoint per-cluster pools:
+- `ip-pool.yaml` / `proxmox-pool` are **removed** from the repo. Each cluster's
+  `clusters/<name>/lb-ippool.yaml` (mlops `.200–.240`, admin `.241–.254`) is now
+  applied automatically by the **cilium release's postsync hook** (envsubst-rendered),
+  so it lands on every `helmfile sync`. Pools start at `.200` so they never overlap
+  the static node IPs (mlops `.19/.20/.195`, admin `.6/.7`) or hosts (`.100/.101`).
+- **One-time manual cleanup** on the running mlops cluster (nothing recreates the
+  legacy CR anymore, so this is no longer in any task):
+  ```bash
+  KUBECONFIG=kubernetes/generated/kubeconfig \
+    kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
+  ```
+> Do the cutover during the mesh activation window, confirming existing LoadBalancer
+> IPs stay assigned after `mlops-pool` takes over.
 
 ### Step 4 — Deploy the mesh (declarative, no CLI)
 Per cluster, with its kube-context active:
