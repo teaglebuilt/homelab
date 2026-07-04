@@ -38,6 +38,7 @@ tasks:
 
   deploy-homelab:
     cmds:
+      - task: kubernetes:provision-administration
       - task: kubernetes:provision-mlops
       - task: kubernetes:provision-administration
       - task: connect-clusters

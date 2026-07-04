@@ -111,11 +111,18 @@ tasks:
       PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
       PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    preconditions:
+      - sh: '[ -n "$ADMIN_MASTER_NODE_IP" ]'
+        msg: "ADMIN_MASTER_NODE_IP is not set — add ADMIN_MASTER_NODE_IP and ADMIN_WORKER_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve1). See kubernetes/clusters/administration/cluster.yaml."
+      - sh: '[ -n "$ADMIN_WORKER_NODE_IP" ]'
+        msg: "ADMIN_WORKER_NODE_IP is not set — add it to kubernetes/.env."
     cmds:
+      # Single control-plane: the API endpoint IS the control-plane node IP,
+      # matching the mlops convention (k8s_api_server_ip=${MASTER_NODE_IP}).
       - tofu -chdir=terraform/administration init --upgrade
       - |-
         tofu -chdir=terraform/administration plan \
-          -var admin_k8s_api_server_ip=${ADMIN_K8S_API_SERVER_IP} \
+          -var admin_k8s_api_server_ip=${ADMIN_MASTER_NODE_IP} \
           -var admin_master_node_ip=${ADMIN_MASTER_NODE_IP} \
           -var admin_worker_node_ip=${ADMIN_WORKER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
@@ -123,7 +130,7 @@ tasks:
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
       - |-
         tofu -chdir=terraform/administration apply -auto-approve \
-          -var admin_k8s_api_server_ip=${ADMIN_K8S_API_SERVER_IP} \
+          -var admin_k8s_api_server_ip=${ADMIN_MASTER_NODE_IP} \
           -var admin_master_node_ip=${ADMIN_MASTER_NODE_IP} \
           -var admin_worker_node_ip=${ADMIN_WORKER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
@@ -139,7 +146,7 @@ tasks:
     cmds:
       - |-
         tofu -chdir=terraform/administration destroy -auto-approve \
-          -var admin_k8s_api_server_ip=${ADMIN_K8S_API_SERVER_IP} \
+          -var admin_k8s_api_server_ip=${ADMIN_MASTER_NODE_IP} \
           -var admin_master_node_ip=${ADMIN_MASTER_NODE_IP} \
           -var admin_worker_node_ip=${ADMIN_WORKER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
