@@ -12,15 +12,16 @@ includes:
 env:
   PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
   PROXMOX_VE_PASSWORD: "{{.PROXMOX_PASSWORD}}"
-  PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
-  PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
   PROXMOX_VE_SSH_AGENT: "false"
-  PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_TWO_PRIVATE_KEY}}"
   # TF_LOG: DEBUG
 
 tasks:
   provision-mlops:
     dir: kubernetes
+    env:
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_TWO_PRIVATE_KEY}}"
     cmds:
       - |-
         tofu -chdir=terraform/mlops init --upgrade
@@ -45,6 +46,10 @@ tasks:
 
   destroy-mlops:
     dir: kubernetes
+    env:
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_TWO_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_TWO_PRIVATE_KEY}}"
     cmds:
       - |-
         tofu -chdir=terraform/mlops init --upgrade
@@ -164,9 +169,9 @@ tasks:
       KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
       - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
-      # Apply this cluster's disjoint LB pool and retire the legacy shared pool
-      # (idempotent — safe to re-run, no-ops once cut over).
-      - kubectl apply -f clusters/{{.CLUSTER}}/lb-ippool.yaml
+      # Apply this cluster's disjoint LB pool (ranges come from *_LB_POOL_* env,
+      # substituted by envsubst) and retire the legacy shared pool. Idempotent.
+      - envsubst < clusters/{{.CLUSTER}}/lb-ippool.yaml | kubectl apply -f -
       - kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
 
   apply-shared-ca:

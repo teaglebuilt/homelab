@@ -23,7 +23,7 @@ clustermesh:
       type: LoadBalancer
       annotations:
         # Pin the apiserver to a stable IP inside this cluster's LB-IPAM pool.
-        io.cilium/lb-ipam-ips: "192.168.2.240"
+        io.cilium/lb-ipam-ips: {{ requiredEnv "MLOPS_CLUSTERMESH_APISERVER_IP" | quote }}
     tls:
       # Shared-CA trust model. The cilium-ca secret (identical in both clusters,
       # applied from clusters/_shared/) is the trust anchor; the operator signs
@@ -40,5 +40,5 @@ clustermesh:
     enabled: true
     clusters:
       - name: administration
-        address: "192.168.2.248"
+        address: {{ requiredEnv "ADMIN_CLUSTERMESH_APISERVER_IP" | quote }}
         port: 2379

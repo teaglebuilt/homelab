@@ -11,5 +11,5 @@ metadata:
   name: mlops-pool
 spec:
   blocks:
-    - start: 192.168.2.200
-      stop: 192.168.2.240
+    - start: ${MLOPS_LB_POOL_START}
+      stop: ${MLOPS_LB_POOL_STOP}

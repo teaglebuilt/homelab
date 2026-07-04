@@ -11,7 +11,7 @@ helmfiles:
   - path: ../../helmfile.d/00-prepare.gotmpl.yaml
   - path: ../../helmfile.d/01-bootstrap.gotmpl.yaml
     values:
-      - clusterOverlay: ../clusters/mlops/clustermesh-values.yaml
+      - clusterOverlay: ../clusters/mlops/clustermesh-values.yaml.gotmpl
   - path: ../../helmfile.d/02-core.gotmpl.yaml
   - path: ../../helmfile.d/03-hardware.gotmpl.yaml
   - path: ../../helmfile.d/04-monitoring.gotmpl.yaml
