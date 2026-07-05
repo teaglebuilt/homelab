@@ -140,6 +140,33 @@ tasks:
     cmds:
       - cp generated/kubeconfig ~/.kube/config
 
+  merge-kubeconfig:
+    summary: Merge both cluster kubeconfigs (mlops + administration) into ~/.kube/config so kubectl/k9s can `:ctx` between admin@mlops and admin@administration
+    dir: kubernetes
+    vars:
+      MLOPS_KUBECONFIG: '{{.TASKFILE_DIR}}/generated/kubeconfig'
+      ADMIN_KUBECONFIG: '{{.TASKFILE_DIR}}/generated/administration/kubeconfig'
+    preconditions:
+      - sh: 'test -f {{.MLOPS_KUBECONFIG}}'
+        msg: "mlops kubeconfig missing at {{.MLOPS_KUBECONFIG}} — bootstrap mlops first."
+      - sh: 'test -f {{.ADMIN_KUBECONFIG}}'
+        msg: "administration kubeconfig missing at {{.ADMIN_KUBECONFIG}} — bootstrap administration first."
+    cmds:
+      - |
+        set -euo pipefail
+        dest="${KUBECONFIG_DEST:-$HOME/.kube/config}"
+        mkdir -p "$(dirname "$dest")"
+        # Put the existing config first (if present) so its current-context is kept;
+        # --flatten inlines all creds into one self-contained file.
+        sources='{{.MLOPS_KUBECONFIG}}:{{.ADMIN_KUBECONFIG}}'
+        [ -f "$dest" ] && sources="$dest:$sources"
+        tmp="$(mktemp)"
+        KUBECONFIG="$sources" kubectl config view --flatten > "$tmp"
+        mv "$tmp" "$dest"
+        chmod 600 "$dest"
+        echo "Merged admin@mlops + admin@administration into $dest"
+        KUBECONFIG="$dest" kubectl config get-contexts
+
   provision-administration:
     summary: Provision the administration Talos cluster on pve1 (separate TF root)
     dir: kubernetes

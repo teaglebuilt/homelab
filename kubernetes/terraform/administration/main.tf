@@ -28,7 +28,7 @@ module "talos_cluster" {
       vm_id         = 500
       cpu           = 4
       disk_size     = 20
-      ram_dedicated = 4096
+      ram_dedicated = 8192
     }
     "administration-work-00" = {
       host_node     = "pve"

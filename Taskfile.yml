@@ -45,6 +45,7 @@ tasks:
       - task: kubernetes:bootstrap-cluster
         vars: { CLUSTER: administration }
       - task: kubernetes:connect-clusters
+      - task: kubernetes:merge-kubeconfig
       - task: kubernetes:wait-for-external-certificate
       # - task: kubernetes:copy-kubeconfig
       # - task: platform:deploy

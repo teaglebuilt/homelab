@@ -16,3 +16,4 @@ tasks:
       - test -f clusters/_shared/cilium-ca.sops.yaml
     cmds:
       - ./create-ca.sh
+      - echo "Generated clusters/_shared/cilium-ca.sops.yaml"
