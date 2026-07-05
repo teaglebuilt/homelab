@@ -3,6 +3,9 @@
 .task
 .DS_Store
 
+# Transient plaintext CA material from `task ensure-shared-ca` (only the encrypted output is committed)
+**/clusters/_shared/.cilium-ca.plain.yaml
+
 *.crt
 *.key
 *.pem

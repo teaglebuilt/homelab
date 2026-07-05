@@ -36,7 +36,7 @@ tasks:
     silent: true
     cmd: noop() { :; }
 
-  deploy-homelab:
+  deploy-kubernetes:
     cmds:
       - task: kubernetes:provision-administration
       - task: kubernetes:provision-mlops
@@ -47,8 +47,8 @@ tasks:
       - task: kubernetes:connect-clusters
       - task: kubernetes:wait-for-external-certificate
       # - task: kubernetes:copy-kubeconfig
-      - task: platform:deploy
-      - task: platform:test
+      # - task: platform:deploy
+      # - task: platform:test
 
   spin-up-*:
     summary: Used for launching any platform service locally.
