@@ -128,3 +128,21 @@ releases:
             else
               echo "No NFS storage resources for cluster '{{ $cluster }}' — skipping."
             fi
+
+  - name: metrics-server
+    chart: metrics-server/metrics-server
+    namespace: kube-system
+    version: 3.8.3
+    values:
+      - apiService:
+          create: true
+        metrics:
+          enabled: true
+        hostNetwork:
+          enabled: true
+        args:
+          - --cert-dir=/tmp
+          - --kubelet-use-node-status-port
+          - --kubelet-insecure-tls
+          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
+          - --metric-resolution=60s
