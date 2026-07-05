@@ -65,10 +65,9 @@ tasks:
       vars: [CLUSTER]
     vars:
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
-    env:
-      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
       - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
         echo "Waiting for {{.CLUSTER}} kube-apiserver to be reachable..."
         for i in $(seq 1 60); do
           if kubectl get --raw='/readyz' >/dev/null 2>&1; then
@@ -77,13 +76,11 @@ tasks:
           echo "  ($i/60) not ready yet — retrying in 10s"; sleep 10
         done
         echo "ERROR: {{.CLUSTER}} API server not reachable after 10m" >&2; exit 1
-      - helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
 
   connect-clusters:
     dir: kubernetes
     cmds:
-      # Mint the shared mesh CA if it doesn't exist yet, so the pipeline is fully
-      # self-serve (no manual pre-step). Idempotent — reused once committed.
       - task: ensure-shared-ca
       - task: apply-shared-ca
         vars: { CLUSTER: mlops }
@@ -109,12 +106,10 @@ tasks:
 
   wait-for-external-certificate:
     dir: kubernetes
-    env:
-      KUBECONFIG: '{{.TASKFILE_DIR}}/generated/kubeconfig'
     cmds:
       - echo "Waiting for external certificate to be ready..."
       - |
-        kubectl wait certificate external-certificate \
+        KUBECONFIG='{{.TASKFILE_DIR}}/generated/kubeconfig' kubectl wait certificate external-certificate \
           -n kube-system \
           --for=condition=Ready \
           --timeout=5m
@@ -198,14 +193,13 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
+      # Inline KUBECONFIG below — `env:` can't override .envrc's KUBECONFIG (would target mlops).
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
-    env:
-      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     preconditions:
       - sh: 'test -f clusters/_shared/cilium-ca.sops.yaml'
         msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml (see clusters/_shared/README.md) and apply it to BOTH clusters first — authMode:cluster needs it or clustermesh-apiserver never goes Ready."
     cmds:
-      - helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
 
   ensure-shared-ca:
     summary: Generate the shared Cilium mesh CA (SOPS-encrypted) once if absent — trust anchor for both clusters
@@ -243,14 +237,13 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
+      # Inline KUBECONFIG below — `env:` can't override .envrc's KUBECONFIG (would target mlops).
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
-    env:
-      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     status:
       # No-op until the encrypted CA exists (see clusters/_shared/README.md).
       - test ! -f clusters/_shared/cilium-ca.sops.yaml
     cmds:
-      - sops -d clusters/_shared/cilium-ca.sops.yaml | kubectl apply -f -
+      - sops -d clusters/_shared/cilium-ca.sops.yaml | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   clustermesh-routes:
     summary: Print per-node podCIDR -> nodeIP table for the UniFi static routes
@@ -258,15 +251,14 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
+      # Inline KUBECONFIG below — `env:` can't override .envrc's KUBECONFIG (would target mlops).
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
-    env:
-      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
       - 'echo "# {{.CLUSTER}}: dest podCIDR -> next-hop nodeIP (one route per node)"'
       # Literal block scalar (|-): the jsonpath contains " # " which YAML would otherwise
       # treat as a comment and truncate the command (dropping the closing quote).
       - |-
-        kubectl get nodes -o jsonpath='{range .items[*]}{.spec.podCIDR}{" via "}{.status.addresses[?(@.type=="InternalIP")].address}{"  # "}{.metadata.name}{"\n"}{end}'
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl get nodes -o jsonpath='{range .items[*]}{.spec.podCIDR}{" via "}{.status.addresses[?(@.type=="InternalIP")].address}{"  # "}{.metadata.name}{"\n"}{end}'
 
   clustermesh-status:
     summary: Read-only ClusterMesh health for a cluster
@@ -274,13 +266,11 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      # Absolute path — helmfile chdir's into the helmfile's dir while processing, so
-      # a relative KUBECONFIG would resolve to a missing file and silently fall back to
-      # ~/.kube/config (or .envrc's KUBECONFIG=mlops), targeting the WRONG cluster.
+      # Inline KUBECONFIG below — `env:` can't override .envrc's KUBECONFIG (would target mlops).
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "administration"}}administration/kubeconfig{{else}}kubeconfig{{end}}'
-    env:
-      KUBECONFIG: '{{.KUBECONFIG_FILE}}'
     cmds:
-      - kubectl -n kube-system get svc clustermesh-apiserver
-      - kubectl -n kube-system get secret cilium-clustermesh --ignore-not-found
-      - kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose | grep -A6 ClusterMesh || true
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        kubectl -n kube-system get svc clustermesh-apiserver
+        kubectl -n kube-system get secret cilium-clustermesh --ignore-not-found
+        kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose | grep -A6 ClusterMesh || true

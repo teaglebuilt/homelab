@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+x-vars: &vars
+  CLUSTER_DIR: "{{.CLUSTER_DIR}}"
+  CONTROLLER:
+    sh: talosctl config info --output json | jq --raw-output '.endpoints[]' | shuf -n 1
+
+tasks:
+  ensure-shared-ca:
+    summary: Generate the shared Cilium mesh CA (SOPS-encrypted) once if absent — trust anchor for both clusters
+    status:
+      # Idempotent: only mint if it doesn't exist. Commit the generated file so the
+      # SAME CA is reused across runs (regenerating would re-key the whole mesh).
+      - test -f clusters/_shared/cilium-ca.sops.yaml
+    cmds:
+      - ./create-ca.sh

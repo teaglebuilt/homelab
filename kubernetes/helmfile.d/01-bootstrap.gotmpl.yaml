@@ -82,6 +82,12 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/coredns/values.yaml
+      # The kube-dns service IP MUST match Talos' kubelet clusterDNS = 10th IP of the
+      # cluster's service subnet, or DNS breaks. mlops service CIDR is 10.96.0.0/12
+      # (→ 10.96.0.10, the base values default); administration is 10.97.0.0/16
+      # (→ 10.97.0.10). Override per cluster.
+      - service:
+          clusterIP: {{ if eq $cluster "administration" }}"10.97.0.10"{{ else }}"10.96.0.10"{{ end }}
     needs:
       - kube-system/cilium
 
