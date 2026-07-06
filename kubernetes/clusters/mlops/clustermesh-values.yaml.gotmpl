@@ -41,6 +41,6 @@ clustermesh:
   config:
     enabled: true
     clusters:
-      - name: administration
-        address: {{ requiredEnv "ADMIN_CLUSTERMESH_APISERVER_IP" | quote }}
+      - name: application
+        address: {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
         port: 2379

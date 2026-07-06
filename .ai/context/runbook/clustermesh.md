@@ -1,6 +1,6 @@
 # Declarative Cilium ClusterMesh Runbook (PR 2)
 
-Two-cluster mesh: **mlops** (pve2, id 1, pods `10.244.0.0/16`) ↔ **administration**
+Two-cluster mesh: **mlops** (pve2, id 1, pods `10.244.0.0/16`) ↔ **application**
 (pve1, id 2, pods `10.245.0.0/16`). Native routing (no tunnel), apiserver exposed
 via L2/LB-IPAM, service discovery via Cilium global-service annotations. No
 `cilium clustermesh` CLI — peering is declarative Helm.
@@ -31,21 +31,21 @@ that fails fast if `clusters/_shared/cilium-ca.sops.yaml` is missing.
 |---|---|---|
 | Talos CIDR param | `tf_modules/talos_cluster/{variables,config}.tf`, `templates/controlplane.yaml.tftpl` | ✅ merged, `terraform validate` ✅, mlops behaviour unchanged |
 | mlops explicit CIDR | `kubernetes/terraform/mlops-cluster.tf` | ✅ `10.244.0.0/16` |
-| administration cluster | `kubernetes/terraform/administration/` (separate root) | ✅ `terraform validate` ✅, needs real IP vars to apply |
-| Cilium overlays | `kubernetes/clusters/{mlops,administration}/clustermesh-values.yaml` | ✅ render clean vs chart 1.18.11 |
-| LB pools | `kubernetes/clusters/{mlops,administration}/lb-ippool.yaml` | ✅ staged (not yet in kustomize) |
-| Per-cluster deploy | `kubernetes/clusters/{mlops,administration}/helmfile.yaml` | ✅ overlay injection validated |
+| application cluster | `kubernetes/terraform/application/` (separate root) | ✅ `terraform validate` ✅, needs real IP vars to apply |
+| Cilium overlays | `kubernetes/clusters/{mlops,application}/clustermesh-values.yaml` | ✅ render clean vs chart 1.18.11 |
+| LB pools | `kubernetes/clusters/{mlops,application}/lb-ippool.yaml` | ✅ staged (not yet in kustomize) |
+| Per-cluster deploy | `kubernetes/clusters/{mlops,application}/helmfile.yaml` | ✅ overlay injection validated |
 | Overlay injection | `kubernetes/helmfile.d/01-bootstrap.gotmpl.yaml` (`clusterOverlay` conditional) | ✅ backward-compatible |
 | Shared CA procedure | `kubernetes/clusters/_shared/README.md` | ✅ documented |
-| Identity docs | `kubernetes/clusters/{mlops,administration}/cluster.yaml` | ✅ |
+| Identity docs | `kubernetes/clusters/{mlops,application}/cluster.yaml` | ✅ |
 
 ## Activation sequence (gated — do in order)
 
-### Step 1 — Provision administration (pve1)
+### Step 1 — Provision application (pve1)
 Fill real values and apply the separate root. Point Proxmox env at **pve1**
 (`PROXMOX_VE_ENDPOINT=https://<pve1-ip>:8006`, pve1 API token / SSH key):
 ```bash
-cd kubernetes/terraform/administration
+cd kubernetes/terraform/application
 terraform init
 terraform apply \
   -var admin_k8s_api_server_ip=<ADMIN_API_IP> \
@@ -56,7 +56,7 @@ terraform apply \
   -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY
 ```
 Talos applies `podSubnets: 10.245.0.0/16` — disjoint from mlops. Kubeconfig lands in
-`kubernetes/generated/administration/kubeconfig`.
+`kubernetes/generated/application/kubeconfig`.
 > A dedicated Taskfile task (mirroring `provision-cluster` but with pve1 env) is the
 > clean home for this — not yet added.
 
@@ -88,7 +88,7 @@ Both clusters share the `192.168.2.0/24` L2, so the single shared
 Per cluster, with its kube-context active:
 ```bash
 helmfile -f kubernetes/clusters/mlops/helmfile.yaml sync           # mlops
-helmfile -f kubernetes/clusters/administration/helmfile.yaml sync  # administration
+helmfile -f kubernetes/clusters/application/helmfile.yaml sync  # application
 ```
 The overlay enables `clustermesh.useAPIServer`, the LoadBalancer apiserver (pinned
 `.240` / `.248`), `authMode: cluster` (shared-CA trust), and declares the peer under
@@ -127,7 +127,7 @@ metadata:
 ```
 
 ## Prerequisite invariants (verify before Step 4)
-- **Pod CIDRs disjoint**: mlops `10.244.0.0/16`, administration `10.245.0.0/16`. ✅ enforced in TF.
-- **Cluster IDs unique**: mlops `1`, administration `2`. ✅ in overlays.
+- **Pod CIDRs disjoint**: mlops `10.244.0.0/16`, application `10.245.0.0/16`. ✅ enforced in TF.
+- **Cluster IDs unique**: mlops `1`, application `2`. ✅ in overlays.
 - **Shared CA** present in both clusters (Step 2).
 - **LB pools disjoint** on the shared L2 (Step 3).

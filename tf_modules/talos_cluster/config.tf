@@ -22,7 +22,7 @@ data "talos_machine_configuration" "this" {
       hostname        = each.key
       node_name       = each.value.host_node
       node_ip         = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
-      cluster_name    = var.cluster.proxmox_cluster
+      cluster_name    = var.cluster.cluster_name
       network_gateway = var.cluster.gateway
       pod_subnet      = var.cluster.pod_subnet
       service_subnet  = var.cluster.service_subnet
@@ -39,7 +39,7 @@ data "talos_machine_configuration" "this" {
       hostname        = each.key
       node_name       = each.value.host_node
       node_ip         = each.value.ip
-      cluster_name    = var.cluster.proxmox_cluster
+      cluster_name    = var.cluster.cluster_name
       network_gateway = var.cluster.gateway
     }),
     file("${path.module}/patches/local-path-storage.yaml"),

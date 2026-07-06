@@ -1,8 +1,4 @@
 ---
-# administration is a minimal cluster and does NOT consume the NFS share on
-# unas.internal — its default StorageClass is local-path (from apps/storage/local,
-# applied in 00-prepare). Intentionally empty: the csi-driver-nfs release still
-# installs the driver, but no nfs-csi StorageClass is created here.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources: []

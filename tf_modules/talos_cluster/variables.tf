@@ -18,7 +18,7 @@ variable "cluster" {
     gateway             = string
     talos_version       = string
     kubernetes_version  = string
-    proxmox_cluster     = string
+    cluster_name        = string
     logging_server      = string
     # Pod/Service CIDRs must be non-overlapping across clusters for Cilium ClusterMesh.
     # Defaults match Talos defaults so existing single-cluster behaviour is unchanged.

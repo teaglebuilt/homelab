@@ -93,5 +93,5 @@ task kubernetes:sync-cluster            # runs helmfile sync for the active kube
 ## Next
 
 PR 2 — declarative ClusterMesh — depends on this landing and validating. Its first work item is
-standing up the `administration` cluster in Terraform with a distinct PodCIDR (`10.245.0.0/16`),
+standing up the `application` cluster in Terraform with a distinct PodCIDR (`10.245.0.0/16`),
 since the repo is single-cluster today.

@@ -8,7 +8,7 @@ Monorepo managing a self-hosted homelab: bare-metal Kubernetes clusters on Proxm
 
 ```
 kubernetes/           # K8s cluster management
-  clusters/           # Cluster definitions: mlops, administration
+  clusters/           # Cluster definitions: mlops, application
   helmfile.d/         # Staged Helmfile deploys: 00-prepare -> 01-bootstrap -> 02-core -> 03-hardware -> 04-monitoring
   charts/             # Custom charts (homelab-gateway wraps kgateway v2.2.1)
   apps/               # Per-app configs: networking/, security/, storage/, gitops/, hardware/, monitoring/

@@ -9,19 +9,19 @@ module "talos_cluster" {
   }
 
   cluster = {
-    name               = "administration"
+    name               = "application"
     endpoint           = var.admin_k8s_api_server_ip
     gateway            = var.network_gateway
     talos_version      = "v1.11.5"
     kubernetes_version = "1.32.2"
-    proxmox_cluster    = "administration"
+    cluster_name       = "application"
     logging_server     = var.graylog_ip
     pod_subnet         = "10.245.0.0/16"
     service_subnet     = "10.97.0.0/16"
   }
 
   nodes = {
-    "administration-ctrl-00" = {
+    "application-ctrl-00" = {
       host_node     = "pve"
       machine_type  = "controlplane"
       ip            = var.admin_master_node_ip
@@ -30,7 +30,7 @@ module "talos_cluster" {
       disk_size     = 20
       ram_dedicated = 8192
     }
-    "administration-work-00" = {
+    "application-work-00" = {
       host_node     = "pve"
       machine_type  = "worker"
       ip            = var.admin_worker_node_ip

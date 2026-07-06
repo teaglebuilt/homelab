@@ -1,0 +1,7 @@
+---
+helmfiles:
+  - path: ../../helmfile.d/00-prepare.gotmpl.yaml
+  - path: ../../helmfile.d/01-bootstrap.gotmpl.yaml
+    values:
+      - cluster: application
+      - identityOverlay: ../clusters/application/identity-values.yaml.gotmpl

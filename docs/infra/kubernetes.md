@@ -8,7 +8,7 @@
 
 * **CNI**
     - [Cilium](https://docs.cilium.io/en/stable/index.html)
-        - [ClusterMesh](https://cilium.io/use-cases/cluster-mesh/) - used for establishing inter-cluster networking between `administration` and `mlops`.
+        - [ClusterMesh](https://cilium.io/use-cases/cluster-mesh/) - used for establishing inter-cluster networking between `application` and `mlops`.
 
 * **DNS**
     - [CoreDNS](https://coredns.io/manual/toc/) - Originally custom CoreDNS configurations were required when running ClusterMesh. Need to consider if this is still necessary now that Cilium created the `mcsapi` which handles resolving DNS for services when ClusterMesh is enabled.
@@ -78,7 +78,7 @@ Using [MCS API](https://docs.cilium.io/en/latest/network/clustermesh/mcsapi/):
          |                                   |
    Proxmox Host(s)                       Proxmox Host(s)
          |                                   |
-   Talos Cluster: mlops               Talos Cluster: administration
+   Talos Cluster: mlops               Talos Cluster: application
    (AI workloads)                     (platform/ops)
          |                                   |
    +-----+-------------------+         +-----+-------------------+
@@ -102,15 +102,15 @@ Using [MCS API](https://docs.cilium.io/en/latest/network/clustermesh/mcsapi/):
 
 ## Clusters
 
-Cilium ClusterMesh is used for multi-cluster networking. The `administration cluster` is responsible for GitOps operations and cluster management using ApplicationSets in Argo CD.
+Cilium ClusterMesh is used for multi-cluster networking. The `application cluster` is responsible for GitOps operations and cluster management using ApplicationSets in Argo CD.
 
-### Administration Cluster
+### Application Cluster
 
 | Node | Role |
 |------|------|
-| `admin-ctrl-00` | Control Plane |
-| `admin-work-00` | Worker |
-| `admin-work-01` | Worker |
+| `app-ctrl-00` | Control Plane |
+| `app-work-00` | Worker |
+| `app-work-01` | Worker |
 
 ### MLOps Cluster
 

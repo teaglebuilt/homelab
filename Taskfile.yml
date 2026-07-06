@@ -38,15 +38,15 @@ tasks:
 
   deploy-kubernetes:
     cmds:
-      - task: kubernetes:provision-administration
+      - task: kubernetes:provision-application
       - task: kubernetes:provision-mlops
       - task: kubernetes:bootstrap-cluster
         vars: { CLUSTER: mlops }
       - task: kubernetes:bootstrap-cluster
-        vars: { CLUSTER: administration }
+        vars: { CLUSTER: application }
       - task: kubernetes:connect-clusters
       - task: kubernetes:merge-kubeconfig
-      - task: kubernetes:wait-for-external-certificate
+      # - task: kubernetes:wait-for-external-certificate
       # - task: kubernetes:copy-kubeconfig
       # - task: platform:deploy
       # - task: platform:test
