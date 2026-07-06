@@ -144,7 +144,7 @@ logical rename.)
 
 ## D. Bootstrap / apply order (fresh cluster into the mesh)
 
-1. **Provision** — `mlops` (pve2, `terraform/mlops`), `application` (pve1, `terraform/administration`
+1. **Provision** — `mlops` (pve2, `terraform/mlops`), `application` (pve, `terraform/administration`
    root — path unchanged).
 2. **`mlops`: 00 → 01.** 00 applies shared `cilium-ca` before Cilium; 01 = cilium(identity, no mesh)
    → coredns → spegel → nfs → metrics-server → reflector → reloader. **Standalone-healthy.**
@@ -171,7 +171,7 @@ Keep exactly — changing any re-keys or breaks the live mesh:
   `ADMIN_CLUSTERMESH_APISERVER_IP`.
 - Plumbing that stays `administration`: kube-context `admin@administration`,
   `generated/administration/kubeconfig`, `terraform/administration` root, `ADMIN_*` env vars,
-  `PROXMOX_NODE_ONE_*` (pve1), node hostnames `administration-ctrl-00/work-00`.
+  `PROXMOX_NODE_ONE_*` (pve), node hostnames `administration-ctrl-00/work-00`.
 - `clusters/_shared/cilium-ca.sops.yaml` — **never regenerate**.
 
 ## F. Ordered execution checklist (each group independently verifiable)

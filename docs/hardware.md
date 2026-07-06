@@ -13,7 +13,7 @@ What is in the rack?
 
 ## Servers
 
-### PVE1
+### pve
 
 A low powered and quiet proxmox node for simple compute and virtualization.
 

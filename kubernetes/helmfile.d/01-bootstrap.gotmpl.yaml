@@ -1,0 +1,148 @@
+---
+{{- /* Cluster identity for per-cluster kustomize overlays (apps/<app>/<cluster>).
+       Injected by clusters/<name>/helmfile.yaml. Defaults to mlops so a direct
+       `helmfile sync .` from helmfile.d/ keeps single-cluster behaviour. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+bases:
+  - ../defaults.yaml
+
+repositories:
+  - name: cilium
+    url: https://helm.cilium.io
+  - name: coredns
+    url: https://coredns.github.io/helm
+  - name: csi-driver-nfs
+    url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+  - name: emberstack
+    url: https://emberstack.github.io/helm-charts
+
+releases:
+  - name: reflector
+    namespace: kube-system
+    chart: emberstack/reflector
+    version: 7.1.288
+    # hooks:
+    #   - events: ["postsync"]
+    #     showlogs: true
+    #     command: "bash"
+    #     args:
+    #       - -c
+    #       - |
+    #         kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
+    #         kustomize build --enable-exec ../apps/security/secrets | kubectl apply -f -
+    #         kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
+
+  - name: cilium
+    namespace: kube-system
+    chart: cilium/cilium
+    version: 1.18.11
+    createNamespace: true
+    values:
+      - ../apps/networking/cilium/values.yaml
+      {{- $identity := .Values | get "identityOverlay" "" }}
+      {{- if $identity }}
+      # Phase 1 identity overlay (cluster.name/id + native-routing CIDR), injected
+      # by clusters/<name>/helmfile.yaml. Empty by default → single-cluster
+      # behaviour unchanged when synced directly from helmfile.d.
+      - {{ $identity }}
+      {{- end }}
+      {{- $mesh := .Values | get "meshOverlay" "" }}
+      {{- if $mesh }}
+      # Phase 2 ClusterMesh overlay (apiserver + peering), injected as a helm
+      # upgrade by clusters/<name>/mesh.yaml AFTER both clusters exist + shared CA.
+      - {{ $mesh }}
+      {{- end }}
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+
+            for crd in ciliuml2announcementpolicies.cilium.io ciliumloadbalancerippools.cilium.io; do
+              until kubectl get crd "$crd" >/dev/null 2>&1; do
+                echo "waiting for CRD $crd to be registered by cilium-operator..."; sleep 3
+              done
+              kubectl wait --for=condition=established --timeout=120s "crd/$crd"
+            done
+            kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
+
+            # This cluster's disjoint LB-IPAM pool. Co-located with Cilium (like the L2
+            # announcement above) so it's applied on every cilium sync — including the
+            # Phase 2 mesh-upgrade, guaranteeing clustermesh-apiserver has a pool for its
+            # pinned IP. Ranges come from env (.envrc); envsubst renders them here.
+            envsubst < ../clusters/{{ $cluster }}/lb-ippool.yaml | kubectl apply -f -
+
+  - name: coredns
+    namespace: kube-system
+    chart: coredns/coredns
+    version: 1.37.3
+    createNamespace: true
+    values:
+      - ../apps/networking/coredns/values.yaml
+      # The kube-dns service IP MUST match Talos' kubelet clusterDNS = 10th IP of the
+      # cluster's service subnet, or DNS breaks. mlops service CIDR is 10.96.0.0/12
+      # (→ 10.96.0.10, the base values default); administration is 10.97.0.0/16
+      # (→ 10.97.0.10). Override per cluster.
+      - service:
+          clusterIP: {{ if eq $cluster "administration" }}"10.97.0.10"{{ else }}"10.96.0.10"{{ end }}
+    needs:
+      - kube-system/cilium
+
+  - name: spegel
+    namespace: spegel
+    chart: oci://ghcr.io/spegel-org/helm-charts/spegel
+    version: 0.5.1
+    values:
+      - ../apps/security/spegel/values.yaml
+    needs:
+      - kube-system/coredns
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kubectl create namespace spegel --dry-run=client -o yaml | kubectl apply -f -
+            kubectl label namespace spegel pod-security.kubernetes.io/enforce=privileged --overwrite
+
+  - name: csi-driver-nfs
+    namespace: kube-system
+    chart: csi-driver-nfs/csi-driver-nfs
+    version: 4.11.0
+    values:
+      - enableFSGroupPolicy: true
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            manifests=$(kustomize build --enable-exec --enable-helm ../apps/storage/nfs/overlays/{{ $cluster }})
+            if [ -n "$manifests" ]; then
+              echo "$manifests" | kubectl apply -f -
+            else
+              echo "No NFS storage resources for cluster '{{ $cluster }}' — skipping."
+            fi
+
+  - name: metrics-server
+    chart: metrics-server/metrics-server
+    namespace: kube-system
+    version: 3.8.3
+    values:
+      - apiService:
+          create: true
+        metrics:
+          enabled: true
+        hostNetwork:
+          enabled: true
+        args:
+          - --cert-dir=/tmp
+          - --kubelet-use-node-status-port
+          - --kubelet-insecure-tls
+          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
+          - --metric-resolution=60s

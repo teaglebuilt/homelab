@@ -24,6 +24,6 @@ variable "graylog_ip" {
 }
 
 variable "proxmox_ssh_private_key" {
-  description = "Path to the SSH private key file for the pve1 Proxmox host"
+  description = "Path to the SSH private key file for the pve Proxmox host"
   type        = string
 }

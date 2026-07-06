@@ -168,7 +168,7 @@ tasks:
         KUBECONFIG="$dest" kubectl config get-contexts
 
   provision-application:
-    summary: Provision the application Talos cluster on pve1
+    summary: Provision the application Talos cluster on pve
     dir: kubernetes
     env:
       PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
@@ -176,7 +176,7 @@ tasks:
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
     preconditions:
       - sh: '[ -n "$APP_MASTER_NODE_IP" ]'
-        msg: "APP_MASTER_NODE_IP is not set — add APP_MASTER_NODE_IP and APP_WORKER_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve1). See kubernetes/clusters/application/cluster.yaml."
+        msg: "APP_MASTER_NODE_IP is not set — add APP_MASTER_NODE_IP and APP_WORKER_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve). See kubernetes/clusters/application/cluster.yaml."
       - sh: '[ -n "$APP_WORKER_NODE_IP" ]'
         msg: "APP_WORKER_NODE_IP is not set — add it to kubernetes/.env."
     cmds:

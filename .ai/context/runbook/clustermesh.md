@@ -1,7 +1,7 @@
 # Declarative Cilium ClusterMesh Runbook (PR 2)
 
 Two-cluster mesh: **mlops** (pve2, id 1, pods `10.244.0.0/16`) ↔ **application**
-(pve1, id 2, pods `10.245.0.0/16`). Native routing (no tunnel), apiserver exposed
+(pve, id 2, pods `10.245.0.0/16`). Native routing (no tunnel), apiserver exposed
 via L2/LB-IPAM, service discovery via Cilium global-service annotations. No
 `cilium clustermesh` CLI — peering is declarative Helm.
 
@@ -41,9 +41,9 @@ that fails fast if `clusters/_shared/cilium-ca.sops.yaml` is missing.
 
 ## Activation sequence (gated — do in order)
 
-### Step 1 — Provision application (pve1)
-Fill real values and apply the separate root. Point Proxmox env at **pve1**
-(`PROXMOX_VE_ENDPOINT=https://<pve1-ip>:8006`, pve1 API token / SSH key):
+### Step 1 — Provision application (pve)
+Fill real values and apply the separate root. Point Proxmox env at **pve**
+(`PROXMOX_VE_ENDPOINT=https://<pve-ip>:8006`, pve API token / SSH key):
 ```bash
 cd kubernetes/terraform/application
 terraform init
@@ -57,7 +57,7 @@ terraform apply \
 ```
 Talos applies `podSubnets: 10.245.0.0/16` — disjoint from mlops. Kubeconfig lands in
 `kubernetes/generated/application/kubeconfig`.
-> A dedicated Taskfile task (mirroring `provision-cluster` but with pve1 env) is the
+> A dedicated Taskfile task (mirroring `provision-cluster` but with pve env) is the
 > clean home for this — not yet added.
 
 ### Step 2 — Shared CA into BOTH clusters
