@@ -1,4 +1,15 @@
 ---
+{{- /* Hardware stage. GPU (enable.gpu) and WASM (enable.wasm) releases are
+       cluster-exclusive — they render only where the toggle is true (mlops in
+       Phase 1). Both default true for a direct `helmfile sync .` (single-cluster
+       mlops behaviour). node-problem-detector is DELIBERATELY GPU-coupled (needs
+       nvidia-device-plugin + apps/hardware/nvidia/npd-values.yaml) — do not
+       promote it to an always-on release. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
+{{- $enable := $env | get "enable" dict }}
+{{- $gpu := $enable | get "gpu" true }}
+{{- $wasm := $enable | get "wasm" true }}
 bases:
   - ../defaults.yaml
 
@@ -11,14 +22,13 @@ repositories:
     url: https://charts.deliveryhero.io/
   - name: kwasm
     url: http://kwasm.sh/kwasm-operator/
-  - name: metrics-server
-    url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
   - name: nvidia-device-plugin
     namespace: kube-system
     chart: nvidia/nvidia-device-plugin
     version: 0.17.1
+    installed: {{ $gpu }}
     values:
       - runtimeClassName: nvidia
       - devicePlugin:
@@ -27,10 +37,6 @@ releases:
           enabled: true
         nfd:
           enabled: true
-      # Time-slicing advertises a single physical GPU as N logical replicas so
-      # multiple pods (NIM + ComfyUI) can schedule. CUDA contexts time-share on
-      # the SM. There is NO VRAM isolation — pods must coexist within the card's
-      # physical memory (12 GB on RTX 4070 Super).
       - config:
           default: "default"
           map:
@@ -56,8 +62,11 @@ releases:
     namespace: kube-system
     chart: gpu-helm-charts/dcgm-exporter
     version: 3.6.0
+    installed: {{ $gpu }}
+    {{- if $gpu }}
     needs:
       - kube-system/nvidia-device-plugin
+    {{- end }}
     values:
       - runtimeClassName: nvidia
         nodeSelector:
@@ -71,8 +80,11 @@ releases:
     namespace: kube-system
     chart: deliveryhero/node-problem-detector
     version: 2.3.13
+    installed: {{ $gpu }}
+    {{- if $gpu }}
     needs:
       - kube-system/nvidia-device-plugin
+    {{- end }}
     values:
       - ../apps/hardware/nvidia/npd-values.yaml
 
@@ -80,6 +92,7 @@ releases:
     chart: kwasm/kwasm-operator
     version: 0.2.3
     namespace: kube-system
+    installed: {{ $wasm }}
     values:
       - kwasmOperator:
           installerImage: ghcr.io/spinframework/containerd-shim-spin/node-installer:v0.19.0
@@ -88,8 +101,11 @@ releases:
     chart: oci://ghcr.io/spinframework/charts/spin-operator
     version: 0.5.0
     namespace: kube-system
+    installed: {{ $wasm }}
+    {{- if $wasm }}
     needs:
       - kube-system/kwasm-operator
+    {{- end }}
     hooks:
       - events: ["presync"]
         showlogs: true
@@ -107,21 +123,3 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/wasm | kubectl apply -f -
-
-  - name: metrics-server
-    chart: metrics-server/metrics-server
-    namespace: kube-system
-    version: 3.8.3
-    values:
-      - apiService:
-          create: true
-        metrics:
-          enabled: true
-        hostNetwork:
-          enabled: true
-        args:
-          - --cert-dir=/tmp
-          - --kubelet-use-node-status-port
-          - --kubelet-insecure-tls
-          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
-          - --metric-resolution=60s

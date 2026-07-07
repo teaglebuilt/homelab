@@ -1,4 +1,14 @@
 ---
+{{- /* Per-cluster toggles + placement from clusters/<cluster>/environment.yaml.
+       `cluster` is injected by clusters/<name>/helmfile.yaml (defaults to mlops
+       for a direct `helmfile sync .`). Toggles read defensively with `get`, so a
+       stage rendered without env injection keeps single-cluster mlops defaults. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
+{{- $enable := $env | get "enable" dict }}
+{{- $ns := $env | get "nodeSelector" dict }}
+{{- $nsCert := $ns | get "certManager" (dict "kubernetes.io/hostname" "mlops-work-01") }}
+{{- $nsCnpg := $ns | get "cnpg" (dict "kubernetes.io/hostname" "mlops-work-01") }}
 bases:
   - ../defaults.yaml
 
@@ -13,10 +23,16 @@ repositories:
     url: https://cloudnative-pg.github.io/charts
 
 releases:
+  # FRONT DOOR (cloudflare-tunnel + public external-dns) — lives on `application`
+  # (enable.frontDoor). SYNC-ORDERING HAZARD: when moving the front door between
+  # clusters, ENABLE + sync it on the new owner (application) FIRST, and only then
+  # disable on the old owner (mlops). `installed: false` UNINSTALLS the release, so
+  # flipping mlops off before application is up drops the live tunnel/DNS.
   - name: cloudflare-tunnel
     namespace: kube-system
     chart: cloudflare/cloudflare-tunnel
     version: 0.3.2
+    installed: {{ $enable | get "frontDoor" true }}
     values:
       - ../apps/networking/cloudflare/cloudflare-tunnel.yaml.gotmpl
 
@@ -33,6 +49,7 @@ releases:
     chart: external-dns/external-dns
     version: 1.17.0
     createNamespace: true
+    installed: {{ $enable | get "frontDoor" true }}
     values:
       - ../apps/networking/externaldns/external-values.yaml.gotmpl
 
@@ -41,19 +58,27 @@ releases:
     chart: jetstack/cert-manager
     version: v1.20.2
     createNamespace: true
+    installed: {{ $enable | get "certManager" true }}
     needs:
+      # Depend on whichever external-dns release actually exists in this cluster:
+      # the public `external-dns` only runs where the front door lives, so fall
+      # back to the always-present `internal-dns` to avoid a dangling `needs`.
+      {{- if $enable | get "frontDoor" true }}
       - external-dns/external-dns
+      {{- else }}
+      - external-dns/internal-dns
+      {{- end }}
     values:
       - crds:
           enabled: true
         nodeSelector:
-          kubernetes.io/hostname: mlops-work-01
+          {{- $nsCert | toYaml | nindent 10 }}
         cainjector:
           nodeSelector:
-            kubernetes.io/hostname: mlops-work-01
+            {{- $nsCert | toYaml | nindent 12 }}
         webhook:
           nodeSelector:
-            kubernetes.io/hostname: mlops-work-01
+            {{- $nsCert | toYaml | nindent 12 }}
     hooks:
       - events: ["postsync"]
         showlogs: true
@@ -67,8 +92,13 @@ releases:
   - name: homelab-gateway
     chart: ../charts/homelab-gateway
     namespace: kube-system
+    installed: {{ $enable | get "gateway" true }}
     needs:
+      {{- if $enable | get "frontDoor" true }}
       - external-dns/external-dns
+      {{- else }}
+      - external-dns/internal-dns
+      {{- end }}
       - cert-manager/cert-manager
     values:
       - external:
@@ -80,9 +110,10 @@ releases:
     chart: cnpg/cloudnative-pg
     version: 0.28.2
     createNamespace: true
+    installed: {{ $enable | get "cnpg" true }}
     values:
       - nodeSelector:
-          kubernetes.io/hostname: mlops-work-01
+          {{- $nsCnpg | toYaml | nindent 10 }}
         monitoring:
           podMonitorEnabled: true
           grafanaDashboard:

@@ -62,8 +62,8 @@ Adopt ESO only if runtime secret rotation into multiple clusters becomes a real 
 4. `kubernetes/defaults.yaml` — add `environments:` block.
 5. `kubernetes/clusters/mlops/helmfile.yaml` — inject `environment.yaml` into every stage.
 6. `kubernetes/clusters/application/helmfile.yaml` — inject `environment.yaml`; **add stages
-   02/03/04/05** (currently stops at 01); **fix the broken `identityOverlay` path** (points at
-   deleted `../clusters/administration/...`).
+   02/03/04/05** (currently stops at 01). (The `identityOverlay` path is already corrected to
+   `../clusters/application/identity-values.yaml.gotmpl`.)
 7. `kubernetes/helmfile.d/00-prepare.gotmpl.yaml` — add shared-CA apply hook (before Cilium).
 8. `kubernetes/helmfile.d/01-bootstrap.gotmpl.yaml` — add Reloader release; make coredns
    `clusterIP` key off `.Values.cluster.kubeDnsIP` (not the `eq $cluster "administration"` literal).
@@ -76,6 +76,18 @@ Adopt ESO only if runtime secret rotation into multiple clusters becomes a real 
 
 No app-config dirs deleted. Orphans (`apps/gitops/argocd`, `apps/security/external-secrets`,
 `apps/storage/openebs`) stay on disk, unwired.
+
+## A2. Pre-existing bugs to fix (independent of the multi-cluster work)
+
+These are latent defects in the current `helmfile.d/` stages. Each is absorbed into a G-step
+below, but they are correctness fixes worth doing regardless of the rearchitecture.
+
+| # | Bug | Location (verified) | Fix | Folded into |
+|---|---|---|---|---|
+| 1 | **Duplicate `metrics-server`** — declared twice in one cluster's chain; same release name, so the two definitions collide/redundantly reconcile. metrics-server serves the per-cluster aggregated Metrics API (`metrics.k8s.io`) and **cannot** be shared via ClusterMesh — every cluster needs exactly **one**, and it belongs in bootstrap. | `01-bootstrap.gotmpl.yaml:132` **and** `03-hardware.gotmpl.yaml:111` | Keep the **stage-01** release; **delete** the stage-03 copy (and its `03-hardware.gotmpl.lock` entry + the metrics-server repo line at `03-hardware.gotmpl.yaml:14`). | G5 |
+| 2 | **Hardcoded `nodeSelector: mlops-work-01`** on cert-manager/cnpg — the node does not exist on `application`, so those releases would never schedule there. | `02-core` (cert-manager, cnpg); pattern also in `apps/networking/externaldns/*-values.yaml.gotmpl`, `apps/hardware/nvidia/xid-alerts.yaml`, `apps/security/kubelet-csr-approver/values.yaml`, `apps/gitops/argocd/values.yaml.gotmpl` | Template from `.Values.nodeSelector.*` per environment (`mlops-work-01` vs `administration-work-00`). Audit the `apps/` occurrences too — GPU/nvidia ones legitimately pin mlops; externaldns/argocd should follow the front-door/gitops cluster. | G4 |
+| 3 | **coredns `clusterIP` keyed off a string literal** — uses `eq $cluster "administration"` to pick the kube-dns IP instead of a value; brittle and breaks once the logical name is `application`. | `01-bootstrap.gotmpl.yaml` (coredns release) | Read `.Values.cluster.kubeDnsIP` from the environment (`10.96.0.10` mlops / `10.97.0.10` application). | G4 |
+| 4 | **`helmfile.d/` was accidentally deleted** in commit `9796b3d save` and restored from `046e75d` on 2026-07-06. Not a code bug, but: the cluster `helmfile.yaml` files hard-depend on `../../helmfile.d/*` — deleting that dir silently dangles every stage reference. | — | Restored. Treat `helmfile.d/` as load-bearing; don't remove it while the cluster helmfiles reference it. | — |
 
 ## B. Per-stage release + `installed:` toggle matrix
 
@@ -95,9 +107,10 @@ Legend: ✅ installed · ❌ not · → moved.
 | **02** cnpg | ✅ | ✅ | `enable.cnpg` | nodeSelector from `.Values.nodeSelector.cnpg` |
 | **02** cloudflare-tunnel | ❌ → | ✅ | `enable.frontDoor` | **MOVED off mlops** |
 | **02** external-dns (public) | ❌ → | ✅ | `enable.frontDoor` | **MOVED** |
-| **03** nvidia-device-plugin / dcgm / node-problem-detector | ✅ | ❌ | `enable.gpu` | |
+| **03** nvidia-device-plugin / dcgm | ✅ | ❌ | `enable.gpu` | genuinely GPU-exclusive |
+| **03** node-problem-detector | ✅ | ❌ | `enable.gpu` | **Deliberately GPU-coupled** (decided 2026-07-06). Generically NPD is a cluster-wide health tool, but this deployment is intentionally scoped to GPU nodes: it `needs: nvidia-device-plugin` and uses `apps/hardware/nvidia/npd-values.yaml`. `application` runs no NPD by choice. Do not "fix" this into an always-on release. |
 | **03** kwasm-operator / spin-operator | ✅ | ❌ | `enable.wasm` | |
-| **03** metrics-server (duplicate) | ❌ | ❌ | — | **DELETE** — already in 01 |
+| **03** metrics-server (duplicate) | ❌ | ❌ | — | **DELETE this copy** — already declared in stage 01 (bug #1). One metrics-server per cluster, in bootstrap. |
 | **04** vector | ✅ | ✅ | always | logs |
 | **04** kube-prometheus-stack (NEW) | ❌ | ✅ | `enable.monitoringCentral` | CRDs already in 00 → `crds.enabled:false` |
 | **04** prometheus agent-mode (NEW) | ✅ | ❌ | `enable.monitoringAgent` | scrapes local ServiceMonitors (DCGM + AI); `remote_write` → application |
@@ -163,15 +176,15 @@ logical rename.)
 
 Keep exactly — changing any re-keys or breaks the live mesh:
 
-- `clusters/application/cluster.yaml` → `name: administration`, `clusterId: 2`.
-- `clusters/application/identity-values.yaml.gotmpl` → `cluster.name: administration`, `cluster.id: 2`.
+- `clusters/application/cluster.yaml` → `name: application`, `clusterId: 2`.
+- `clusters/application/identity-values.yaml.gotmpl` → `cluster.name: application`, `cluster.id: 2`.
 - `clusters/application/clustermesh-values.yaml.gotmpl` → apiserver SANs + LB IP
-  (`ADMIN_CLUSTERMESH_APISERVER_IP`).
-- `clusters/mlops/clustermesh-values.yaml.gotmpl` → peering entry `name: administration` +
-  `ADMIN_CLUSTERMESH_APISERVER_IP`.
-- Plumbing that stays `administration`: kube-context `admin@administration`,
-  `generated/administration/kubeconfig`, `terraform/administration` root, `ADMIN_*` env vars,
-  `PROXMOX_NODE_ONE_*` (pve), node hostnames `administration-ctrl-00/work-00`.
+  (`APP_CLUSTERMESH_APISERVER_IP`).
+- `clusters/mlops/clustermesh-values.yaml.gotmpl` → peering entry `name: application` +
+  `APP_CLUSTERMESH_APISERVER_IP`.
+- Plumbing that stays `application`: kube-context `admin@application`,
+  `generated/application/kubeconfig`, `terraform/application` root, `ADMIN_*` env vars,
+  `PROXMOX_NODE_ONE_*` (pve), node hostnames `application-ctrl-00/work-00`.
 - `clusters/_shared/cilium-ca.sops.yaml` — **never regenerate**.
 
 ## F. Ordered execution checklist (each group independently verifiable)

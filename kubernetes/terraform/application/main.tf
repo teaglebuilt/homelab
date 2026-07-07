@@ -10,7 +10,7 @@ module "talos_cluster" {
 
   cluster = {
     name               = "application"
-    endpoint           = var.admin_k8s_api_server_ip
+    endpoint           = var.app_k8s_api_server_ip
     gateway            = var.network_gateway
     talos_version      = "v1.11.5"
     kubernetes_version = "1.32.2"
@@ -24,7 +24,7 @@ module "talos_cluster" {
     "application-ctrl-00" = {
       host_node     = "pve"
       machine_type  = "controlplane"
-      ip            = var.admin_master_node_ip
+      ip            = var.app_master_node_ip
       vm_id         = 500
       cpu           = 4
       disk_size     = 20
@@ -33,7 +33,7 @@ module "talos_cluster" {
     "application-work-00" = {
       host_node     = "pve"
       machine_type  = "worker"
-      ip            = var.admin_worker_node_ip
+      ip            = var.app_worker_node_ip
       vm_id         = 501
       cpu           = 4
       disk_size     = 40

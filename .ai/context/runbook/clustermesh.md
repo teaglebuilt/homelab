@@ -48,9 +48,9 @@ Fill real values and apply the separate root. Point Proxmox env at **pve**
 cd kubernetes/terraform/application
 terraform init
 terraform apply \
-  -var admin_k8s_api_server_ip=<ADMIN_API_IP> \
-  -var admin_master_node_ip=<ADMIN_CTRL_IP> \
-  -var admin_worker_node_ip=<ADMIN_WORKER_IP> \
+  -var app_k8s_api_server_ip=<APP_API_IP> \
+  -var app_master_node_ip=<APP_CTRL_IP> \
+  -var app_worker_node_ip=<APP_WORKER_IP> \
   -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
   -var graylog_ip=$GRAYLOG_IP \
   -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY

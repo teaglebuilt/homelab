@@ -1,0 +1,21 @@
+---
+# Per-cluster feature toggles + placement for the staged helmfile.d/ deploys.
+# See clusters/mlops/environment.yaml for the mechanism. `application` is the
+# general workload cluster: it owns the front door and the central observability
+# stack, and runs no GPU/WASM hardware.
+enable:
+  gpu: false              # no GPU on application
+  wasm: false             # no WASM runtime on application
+  gateway: true           # homelab-gateway (kgateway) — exposes HTTP workloads
+  certManager: true       # cert-manager (independent per-cluster CA)
+  cnpg: true              # CloudNativePG operator
+  frontDoor: true         # cloudflare-tunnel + public external-dns live HERE
+  monitoringCentral: true # kube-prometheus-stack (Prometheus/Grafana) lives HERE
+  monitoringAgent: false  # this IS the central stack; no agent/remote_write
+  gitops: false           # argocd (Phase 2 seam)
+
+# Empty selectors → no hostname pin (application schedules cert-manager/cnpg on
+# any eligible node). Populate if you want to pin to a specific application node.
+nodeSelector:
+  certManager: {}
+  cnpg: {}

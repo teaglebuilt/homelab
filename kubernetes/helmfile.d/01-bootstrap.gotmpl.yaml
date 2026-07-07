@@ -3,6 +3,11 @@
        Injected by clusters/<name>/helmfile.yaml. Defaults to mlops so a direct
        `helmfile sync .` from helmfile.d/ keeps single-cluster behaviour. */ -}}
 {{- $cluster := .Values | get "cluster" "mlops" }}
+{{- /* kube-dns clusterIP is derived from the cluster's own SSOT
+       (cluster.yaml dnsIP = 10th IP of serviceSubnet = Talos kubelet clusterDNS).
+       readFile resolves relative to this helmfile (helmfile.d/), same as the
+       ../clusters/<cluster>/lb-ippool.yaml path used in the cilium hook below. */ -}}
+{{- $clusterCfg := readFile (printf "../clusters/%s/cluster.yaml" $cluster) | fromYaml }}
 bases:
   - ../defaults.yaml
 
@@ -15,12 +20,22 @@ repositories:
     url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
   - name: emberstack
     url: https://emberstack.github.io/helm-charts
+  - name: stakater
+    url: https://stakater.github.io/stakater-charts
 
 releases:
   - name: reflector
     namespace: kube-system
     chart: emberstack/reflector
     version: 7.1.288
+
+  # Reloader — restarts Deployments/StatefulSets when their referenced
+  # ConfigMaps/Secrets change (reflector fans secrets out; it does NOT restart
+  # consumers). Always-on, every cluster. Intra-cluster only.
+  - name: reloader
+    namespace: kube-system
+    chart: stakater/reloader
+    version: 1.4.10
     # hooks:
     #   - events: ["postsync"]
     #     showlogs: true
@@ -82,12 +97,12 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/coredns/values.yaml
-      # The kube-dns service IP MUST match Talos' kubelet clusterDNS = 10th IP of the
-      # cluster's service subnet, or DNS breaks. mlops service CIDR is 10.96.0.0/12
-      # (→ 10.96.0.10, the base values default); administration is 10.97.0.0/16
-      # (→ 10.97.0.10). Override per cluster.
+      # kube-dns Service IP MUST equal Talos kubelet clusterDNS (10th IP of this
+      # cluster's serviceSubnet) or DNS breaks / the Service fails to allocate.
+      # Sourced from clusters/<cluster>/cluster.yaml (dnsIP). This inline entry is
+      # LAST in the values list, so it wins over the base values.yaml default.
       - service:
-          clusterIP: {{ if eq $cluster "administration" }}"10.97.0.10"{{ else }}"10.96.0.10"{{ end }}
+          clusterIP: {{ $clusterCfg.dnsIP | default "10.96.0.10" | quote }}
     needs:
       - kube-system/cilium
 

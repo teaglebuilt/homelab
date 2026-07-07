@@ -5,7 +5,7 @@ clustermesh:
     service:
       type: LoadBalancer
       annotations:
-        io.cilium/lb-ipam-ips: {{ requiredEnv "ADMIN_CLUSTERMESH_APISERVER_IP" | quote }}
+        io.cilium/lb-ipam-ips: {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
     tls:
       authMode: cluster
       server:
@@ -16,7 +16,7 @@ clustermesh:
         # cross-cluster handshake fails with "hostname mismatch" and KVStoreMesh can
         # never cache the remote cluster-config (mesh stays NOT READY on both sides).
         extraIpAddresses:
-          - {{ requiredEnv "ADMIN_CLUSTERMESH_APISERVER_IP" | quote }}
+          - {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
         extraDnsNames:
           - clustermesh-application.homelab
   config:
