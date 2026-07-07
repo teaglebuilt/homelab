@@ -12,5 +12,8 @@ dependencies:
 - name: reflector
   repository: https://emberstack.github.io/helm-charts
   version: 7.1.288
-digest: sha256:d6fd184918b5c40991d95777ba274c872676bfdc733e5a639bd685fa427550be
-generated: "2026-07-03T13:46:59.636503-04:00"
+- name: reloader
+  repository: https://stakater.github.io/stakater-charts
+  version: 2.2.14
+digest: sha256:0f11d79688beeccef20e4bfb7132772daf365130e7f6c3b51021c1b24b63a159
+generated: "2026-07-07T15:48:56.954373-04:00"

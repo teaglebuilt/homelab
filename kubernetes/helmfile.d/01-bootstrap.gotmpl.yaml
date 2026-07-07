@@ -35,7 +35,7 @@ releases:
   - name: reloader
     namespace: kube-system
     chart: stakater/reloader
-    version: 1.4.10
+    version: 2.2.14
     # hooks:
     #   - events: ["postsync"]
     #     showlogs: true

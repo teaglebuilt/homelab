@@ -19,4 +19,4 @@ kubectl create secret generic cilium-ca -n kube-system \
 # Write ciphertext to $tmp first; only move it into place on success (set -e).
 sops -e "$plain" > "$tmp/enc.yaml"
 mv "$tmp/enc.yaml" clusters/_shared/cilium-ca.sops.yaml
-echo "Generated clusters/_shared/cilium-ca.sops.yaml"
+echo "Generated clusters/_shared/cilium-ca.sops.yaml — COMMIT it so the CA is reused across runs."

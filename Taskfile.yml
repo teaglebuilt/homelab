@@ -46,10 +46,10 @@ tasks:
         vars: { CLUSTER: application }
       - task: kubernetes:connect-clusters
       - task: kubernetes:kubectl:merge-kubeconfig
-      # - task: kubernetes:wait-for-external-certificate
-      # - task: kubernetes:copy-kubeconfig
-      # - task: platform:deploy
-      # - task: platform:test
+      - task: kubernetes:wait-for-external-certificate
+        vars: { CLUSTER: application }
+      - task: kubernetes:wait-for-external-certificate
+        vars: { CLUSTER: mlops }
 
   spin-up-*:
     summary: Used for launching any platform service locally.

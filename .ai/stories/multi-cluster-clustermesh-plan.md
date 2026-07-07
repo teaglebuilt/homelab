@@ -146,8 +146,6 @@ stage templates.
 | `enable.certManager` | `true` | `true` |
 | `enable.cnpg` | `true` | `true` |
 | `enable.frontDoor` | `false` | `true` |
-| `enable.monitoringCentral` | `false` | `true` |
-| `enable.monitoringAgent` | `true` | `false` |
 | `enable.gitops` | `false` | `false` |
 | `nodeSelector.certManager` | `mlops-work-01` | `administration-work-00` |
 | `nodeSelector.cnpg` | `mlops-work-01` | `administration-work-00` |

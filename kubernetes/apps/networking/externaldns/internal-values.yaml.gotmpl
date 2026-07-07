@@ -39,5 +39,9 @@ txtPrefix: k8s-internal.
 domainFilters: ["internal"]
 interval: 1m
 triggerLoopOnEvent: true
+{{- if eq (.Values | get "cluster" "mlops") "mlops" }}
+# Pin to the capable node on mlops. Other clusters (e.g. application) schedule the
+# DNS controller on any node — mlops-work-01 does not exist there.
 nodeSelector:
   kubernetes.io/hostname: mlops-work-01
+{{- end }}

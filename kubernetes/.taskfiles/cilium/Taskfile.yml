@@ -10,10 +10,25 @@ x-vars: &vars
 tasks:
   ensure-shared-ca:
     summary: Generate the shared Cilium mesh CA (SOPS-encrypted) once if absent — trust anchor for both clusters
+    # create-ca.sh's internal paths (clusters/_shared/...) and the SOPS `kubernetes/*`
+    # rule both expect the working directory to be kubernetes/ (two levels up).
+    dir: '{{.TASKFILE_DIR}}/../..'
     status:
       # Idempotent: only mint if it doesn't exist. Commit the generated file so the
       # SAME CA is reused across runs (regenerating would re-key the whole mesh).
       - test -f clusters/_shared/cilium-ca.sops.yaml
     cmds:
-      - ./create-ca.sh
-      - echo "Generated clusters/_shared/cilium-ca.sops.yaml"
+      - '{{.TASKFILE_DIR}}/create-ca.sh'
+
+  clustermesh-status:
+    summary: Read-only ClusterMesh health for a cluster
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/../../generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+    cmds:
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        kubectl -n kube-system get svc clustermesh-apiserver
+        kubectl -n kube-system get secret cilium-clustermesh --ignore-not-found
+        kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose | grep -A6 ClusterMesh || true

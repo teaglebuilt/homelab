@@ -6,14 +6,11 @@ dependencies:
 - name: kwasm-operator
   repository: http://kwasm.sh/kwasm-operator/
   version: 0.2.3
-- name: metrics-server
-  repository: https://kubernetes-sigs.github.io/metrics-server/
-  version: 3.8.3
 - name: node-problem-detector
   repository: https://charts.deliveryhero.io/
   version: 2.3.13
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.17.1
-digest: sha256:e5f3ba7f85b9bec0a44bd885b6587f40ace6f381ee8e577341aa70ce2c12e7db
-generated: "2026-06-22T17:18:06.347383-04:00"
+digest: sha256:d51ce4b6658cfbac06f10d71cc9d54032bf379e2ec7cdb7fb39961f75e60698c
+generated: "2026-07-07T15:47:23.83651-04:00"

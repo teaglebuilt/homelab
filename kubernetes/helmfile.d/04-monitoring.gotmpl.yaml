@@ -1,24 +1,19 @@
 ---
-{{- /* Observability. Split across the mesh (Phase 1):
-       - application runs the CENTRAL kube-prometheus-stack (enable.monitoringCentral)
-       - mlops runs a Prometheus AGENT (enable.monitoringAgent) that remote_writes to
-         the central stack over the front-door LB, so DCGM/AI ServiceMonitors on mlops
-         land in one Grafana without a global Cilium service.
-       vector (logs) stays always-on everywhere. CRDs come from 00-prepare, so both
-       kube-prometheus-stack releases set crds.enabled=false. */ -}}
-{{- $cluster := .Values | get "cluster" "mlops" }}
-{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
-{{- $enable := $env | get "enable" dict }}
-{{- $monitoring := $env | get "monitoring" dict }}
-{{- $remoteWriteUrl := $monitoring | get "remoteWriteUrl" "https://prometheus.CHANGEME.internal/api/v1/write" }}
+# Cluster-local log shipping only.
+#
+# METRICS (Prometheus / Grafana / parca) are NOT here — they live in
+# platform/observability/ as a kustomize stack with per-cluster overlays
+# (prometheus/overlays/<cluster>), deployed via `task platform:observability:deploy`.
+# That path owns the `observability` namespace with PRIVILEGED PodSecurity
+# (platform/observability/namespace.yaml), which a helmfile-created namespace does
+# not get — an earlier inline kube-prometheus-stack release here failed exactly
+# because its namespace defaulted to `restricted` and node-exporter was blocked.
 bases:
   - ../defaults.yaml
 
 repositories:
   - name: vector
     url: https://helm.vector.dev
-  - name: prometheus-community
-    url: https://prometheus-community.github.io/helm-charts
 
 releases:
   - name: vector
@@ -28,58 +23,3 @@ releases:
     version: 0.44.0
     # values:
     #   - ../apps/monitoring/vector.yaml
-
-  # CENTRAL stack — application only. Prometheus + Grafana + Alertmanager.
-  - name: kube-prometheus-stack
-    namespace: observability
-    createNamespace: true
-    chart: prometheus-community/kube-prometheus-stack
-    version: 65.5.0
-    installed: {{ $enable | get "monitoringCentral" false }}
-    values:
-      - crds:
-          enabled: false          # CRDs applied in 00-prepare
-        grafana:
-          enabled: true
-          # TODO(user): set Grafana admin creds (SOPS secret), persistence, and an
-          # HTTPRoute/ingress hostname via kgateway. Skeleton uses chart defaults.
-        alertmanager:
-          enabled: true
-        prometheus:
-          prometheusSpec:
-            retention: 15d
-            # Discover ServiceMonitors/PodMonitors in ALL namespaces on this cluster.
-            serviceMonitorSelectorNilUsesHelmValues: false
-            podMonitorSelectorNilUsesHelmValues: false
-            # TODO(user): mlops pushes its metrics here via remote_write (see the
-            # prometheus-agent release below). To ACCEPT remote_write, expose this
-            # Prometheus (HTTPRoute/LB) and enable the receiver:
-            #   enableFeatures: ["remote-write-receiver"]
-            # Left off by default until the endpoint + auth are decided.
-
-  # AGENT — mlops only. Scrapes local ServiceMonitors (DCGM + AI exporters) and
-  # remote_writes to the central stack on application. agentMode drops the local
-  # TSDB/query/UI; Grafana + Alertmanager disabled.
-  - name: prometheus-agent
-    namespace: observability
-    createNamespace: true
-    chart: prometheus-community/kube-prometheus-stack
-    version: 65.5.0
-    installed: {{ $enable | get "monitoringAgent" false }}
-    values:
-      - crds:
-          enabled: false
-        grafana:
-          enabled: false
-        alertmanager:
-          enabled: false
-        prometheus:
-          agentMode: true
-          prometheusSpec:
-            serviceMonitorSelectorNilUsesHelmValues: false
-            podMonitorSelectorNilUsesHelmValues: false
-            remoteWrite:
-              # TODO(user): {{ $remoteWriteUrl }} is a PLACEHOLDER — set
-              # monitoring.remoteWriteUrl in clusters/mlops/environment.yaml to the
-              # application central Prometheus endpoint, and add auth (TLS/basic).
-              - url: {{ $remoteWriteUrl | quote }}

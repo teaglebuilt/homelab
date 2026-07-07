@@ -1,9 +1,4 @@
 ---
-# Per-cluster feature toggles + placement for the staged helmfile.d/ deploys.
-# Consumed by helmfile.d/*.gotmpl.yaml via the injected `cluster:` value
-# (readFile ../clusters/<cluster>/environment.yaml). Toggles are read
-# defensively with `get`, so a stage rendered without this file falls back to
-# the documented defaults (single-cluster mlops behaviour).
 enable:
   gpu: true               # nvidia-device-plugin, dcgm-exporter, node-problem-detector (GPU-coupled)
   wasm: true              # kwasm-operator, spin-operator
@@ -11,8 +6,6 @@ enable:
   certManager: true       # cert-manager (+ internal CA issuer)
   cnpg: true              # CloudNativePG operator
   frontDoor: false        # cloudflare-tunnel + public external-dns — lives on `application`
-  monitoringCentral: false # kube-prometheus-stack (Prometheus/Grafana) — lives on `application`
-  monitoringAgent: true   # prometheus agent-mode → remote_write to application's central stack
   gitops: false           # argocd (Phase 2 seam)
 
 nodeSelector:
@@ -20,9 +13,3 @@ nodeSelector:
     kubernetes.io/hostname: mlops-work-01
   cnpg:
     kubernetes.io/hostname: mlops-work-01
-
-monitoring:
-  # TODO(user): set to the `application` cluster's central Prometheus remote-write
-  # endpoint (front-door LB / internal-dns record). PLACEHOLDER — replace before
-  # enabling monitoringAgent, or the agent will fail to push.
-  remoteWriteUrl: https://prometheus.CHANGEME.internal/api/v1/write

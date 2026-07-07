@@ -10,6 +10,8 @@ includes:
     taskfile: ".taskfiles/gpu/Taskfile.yaml"
   kubectl:
     taskfile: ".taskfiles/kubectl/Taskfile.yml"
+  cilium:
+    taskfile: ".taskfiles/cilium/Taskfile.yml"
 
 env:
   PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
@@ -67,80 +69,15 @@ tasks:
       vars: [CLUSTER]
     vars:
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+    preconditions:
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
+      - sh: >-
+          KUBECONFIG={{.KUBECONFIG_FILE}}
+          sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
+        msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
     cmds:
-      - |
-        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        echo "Waiting for {{.CLUSTER}} kube-apiserver to be reachable..."
-        for i in $(seq 1 60); do
-          if kubectl get --raw='/readyz' >/dev/null 2>&1; then
-            echo "{{.CLUSTER}} API server ready."; exit 0
-          fi
-          echo "  ($i/60) not ready yet — retrying in 10s"; sleep 10
-        done
-        echo "ERROR: {{.CLUSTER}} API server not reachable after 10m" >&2; exit 1
       - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
-
-  connect-clusters:
-    dir: kubernetes
-    cmds:
-      - task: ensure-shared-ca
-      - task: apply-shared-ca
-        vars: { CLUSTER: mlops }
-      - task: apply-shared-ca
-        vars: { CLUSTER: application }
-      - task: mesh-upgrade
-        vars: { CLUSTER: mlops }
-      - task: mesh-upgrade
-        vars: { CLUSTER: application }
-      - task: clustermesh-routes
-        vars: { CLUSTER: mlops }
-      - task: clustermesh-routes
-        vars: { CLUSTER: application }
-      - task: clustermesh-status
-        vars: { CLUSTER: mlops }
-      - task: clustermesh-status
-        vars: { CLUSTER: application }
-
-  sync-cluster:
-    dir: kubernetes
-    cmds:
-      - make helmfile_sync
-
-  wait-for-external-certificate:
-    dir: kubernetes
-    cmds:
-      - echo "Waiting for external certificate to be ready..."
-      - |
-        KUBECONFIG='{{.TASKFILE_DIR}}/generated/kubeconfig' kubectl wait certificate external-certificate \
-          -n kube-system \
-          --for=condition=Ready \
-          --timeout=5m
-
-  reboot-cluster-node:
-    dir: kubernetes
-    cmds:
-      - task: talos:reboot-node
-
-  cluster-health:
-    dir: kubernetes
-    cmds:
-      - |
-        until kubectl get nodes --no-headers | awk '{print $2}' | grep -q "NotReady"; do
-          echo "Waiting for Kubernetes cluster to become healthy..."
-          sleep 10
-        done
-        echo "Kubernetes cluster is healthy!"
-
-  update-dependencies:
-    dir: kubernetes
-    cmds:
-      - make helmfile_lock
-      - make build_chart_dependencies
-
-  copy-kubeconfig:
-    dir: kubernetes
-    cmds:
-      - cp generated/kubeconfig ~/.kube/config
 
   provision-application:
     summary: Provision the application Talos cluster on pve
@@ -189,6 +126,24 @@ tasks:
           -var graylog_ip=${GRAYLOG_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
 
+  bootstrap-cluster:
+    summary: Phase 1 — base bootstrap for a cluster (plain Cilium + identity, no mesh) and its LB-IPAM pool
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+    preconditions:
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
+      - sh: >-
+          KUBECONFIG={{.KUBECONFIG_FILE}}
+          sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
+        msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+
+
   mesh-upgrade:
     summary: Phase 2 — activate ClusterMesh on a cluster (Cilium helm upgrade with the clustermesh overlay)
     dir: kubernetes
@@ -202,73 +157,26 @@ tasks:
     cmds:
       - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
 
-  ensure-shared-ca:
-    summary: Generate the shared Cilium mesh CA (SOPS-encrypted) once if absent — trust anchor for both clusters
+  connect-clusters:
     dir: kubernetes
-    status:
-      # Idempotent: only mint if it doesn't exist. Commit the generated file so the
-      # SAME CA is reused across runs (regenerating would re-key the whole mesh).
-      - test -f clusters/_shared/cilium-ca.sops.yaml
     cmds:
-      - |
-        set -euo pipefail
-        tmp="$(mktemp -d)"
-        # SOPS matches .sops.yaml's `kubernetes/*` rule by the file path RELATIVE to the
-        # config, so the plaintext must live under kubernetes/. Keep it in _shared as a
-        # dotfile and trap-remove it (also on failure) so key material is never committed.
-        plain="clusters/_shared/.cilium-ca.plain.yaml"
-        trap 'rm -rf "$tmp"; rm -f "$plain"' EXIT
-        mkdir -p clusters/_shared
-        # 4096-bit self-signed CA (10y). Raw key/cert stay in $tmp.
-        openssl req -x509 -new -nodes -newkey rsa:4096 -days 3650 \
-          -keyout "$tmp/ca.key" -out "$tmp/ca.crt" -subj "/CN=Cilium CA" 2>/dev/null
-        # Build the cilium-ca Secret client-side (no cluster needed).
-        kubectl create secret generic cilium-ca -n kube-system \
-          --from-file=ca.crt="$tmp/ca.crt" --from-file=ca.key="$tmp/ca.key" \
-          --dry-run=client -o yaml > "$plain"
-        # Encrypt via the repo .sops.yaml (kubernetes/* KMS rule + Secret-field regex).
-        # Write ciphertext to $tmp first; only move it into place on success (set -e).
-        sops -e "$plain" > "$tmp/enc.yaml"
-        mv "$tmp/enc.yaml" clusters/_shared/cilium-ca.sops.yaml
-        echo "Generated clusters/_shared/cilium-ca.sops.yaml — COMMIT it so the CA is reused across runs."
+      - task: cilium:ensure-shared-ca
+      - task: mesh-upgrade
+        vars: { CLUSTER: mlops }
+      - task: mesh-upgrade
+        vars: { CLUSTER: application }
+      - task: cilium:clustermesh-status
+        vars: { CLUSTER: mlops }
+      - task: cilium:clustermesh-status
+        vars: { CLUSTER: application }
 
-  apply-shared-ca:
-    summary: Decrypt and apply the shared Cilium CA to a cluster (mesh trust anchor)
+  wait-for-external-certificate:
+    summary: Wait for the gateway's external TLS cert to be Ready (front door owner)
     dir: kubernetes
-    requires:
-      vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
-    status:
-      # No-op until the encrypted CA exists (see clusters/_shared/README.md).
-      - test ! -f clusters/_shared/cilium-ca.sops.yaml
-    cmds:
-      - sops -d clusters/_shared/cilium-ca.sops.yaml | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
-
-  clustermesh-routes:
-    summary: Print per-node podCIDR -> nodeIP table for the UniFi static routes
-    dir: kubernetes
-    requires:
-      vars: [CLUSTER]
-    vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
-    cmds:
-      - 'echo "# {{.CLUSTER}}: dest podCIDR -> next-hop nodeIP (one route per node)"'
-      # Literal block scalar (|-): the jsonpath contains " # " which YAML would otherwise
-      # treat as a comment and truncate the command (dropping the closing quote).
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl get nodes -o jsonpath='{range .items[*]}{.spec.podCIDR}{" via "}{.status.addresses[?(@.type=="InternalIP")].address}{"  # "}{.metadata.name}{"\n"}{end}'
-
-  clustermesh-status:
-    summary: Read-only ClusterMesh health for a cluster
-    dir: kubernetes
-    requires:
-      vars: [CLUSTER]
-    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
     cmds:
       - |
-        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        kubectl -n kube-system get svc clustermesh-apiserver
-        kubectl -n kube-system get secret cilium-clustermesh --ignore-not-found
-        kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose | grep -A6 ClusterMesh || true
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl wait certificate external-certificate \
+          -n kube-system --for=condition=Ready --timeout=5m

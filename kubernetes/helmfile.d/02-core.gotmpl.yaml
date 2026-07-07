@@ -7,8 +7,12 @@
 {{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
 {{- $enable := $env | get "enable" dict }}
 {{- $ns := $env | get "nodeSelector" dict }}
-{{- $nsCert := $ns | get "certManager" (dict "kubernetes.io/hostname" "mlops-work-01") }}
-{{- $nsCnpg := $ns | get "cnpg" (dict "kubernetes.io/hostname" "mlops-work-01") }}
+{{- /* Default to an EMPTY selector (no pin). The mlops-work-01 pin comes from
+       clusters/mlops/environment.yaml itself, so a direct `helmfile sync .`
+       (cluster defaults to mlops) still pins correctly, while `application`'s
+       empty {} selectors render as no-pin. */ -}}
+{{- $nsCert := $ns | get "certManager" dict }}
+{{- $nsCnpg := $ns | get "cnpg" dict }}
 bases:
   - ../defaults.yaml
 

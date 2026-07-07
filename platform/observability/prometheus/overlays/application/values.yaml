@@ -1,0 +1,21 @@
+---
+# application CENTRAL prometheus overlay — STUB (not yet deployed).
+# Fleshes out when `application` monitoring is stood up. Intent: the single-pane
+# aggregator that discovers ServiceMonitors/PodMonitors cluster-wide, accepts
+# remote_write from other clusters (e.g. mlops), and fronts Grafana.
+prometheus:
+  enabled: true
+  agentMode: false
+  service:
+    type: LoadBalancer
+    annotations:
+      # TODO(user): pick the application-cluster hostname (its own external-dns).
+      external-dns.alpha.kubernetes.io/hostname: prometheus.app.homelab.internal
+  prometheusSpec:
+    retention: 15d
+    # Discover ServiceMonitors/PodMonitors in ALL namespaces on this cluster.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    # TODO(user): to ACCEPT remote_write from mlops, enable the receiver AND
+    # expose this endpoint (HTTPRoute/LB) with auth:
+    #   enableFeatures: ["remote-write-receiver"]

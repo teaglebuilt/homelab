@@ -1,0 +1,7 @@
+---
+# Shared observability base — the privileged `observability` namespace that every
+# cluster's overlay builds on. (Prometheus/parca specifics live in the overlays.)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml

@@ -1,0 +1,10 @@
+---
+# application observability stack: privileged namespace + central prometheus
+# (STUB — see prometheus/overlays/application). No parca / GPU profiler here
+# (application has no GPUs). Deployed via `task platform:observability:deploy
+# CLUSTER=application` once the central prometheus overlay is fleshed out.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - ../../prometheus/overlays/application
