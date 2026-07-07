@@ -19,14 +19,15 @@ tasks:
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} overlays/{{.CLUSTER}} \
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} \
           | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   destroy:
     dir: observability
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} . | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} \
+          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
 
   provision:
     dir: observability
