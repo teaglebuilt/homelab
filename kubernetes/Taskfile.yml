@@ -68,7 +68,7 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     preconditions:
       - sh: test -f {{.KUBECONFIG_FILE}}
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
@@ -132,7 +132,7 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     preconditions:
       - sh: test -f {{.KUBECONFIG_FILE}}
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
@@ -150,7 +150,7 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     preconditions:
       - sh: 'test -f clusters/_shared/cilium-ca.sops.yaml'
         msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml (see clusters/_shared/README.md) and apply it to BOTH clusters first — authMode:cluster needs it or clustermesh-apiserver never goes Ready."
@@ -170,12 +170,21 @@ tasks:
       - task: cilium:clustermesh-status
         vars: { CLUSTER: application }
 
+  sync-cluster:
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+
   wait-for-external-certificate:
     summary: Wait for the gateway's external TLS cert to be Ready (front door owner)
     dir: kubernetes
     vars:
       CLUSTER: '{{.CLUSTER | default "application"}}'
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{if eq .CLUSTER "application"}}application/kubeconfig{{else}}mlops/kubeconfig{{end}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl wait certificate external-certificate \

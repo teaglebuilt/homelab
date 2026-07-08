@@ -1,4 +1,11 @@
 ---
+ghcrSecret:
+  enabled: true
+  namespace: default          # where ghcr-credentials lives and ghcr-secret is created
+  sourceSecret: ghcr-credentials
+  targetSecret: ghcr-secret
+  image: bitnamilegacy/kubectl:1.33.4
+
 kgateway-crds:
   controller:
     image:

@@ -29,23 +29,10 @@ releases:
     chart: emberstack/reflector
     version: 7.1.288
 
-  # Reloader — restarts Deployments/StatefulSets when their referenced
-  # ConfigMaps/Secrets change (reflector fans secrets out; it does NOT restart
-  # consumers). Always-on, every cluster. Intra-cluster only.
   - name: reloader
     namespace: kube-system
     chart: stakater/reloader
     version: 2.2.14
-    # hooks:
-    #   - events: ["postsync"]
-    #     showlogs: true
-    #     command: "bash"
-    #     args:
-    #       - -c
-    #       - |
-    #         kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
-    #         kustomize build --enable-exec ../apps/security/secrets | kubectl apply -f -
-    #         kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
 
   - name: cilium
     namespace: kube-system
