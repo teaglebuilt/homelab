@@ -1,4 +1,4 @@
-# Declarative Cilium ClusterMesh Runbook (PR 2)
+# Declarative Cilium ClusterMesh Runbook
 
 Two-cluster mesh: **mlops** (pve2, id 1, pods `10.244.0.0/16`) ↔ **application**
 (pve, id 2, pods `10.245.0.0/16`). Native routing (no tunnel), apiserver exposed
@@ -39,37 +39,17 @@ that fails fast if `clusters/_shared/cilium-ca.sops.yaml` is missing.
 | Shared CA procedure | `kubernetes/clusters/_shared/README.md` | ✅ documented |
 | Identity docs | `kubernetes/clusters/{mlops,application}/cluster.yaml` | ✅ |
 
-## Activation sequence (gated — do in order)
 
-### Step 1 — Provision application (pve)
-Fill real values and apply the separate root. Point Proxmox env at **pve**
-(`PROXMOX_VE_ENDPOINT=https://<pve-ip>:8006`, pve API token / SSH key):
-```bash
-cd kubernetes/terraform/application
-terraform init
-terraform apply \
-  -var app_k8s_api_server_ip=<APP_API_IP> \
-  -var app_master_node_ip=<APP_CTRL_IP> \
-  -var app_worker_node_ip=<APP_WORKER_IP> \
-  -var network_gateway=$PROXMOX_NETWORK_GATEWAY \
-  -var graylog_ip=$GRAYLOG_IP \
-  -var proxmox_ssh_private_key=$PROXMOX_NODE_ONE_PRIVATE_KEY
-```
-Talos applies `podSubnets: 10.245.0.0/16` — disjoint from mlops. Kubeconfig lands in
-`kubernetes/generated/application/kubeconfig`.
-> A dedicated Taskfile task (mirroring `provision-cluster` but with pve env) is the
-> clean home for this — not yet added.
 
-### Step 2 — Shared CA into BOTH clusters
+### Shared CA into BOTH clusters
 Follow `kubernetes/clusters/_shared/README.md`: generate one CA, create the
 SOPS-encrypted `cilium-ca` Secret, and apply it (decrypted) to `kube-system` in
 **both** clusters BEFORE the Cilium release. Wire this as a `00-prepare` step /
 cilium `presync` hook once the encrypted file exists (avoid committing a hook that
 references a missing file).
 
-### Step 3 — LB pool cutover
-Both clusters share the `192.168.2.0/24` L2, so the single shared
-`proxmox-pool` (`.12–.255`) is replaced by the disjoint per-cluster pools:
+### LB pool cutover
+Both clusters share the L2, so the single shared `proxmox-pool` (`.12–.255`) is replaced by the disjoint per-cluster pools:
 - `ip-pool.yaml` / `proxmox-pool` are **removed** from the repo. Each cluster's
   `clusters/<name>/lb-ippool.yaml` (mlops `.200–.240`, admin `.241–.254`) is now
   applied automatically by the **cilium release's postsync hook** (envsubst-rendered),
@@ -78,7 +58,7 @@ Both clusters share the `192.168.2.0/24` L2, so the single shared
 - **One-time manual cleanup** on the running mlops cluster (nothing recreates the
   legacy CR anymore, so this is no longer in any task):
   ```bash
-  KUBECONFIG=kubernetes/generated/kubeconfig \
+  KUBECONFIG=kubernetes/generated/{{cluster}}/kubeconfig \
     kubectl delete ciliumloadbalancerippool proxmox-pool --ignore-not-found
   ```
 > Do the cutover during the mesh activation window, confirming existing LoadBalancer

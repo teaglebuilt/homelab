@@ -5,6 +5,9 @@ machine:
       - interface: eth0
         addresses:
           - ${node_ip}
+  kubelet:
+    clusterDNS:
+      - ${cluster_dns}
   nodeLabels:
     topology.kubernetes.io/region: ${cluster_name}
     topology.kubernetes.io/zone: ${node_name}

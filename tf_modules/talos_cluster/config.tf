@@ -41,6 +41,11 @@ data "talos_machine_configuration" "this" {
       node_ip         = each.value.ip
       cluster_name    = var.cluster.cluster_name
       network_gateway = var.cluster.gateway
+      # Workers don't get the cluster.network block, so their kubelet would
+      # otherwise default clusterDNS to the Talos default service subnet
+      # (10.96.0.10) instead of this cluster's actual kube-dns IP. Set it
+      # explicitly from the configured service subnet.
+      cluster_dns     = cidrhost(var.cluster.service_subnet, 10)
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
