@@ -16,6 +16,26 @@ hooks:
           ../apps/secrets/aws.enc.yaml /dev/stdin | kubectl apply -f -
   - events: ["prepare"]
     showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        sops --decrypt --input-type yaml --output-type yaml \
+          ../apps/secrets/ghcr-credentials.enc.yaml /dev/stdin | kubectl apply -f -
+  # Shared Cilium mesh trust anchor (cilium-ca in kube-system). Applied in stage 00
+  # so it exists BEFORE Cilium starts in 01-bootstrap — a fresh cluster then signs
+  # its clustermesh/identity certs from the shared root instead of generating its
+  # own. Identical ciphertext on every cluster; NEVER regenerate (re-keys the mesh).
+  - events: ["prepare"]
+    showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        sops --decrypt --input-type yaml --output-type yaml \
+          ../clusters/_shared/cilium-ca.sops.yaml /dev/stdin | kubectl apply -f -
+  - events: ["prepare"]
+    showlogs: true
     command: "kubectl"
     args:
       - apply

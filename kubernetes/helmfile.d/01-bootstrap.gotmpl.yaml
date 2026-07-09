@@ -1,4 +1,13 @@
 ---
+{{- /* Cluster identity for per-cluster kustomize overlays (apps/<app>/<cluster>).
+       Injected by clusters/<name>/helmfile.yaml. Defaults to mlops so a direct
+       `helmfile sync .` from helmfile.d/ keeps single-cluster behaviour. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+{{- /* kube-dns clusterIP is derived from the cluster's own SSOT
+       (cluster.yaml dnsIP = 10th IP of serviceSubnet = Talos kubelet clusterDNS).
+       readFile resolves relative to this helmfile (helmfile.d/), same as the
+       ../clusters/<cluster>/lb-ippool.yaml path used in the cilium hook below. */ -}}
+{{- $clusterCfg := readFile (printf "../clusters/%s/cluster.yaml" $cluster) | fromYaml }}
 bases:
   - ../defaults.yaml
 
@@ -11,30 +20,40 @@ repositories:
     url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
   - name: emberstack
     url: https://emberstack.github.io/helm-charts
+  - name: stakater
+    url: https://stakater.github.io/stakater-charts
 
 releases:
   - name: reflector
     namespace: kube-system
     chart: emberstack/reflector
     version: 7.1.288
-    hooks:
-      - events: ["postsync"]
-        showlogs: true
-        command: "bash"
-        args:
-          - -c
-          - |
-            kubectl delete job create-ghcr-registry-secret -n default --ignore-not-found=true
-            kustomize build --enable-exec ../apps/security/secrets | kubectl apply -f -
-            kubectl wait --for=condition=complete job/create-ghcr-registry-secret -n default --timeout=120s
+
+  - name: reloader
+    namespace: kube-system
+    chart: stakater/reloader
+    version: 2.2.14
 
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: 1.17.3
+    version: 1.18.11
     createNamespace: true
     values:
       - ../apps/networking/cilium/values.yaml
+      {{- $identity := .Values | get "identityOverlay" "" }}
+      {{- if $identity }}
+      # Phase 1 identity overlay (cluster.name/id + native-routing CIDR), injected
+      # by clusters/<name>/helmfile.yaml. Empty by default → single-cluster
+      # behaviour unchanged when synced directly from helmfile.d.
+      - {{ $identity }}
+      {{- end }}
+      {{- $mesh := .Values | get "meshOverlay" "" }}
+      {{- if $mesh }}
+      # Phase 2 ClusterMesh overlay (apiserver + peering), injected as a helm
+      # upgrade by clusters/<name>/mesh.yaml AFTER both clusters exist + shared CA.
+      - {{ $mesh }}
+      {{- end }}
     hooks:
       - events: ["postsync"]
         showlogs: true
@@ -42,7 +61,21 @@ releases:
         args:
           - -c
           - |
+            set -euo pipefail
+
+            for crd in ciliuml2announcementpolicies.cilium.io ciliumloadbalancerippools.cilium.io; do
+              until kubectl get crd "$crd" >/dev/null 2>&1; do
+                echo "waiting for CRD $crd to be registered by cilium-operator..."; sleep 3
+              done
+              kubectl wait --for=condition=established --timeout=120s "crd/$crd"
+            done
             kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
+
+            # This cluster's disjoint LB-IPAM pool. Co-located with Cilium (like the L2
+            # announcement above) so it's applied on every cilium sync — including the
+            # Phase 2 mesh-upgrade, guaranteeing clustermesh-apiserver has a pool for its
+            # pinned IP. Ranges come from env (.envrc); envsubst renders them here.
+            envsubst < ../clusters/{{ $cluster }}/lb-ippool.yaml | kubectl apply -f -
 
   - name: coredns
     namespace: kube-system
@@ -51,6 +84,12 @@ releases:
     createNamespace: true
     values:
       - ../apps/networking/coredns/values.yaml
+      # kube-dns Service IP MUST equal Talos kubelet clusterDNS (10th IP of this
+      # cluster's serviceSubnet) or DNS breaks / the Service fails to allocate.
+      # Sourced from clusters/<cluster>/cluster.yaml (dnsIP). This inline entry is
+      # LAST in the values list, so it wins over the base values.yaml default.
+      - service:
+          clusterIP: {{ $clusterCfg.dnsIP | default "10.96.0.10" | quote }}
     needs:
       - kube-system/cilium
 
@@ -85,4 +124,27 @@ releases:
         args:
           - -c
           - |
-            kustomize build --enable-exec --enable-helm ../apps/storage/nfs | kubectl apply -f -
+            manifests=$(kustomize build --enable-exec --enable-helm ../apps/storage/nfs/overlays/{{ $cluster }})
+            if [ -n "$manifests" ]; then
+              echo "$manifests" | kubectl apply -f -
+            else
+              echo "No NFS storage resources for cluster '{{ $cluster }}' — skipping."
+            fi
+
+  - name: metrics-server
+    chart: metrics-server/metrics-server
+    namespace: kube-system
+    version: 3.8.3
+    values:
+      - apiService:
+          create: true
+        metrics:
+          enabled: true
+        hostNetwork:
+          enabled: true
+        args:
+          - --cert-dir=/tmp
+          - --kubelet-use-node-status-port
+          - --kubelet-insecure-tls
+          - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalIP,Hostname
+          - --metric-resolution=60s

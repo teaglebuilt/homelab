@@ -13,14 +13,14 @@ What is in the rack?
 
 ## Servers
 
-### PVE1
+### pve
 
 A low powered and quiet proxmox node for simple compute and virtualization.
 
 | Component | Model |
 |-----------|-------|
 | Motherboard | [Supermicro M11SDV-8C-LN4F](https://www.amazon.com/dp/B07QCWHQBW?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1) |
-| Memory | [4 x 32GB Crucial UDIMM RAM](https://www.amazon.com/dp/B01N5HME0X?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_9) |
+| Memory | [4 x Crucial 32GB, 288-pin DIMM, DDR4 PC4-21300](https://www.amazon.com/dp/B01N5HME0X?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_9) |
 | SSD | [1TB SanDisk Extreme Pro NVMe Drive](https://www.amazon.com/dp/B07BSV7R67?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_2) |
 | Chassis | [2U iStarUSA Black Chassis](https://www.amazon.com/dp/B00A7NBO6E?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1) |
 

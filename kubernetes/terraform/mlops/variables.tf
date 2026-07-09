@@ -1,4 +1,3 @@
-
 variable "k8s_api_server_ip" {
   description = "ip address of k8s api server"
   type = string

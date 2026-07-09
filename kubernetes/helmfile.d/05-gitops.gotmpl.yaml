@@ -1,0 +1,38 @@
+---
+{{- /* Stage 05 — GitOps (Phase 2 seam). DISABLED by default.
+       Enabled per-cluster via clusters/<cluster>/environment.yaml → enable.gitops.
+       While gitops:false this stage renders to nothing (the release is guarded by
+       the {{- if }} below, so the argocd values — incl. requiredEnv — are never
+       evaluated in Phase 1). This is the handoff point where ArgoCD (deployed on
+       the future `administration` management cluster) takes over app delivery. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
+{{- $enable := $env | get "enable" dict }}
+bases:
+  - ../defaults.yaml
+
+repositories:
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
+
+releases:
+{{- if $enable | get "gitops" false }}
+  - name: argocd
+    namespace: argocd
+    chart: argo/argo-cd
+    # TODO(Phase 2): pin the argo-cd chart version and convert the ApplicationSet
+    # (apps/gitops/argocd/applicationset.yaml) to a cluster generator managing all
+    # three clusters. Deploy this on the `administration` management cluster only.
+    version: 7.7.0
+    createNamespace: true
+    values:
+      - ../apps/gitops/argocd/values.yaml.gotmpl
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            kustomize build ../apps/gitops/argocd | kubectl apply -f -
+{{- end }}

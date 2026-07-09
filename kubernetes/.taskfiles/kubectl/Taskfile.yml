@@ -17,4 +17,17 @@ tasks:
 
   cleanup-pods:
     cmds:
-      kubectl get pod -n studytonight | grep Evicted | awk '{print $1}' | xargs kubectl delete pod -n studytonight
+      - kubectl get pod -n {{.POD}} | grep Evicted | awk '{print $1}' | xargs kubectl delete pod -n studytonight
+
+  merge-kubeconfig:
+    summary: Merge both cluster kubeconfigs (mlops + application) into ~/.kube/config so kubectl/k9s can `:ctx` between admin@mlops and admin@application
+    vars:
+      MLOPS_KUBECONFIG: '{{.TASKFILE_DIR}}/../../generated/mlops/kubeconfig'
+      APP_KUBECONFIG: '{{.TASKFILE_DIR}}/../../generated/application/kubeconfig'
+    preconditions:
+      - sh: 'test -f {{.MLOPS_KUBECONFIG}}'
+        msg: "mlops kubeconfig missing at {{.MLOPS_KUBECONFIG}} — bootstrap mlops first."
+      - sh: 'test -f {{.APP_KUBECONFIG}}'
+        msg: "application kubeconfig missing at {{.APP_KUBECONFIG}} — bootstrap application first."
+    cmds:
+      - '{{.TASKFILE_DIR}}/merge-kubeconfig.sh {{.MLOPS_KUBECONFIG}} {{.APP_KUBECONFIG}}'

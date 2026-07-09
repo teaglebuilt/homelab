@@ -6,7 +6,7 @@ alwaysApply: true
 
 ## Cluster Topology
 
-Two clusters defined in `kubernetes/clusters/`: **mlops** (GPU workloads, primary) and **administration**.
+Two clusters defined in `kubernetes/clusters/`: **mlops** (GPU workloads, primary) and **application**.
 
 Helmfile stages deploy in order:
 - `00-prepare` -- namespaces, prerequisites

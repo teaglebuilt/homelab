@@ -1,0 +1,27 @@
+---
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    service:
+      type: LoadBalancer
+      annotations:
+        io.cilium/lb-ipam-ips: {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
+    tls:
+      authMode: cluster
+      server:
+        # The peer's KVStoreMesh (enabled by default in 1.18) dials THIS apiserver
+        # by its raw LoadBalancer IP (clustermesh.config.clusters[].address below is
+        # an IP, not a DNS name). Go's TLS client verifies the IP against the cert's
+        # iPAddress SANs, so this cluster's apiserver LB IP MUST be a SAN here or the
+        # cross-cluster handshake fails with "hostname mismatch" and KVStoreMesh can
+        # never cache the remote cluster-config (mesh stays NOT READY on both sides).
+        extraIpAddresses:
+          - {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
+        extraDnsNames:
+          - clustermesh-application.homelab
+  config:
+    enabled: true
+    clusters:
+      - name: mlops
+        address: {{ requiredEnv "MLOPS_CLUSTERMESH_APISERVER_IP" | quote }}
+        port: 2379

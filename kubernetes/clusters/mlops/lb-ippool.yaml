@@ -1,0 +1,9 @@
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: mlops-pool
+spec:
+  blocks:
+    - start: ${MLOPS_LB_POOL_START}
+      stop: ${MLOPS_LB_POOL_STOP}

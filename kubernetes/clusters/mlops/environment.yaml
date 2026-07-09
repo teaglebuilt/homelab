@@ -1,0 +1,15 @@
+---
+enable:
+  gpu: true               # nvidia-device-plugin, dcgm-exporter, node-problem-detector (GPU-coupled)
+  wasm: true              # kwasm-operator, spin-operator
+  gateway: true           # homelab-gateway (kgateway)
+  certManager: true       # cert-manager (+ internal CA issuer)
+  cnpg: true              # CloudNativePG operator
+  frontDoor: false        # cloudflare-tunnel + public external-dns — lives on `application`
+  gitops: false           # argocd (Phase 2 seam)
+
+nodeSelector:
+  certManager:
+    kubernetes.io/hostname: mlops-work-01
+  cnpg:
+    kubernetes.io/hostname: mlops-work-01

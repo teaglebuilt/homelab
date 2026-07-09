@@ -1,0 +1,46 @@
+# Cilium CLUSTERMESH overlay for the mlops cluster (Phase 2 — mesh activation).
+#
+# Layered ON TOP of apps/networking/cilium/values.yaml AND identity-values.yaml.gotmpl
+# by clusters/mlops/mesh.yaml, applied as a helm UPGRADE (task: connect-clusters).
+#
+# Prerequisites (or clustermesh-apiserver never goes Ready):
+#   1. Both clusters already bootstrapped (Phase 1) and healthy.
+#   2. Shared CA (clusters/_shared/cilium-ca.sops.yaml) applied to kube-system in
+#      BOTH clusters — authMode:cluster signs mesh certs from it.
+#   3. This cluster's LB-IPAM pool present (clusters/mlops/lb-ippool.yaml) so the
+#      apiserver LoadBalancer can pin its IP.
+# Values validated against cilium chart 1.18.11.
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    service:
+      type: LoadBalancer
+      annotations:
+        # Pin the apiserver to a stable IP inside this cluster's LB-IPAM pool.
+        io.cilium/lb-ipam-ips: {{ requiredEnv "MLOPS_CLUSTERMESH_APISERVER_IP" | quote }}
+    tls:
+      # Shared-CA trust model. The cilium-ca secret (identical in both clusters,
+      # applied from clusters/_shared/) is the trust anchor; the operator signs
+      # mesh certs from it. Do NOT use tls.auto method:helm — that mints a
+      # DIFFERENT CA per cluster and breaks mutual trust.
+      authMode: cluster
+      server:
+        # The peer's KVStoreMesh (enabled by default in 1.18) dials THIS apiserver
+        # by its raw LoadBalancer IP (clustermesh.config.clusters[].address below is
+        # an IP, not a DNS name). Go's TLS client verifies the IP against the cert's
+        # iPAddress SANs, so this cluster's apiserver LB IP MUST be a SAN here or the
+        # cross-cluster handshake fails with "hostname mismatch" and KVStoreMesh can
+        # never cache the remote cluster-config (mesh stays NOT READY on both sides).
+        extraIpAddresses:
+          - {{ requiredEnv "MLOPS_CLUSTERMESH_APISERVER_IP" | quote }}
+        extraDnsNames:
+          - clustermesh-mlops.homelab
+  # Declarative peering: list the OTHER cluster's apiserver. The operator
+  # auto-generates the cilium-clustermesh secret (remote etcd + client certs)
+  # from this + the shared CA. Replaces `cilium clustermesh connect`.
+  config:
+    enabled: true
+    clusters:
+      - name: application
+        address: {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
+        port: 2379

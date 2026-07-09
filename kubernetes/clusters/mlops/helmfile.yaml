@@ -1,3 +1,30 @@
 ---
-bases:
-  - ../../defaults.yaml
+# mlops Phase 1 (base bootstrap) entrypoint. Composes the staged helmfile.d/
+# deploys and injects this cluster's IDENTITY overlay (cluster.name/id + native-
+# routing CIDR) into the cilium release. NO ClusterMesh here — that is a Phase 2
+# helm upgrade via clusters/mlops/mesh.yaml (task: connect-clusters).
+#
+#   helmfile -f clusters/mlops/helmfile.yaml sync
+#
+# Every stage is injected with `cluster: mlops`; stages read
+# ../clusters/mlops/environment.yaml (feature toggles + placement) via readFile,
+# resolved relative to helmfile.d/. Synced directly (`helmfile sync .` from
+# helmfile.d/) `cluster` defaults to mlops, so behaviour is unchanged.
+helmfiles:
+  - path: ../../helmfile.d/00-prepare.gotmpl.yaml
+  - path: ../../helmfile.d/01-bootstrap.gotmpl.yaml
+    values:
+      - cluster: mlops
+      - identityOverlay: ../clusters/mlops/identity-values.yaml.gotmpl
+  - path: ../../helmfile.d/02-core.gotmpl.yaml
+    values:
+      - cluster: mlops
+  - path: ../../helmfile.d/03-hardware.gotmpl.yaml
+    values:
+      - cluster: mlops
+  - path: ../../helmfile.d/04-monitoring.gotmpl.yaml
+    values:
+      - cluster: mlops
+  - path: ../../helmfile.d/05-gitops.gotmpl.yaml
+    values:
+      - cluster: mlops

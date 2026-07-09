@@ -1,0 +1,13 @@
+---
+name: mlops
+clusterId: 1              # unique 1-255; application = 2
+podSubnet: 10.244.0.0/16 # kubernetes/terraform/mlops-cluster.tf (cluster.pod_subnet)
+serviceSubnet: 10.96.0.0/12
+dnsIP: 10.96.0.10        # 10th IP of serviceSubnet == Talos kubelet clusterDNS
+proxmoxHost: pve2        # 192.168.2.101
+nodeIps:                 # static (Proxmox cloud-init ip_config), outside lbPool
+  controlplane: 192.168.2.195
+  worker00: 192.168.2.19
+  worker01: 192.168.2.20
+clustermeshApiserverLB: 192.168.2.240
+lbPool: 192.168.2.200-192.168.2.240

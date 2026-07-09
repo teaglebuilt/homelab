@@ -8,9 +8,10 @@ includes:
     taskfile: ".taskfiles/debug/Taskfile.yaml"
   gpu:
     taskfile: ".taskfiles/gpu/Taskfile.yaml"
-
-vars:
-  TERRAFORM: tofu -chdir=terraform
+  kubectl:
+    taskfile: ".taskfiles/kubectl/Taskfile.yml"
+  cilium:
+    taskfile: ".taskfiles/cilium/Taskfile.yml"
 
 env:
   PROXMOX_VE_USERNAME: "{{.PROXMOX_USERNAME}}"
@@ -22,87 +23,169 @@ env:
   # TF_LOG: DEBUG
 
 tasks:
-  provision-cluster:
+  provision-mlops:
     dir: kubernetes
     cmds:
       - |-
-        {{.TERRAFORM}} init --upgrade
+        tofu -chdir=terraform/mlops init --upgrade
       - |-
-        {{.TERRAFORM}} plan \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+        tofu -chdir=terraform/mlops plan \
+          -var k8s_api_server_ip=${MLOPS_MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var master_node_ip=${MLOPS_MASTER_NODE_IP} \
+          -var worker_one_node_ip=${MLOPS_WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${MLOPS_WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
       - |-
-        {{.TERRAFORM}} apply -auto-approve \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+        tofu -chdir=terraform/mlops apply -auto-approve \
+          -var k8s_api_server_ip=${MLOPS_MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var master_node_ip=${MLOPS_MASTER_NODE_IP} \
+          -var worker_one_node_ip=${MLOPS_WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${MLOPS_WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
-  destroy-cluster:
+  destroy-mlops:
     dir: kubernetes
     cmds:
       - |-
-        {{.TERRAFORM}} init --upgrade
+        tofu -chdir=terraform/mlops init --upgrade
       - |-
-        {{.TERRAFORM}} destroy -auto-approve \
-          -var k8s_api_server_ip=${MASTER_NODE_IP} \
+        tofu -chdir=terraform/mlops destroy -auto-approve \
+          -var k8s_api_server_ip=${MLOPS_MASTER_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
-          -var master_node_ip=${MASTER_NODE_IP} \
-          -var worker_one_node_ip=${WORKER_00_NODE_IP} \
-          -var worker_two_node_ip=${WORKER_01_NODE_IP} \
+          -var master_node_ip=${MLOPS_MASTER_NODE_IP} \
+          -var worker_one_node_ip=${MLOPS_WORKER_00_NODE_IP} \
+          -var worker_two_node_ip=${MLOPS_WORKER_01_NODE_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
   bootstrap-cluster:
+    summary: Phase 1 — base bootstrap for a cluster (plain Cilium + identity, no mesh) and its LB-IPAM pool
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+    preconditions:
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
+      - sh: >-
+          KUBECONFIG={{.KUBECONFIG_FILE}}
+          sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
+        msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+
+  provision-application:
+    summary: Provision the application Talos cluster on pve
+    dir: kubernetes
+    env:
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    preconditions:
+      - sh: '[ -n "$APP_MASTER_NODE_IP" ]'
+        msg: "APP_MASTER_NODE_IP is not set — add APP_MASTER_NODE_IP and APP_WORKER_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve). See kubernetes/clusters/application/cluster.yaml."
+      - sh: '[ -n "$APP_WORKER_NODE_IP" ]'
+        msg: "APP_WORKER_NODE_IP is not set — add it to kubernetes/.env."
+    cmds:
+      - tofu -chdir=terraform/application init --upgrade
+      - |-
+        tofu -chdir=terraform/application plan \
+          -var app_k8s_api_server_ip=${APP_MASTER_NODE_IP} \
+          -var app_master_node_ip=${APP_MASTER_NODE_IP} \
+          -var app_worker_node_ip=${APP_WORKER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var graylog_ip=${GRAYLOG_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
+      - |-
+        tofu -chdir=terraform/application apply -auto-approve \
+          -var app_k8s_api_server_ip=${APP_MASTER_NODE_IP} \
+          -var app_master_node_ip=${APP_MASTER_NODE_IP} \
+          -var app_worker_node_ip=${APP_WORKER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var graylog_ip=${GRAYLOG_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
+
+  destroy-application:
+    dir: kubernetes
+    env:
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    cmds:
+      - |-
+        tofu -chdir=terraform/application destroy -auto-approve \
+          -var app_k8s_api_server_ip=${APP_MASTER_NODE_IP} \
+          -var app_master_node_ip=${APP_MASTER_NODE_IP} \
+          -var app_worker_node_ip=${APP_WORKER_NODE_IP} \
+          -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
+          -var graylog_ip=${GRAYLOG_IP} \
+          -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
+
+  bootstrap-cluster:
+    summary: Phase 1 — base bootstrap for a cluster (plain Cilium + identity, no mesh) and its LB-IPAM pool
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+    preconditions:
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
+      - sh: >-
+          KUBECONFIG={{.KUBECONFIG_FILE}}
+          sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
+        msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+
+
+  mesh-upgrade:
+    summary: Phase 2 — activate ClusterMesh on a cluster (Cilium helm upgrade with the clustermesh overlay)
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+    preconditions:
+      - sh: 'test -f clusters/_shared/cilium-ca.sops.yaml'
+        msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml (see clusters/_shared/README.md) and apply it to BOTH clusters first — authMode:cluster needs it or clustermesh-apiserver never goes Ready."
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
+
+  connect-clusters:
     dir: kubernetes
     cmds:
-      - make helmfile_apply
+      - task: cilium:ensure-shared-ca
+      - task: mesh-upgrade
+        vars: { CLUSTER: mlops }
+      - task: mesh-upgrade
+        vars: { CLUSTER: application }
+      - task: cilium:clustermesh-status
+        vars: { CLUSTER: mlops }
+      - task: cilium:clustermesh-status
+        vars: { CLUSTER: application }
 
   sync-cluster:
     dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      - make helmfile_sync
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
 
   wait-for-external-certificate:
+    summary: Wait for the gateway's external TLS cert to be Ready (front door owner)
     dir: kubernetes
-    cmds:
-      - echo "Waiting for external certificate to be ready..."
-      - |
-        kubectl wait certificate external-certificate \
-          -n kube-system \
-          --for=condition=Ready \
-          --timeout=5m
-
-  reboot-cluster-node:
-    dir: kubernetes
-    cmds:
-      - task: talos:reboot-node
-
-  cluster-health:
-    dir: kubernetes
+    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |
-        until kubectl get nodes --no-headers | awk '{print $2}' | grep -q "NotReady"; do
-          echo "Waiting for Kubernetes cluster to become healthy..."
-          sleep 10
-        done
-        echo "Kubernetes cluster is healthy!"
-
-  update-dependencies:
-    dir: kubernetes
-    cmds:
-      - make helmfile_lock
-      - make build_chart_dependencies
-
-  copy-kubeconfig:
-    dir: kubernetes
-    cmds:
-      - cp generated/kubeconfig ~/.kube/config
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl wait certificate external-certificate \
+          -n kube-system --for=condition=Ready --timeout=5m

@@ -5,6 +5,7 @@ serviceAccount:
   create: true
 service:
   name: kube-dns
+  # mlops default; helmfile overrides this per cluster from clusters/<cluster>/cluster.yaml dnsIP
   clusterIP: "10.96.0.10"
 servers:
   - zones:
@@ -37,9 +38,10 @@ servers:
       - name: loadbalance
 affinity:
   nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
             - key: node-role.kubernetes.io/control-plane
               operator: Exists
 tolerations:

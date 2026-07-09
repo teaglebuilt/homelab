@@ -2,7 +2,7 @@ version: v0.170.0
 dependencies:
 - name: cilium
   repository: https://helm.cilium.io
-  version: 1.17.3
+  version: 1.18.11
 - name: coredns
   repository: https://coredns.github.io/helm
   version: 1.37.3
@@ -12,5 +12,8 @@ dependencies:
 - name: reflector
   repository: https://emberstack.github.io/helm-charts
   version: 7.1.288
-digest: sha256:284258d571f384881dc9709fcad35c60506379620aecbcc507c5811812b39ff3
-generated: "2026-03-13T18:16:33.297863-04:00"
+- name: reloader
+  repository: https://stakater.github.io/stakater-charts
+  version: 2.2.14
+digest: sha256:0f11d79688beeccef20e4bfb7132772daf365130e7f6c3b51021c1b24b63a159
+generated: "2026-07-07T15:48:56.954373-04:00"

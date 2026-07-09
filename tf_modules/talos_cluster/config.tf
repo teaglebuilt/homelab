@@ -22,8 +22,10 @@ data "talos_machine_configuration" "this" {
       hostname        = each.key
       node_name       = each.value.host_node
       node_ip         = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
-      cluster_name    = var.cluster.proxmox_cluster
+      cluster_name    = var.cluster.cluster_name
       network_gateway = var.cluster.gateway
+      pod_subnet      = var.cluster.pod_subnet
+      service_subnet  = var.cluster.service_subnet
     }),
     file("${path.module}/patches/controlplane/api-server-access.yaml"),
     file("${path.module}/patches/local-path-storage.yaml"),
@@ -37,8 +39,13 @@ data "talos_machine_configuration" "this" {
       hostname        = each.key
       node_name       = each.value.host_node
       node_ip         = each.value.ip
-      cluster_name    = var.cluster.proxmox_cluster
+      cluster_name    = var.cluster.cluster_name
       network_gateway = var.cluster.gateway
+      # Workers don't get the cluster.network block, so their kubelet would
+      # otherwise default clusterDNS to the Talos default service subnet
+      # (10.96.0.10) instead of this cluster's actual kube-dns IP. Set it
+      # explicitly from the configured service subnet.
+      cluster_dns     = cidrhost(var.cluster.service_subnet, 10)
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
