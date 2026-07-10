@@ -1,9 +1,11 @@
 ---
+# Evaluated on the CENTRAL hub against metrics remote_written from the mlops agent
+# (DCGM_FI_DEV_GPU_UTIL, time_per_output_token_seconds). Agent-mode Prometheus
+# does not evaluate rules, so these must live here, not on the mlops overlay.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: gpu.rules
-  namespace: kube-system
 spec:
   groups:
     - name: dcgm-exporter
@@ -19,7 +21,8 @@ spec:
     - name: vllm.latency.rule
       rules:
         - alert: vLLMLatency
-          expr: max_over_time(time_per_output_token_seconds}[5m]) >= 0.3       1
+          expr: max_over_time(time_per_output_token_seconds[5m]) >= 0.3
+          for: 5m
           labels:
             severity: critical
             app: my-model

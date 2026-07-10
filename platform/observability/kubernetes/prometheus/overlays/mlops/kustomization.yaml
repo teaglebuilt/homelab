@@ -13,6 +13,8 @@ helmCharts:
       - values.yaml               # mlops-specific: nodeSelector, LB service, scrape configs
       - prometheus-operator.yaml  # shared lean operator config
     valuesInline:
+      defaultRules:
+        create: false
       nodeExporter:
         enabled: false
       kubeApiServer:

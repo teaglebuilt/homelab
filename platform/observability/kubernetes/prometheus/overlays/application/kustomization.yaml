@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: observability
 resources:
   - ../../base
+  - rules/gpu-metric-alerts.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: https://prometheus-community.github.io/helm-charts
@@ -25,6 +26,86 @@ helmCharts:
       grafana:
         # TODO(user): admin creds via SOPS secret, persistence, HTTPRoute hostname.
         enabled: true
+        grafana.ini:
+          server:
+            root_url: https://grafana.homelab.internal
+        defaultDashboardsEnabled: false
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Prometheus
+                type: prometheus
+                uid: prometheus
+                access: proxy
+                orgId: 1
+                url: http://prometheus-community-kube-prometheus.observability:9090
+                basicAuth: false
+                editable: true
+                isDefault: false
+                jsonData:
+                  httpMethod: GET
+                  exemplarTraceIdDestinations:
+                  - name: trace_id
+                    datasourceUid: tempo
+              # - name: Tempo
+              #   type: tempo
+              #   access: proxy
+              #   basicAuth: false
+              #   orgId: 1
+              #   uid: tempo
+              #   url: http://tempo.monitoring.svc.cluster.local:3200
+              #   isDefault: false
+              #   editable: true
+              # - orgId: 1
+              #   name: Loki
+              #   type: loki
+              #   typeName: Loki
+              #   access: proxy
+              #   url: http://loki-gateway.monitoring.svc.cluster.local
+              #   basicAuth: false
+              #   isDefault: false
+              #   editable: true
+              # - name: InfluxDB
+              #   type: influxdb
+              #   access: proxy
+              #   url: https://portainer.homelab.internal/influxdb:8086
+              #   jsonData:
+              #     version: Flux
+              #     organization: homelab
+              #     defaultBucket: hardware
+              #     httpMode: POST
+              #     tlsSkipVerify: true
+              #   secureJsonData:
+              #     token: ${INFLUXDB_ADMIN_TOKEN}
+        sidecar:
+          dashboards:
+            enabled: true
+            label: grafana_dashboard
+            labelValue: "1"
+            folder: /tmp/dashboards
+            searchNamespace: monitoring
+            provider:
+              foldersFromFilesStructure: true
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+          datasources:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
       kubeStateMetrics:
         enabled: true    # central wants cluster-state metrics
       kubeApiServer:

@@ -1,21 +1,66 @@
 ---
-# application CENTRAL prometheus overlay — STUB (not yet deployed).
-# Fleshes out when `application` monitoring is stood up. Intent: the single-pane
-# aggregator that discovers ServiceMonitors/PodMonitors cluster-wide, accepts
-# remote_write from other clusters (e.g. mlops), and fronts Grafana.
+# application CENTRAL prometheus overlay — the single-pane HUB.
+# Discovers ServiceMonitors/PodMonitors cluster-wide, accepts remote_write from
+# spoke clusters (e.g. the mlops agent), evaluates all alert rules, and fronts
+# Grafana + Alertmanager (enabled via kustomization valuesInline).
 prometheus:
   enabled: true
   agentMode: false
   service:
     type: LoadBalancer
     annotations:
-      # TODO(user): pick the application-cluster hostname (its own external-dns).
-      external-dns.alpha.kubernetes.io/hostname: prometheus.app.homelab.internal
+      # Flagship single-pane hostname (moved here from the mlops overlay).
+      external-dns.alpha.kubernetes.io/hostname: prometheus.homelab.internal
   prometheusSpec:
     retention: 15d
     # Discover ServiceMonitors/PodMonitors in ALL namespaces on this cluster.
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
-    # TODO(user): to ACCEPT remote_write from mlops, enable the receiver AND
-    # expose this endpoint (HTTPRoute/LB) with auth:
-    #   enableFeatures: ["remote-write-receiver"]
+    # Evaluate PrometheusRules from any watched namespace (e.g. gpu.rules) regardless
+    # of the release label. ruleNamespaceSelector stays empty = all namespaces.
+    ruleSelectorNilUsesHelmValues: false
+    # Accept remote_write from spoke clusters — the mlops agent ships GPU/vLLM metrics here.
+    # Reachable only on the internal LB (prometheus.homelab.internal) and cross-cluster
+    # over Cilium clustermesh. The receiver has no native auth; if tighter control is
+    # wanted, add a CiliumNetworkPolicy limiting ingress to :9090 from cluster=mlops.
+    enableRemoteWriteReceiver: true
+    # Global annotation-based scrape discovery for THIS cluster's own targets.
+    additionalScrapeConfigs:
+      - job_name: 'kubernetes-endpoints'
+        scrape_interval: 30s
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+)(?::\d+);(\d+)
+            replacement: $1:$2
+
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name

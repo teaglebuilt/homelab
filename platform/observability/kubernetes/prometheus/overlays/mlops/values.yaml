@@ -1,23 +1,30 @@
 ---
+# mlops AGENT overlay — a Prometheus *spoke*. It scrapes local GPU/vLLM targets
+# and remote_writes them to the central `application` hub. Agent mode = no local
+# storage, no UI, no rule evaluation. Anything that needs to be queried, alerted
+# on, or graphed lives on the `application` overlay.
 prometheus:
   enabled: true
   serviceMonitor:
     enabled: false
-  agentMode: false
+  agentMode: true
   nodeSelector:
     kubernetes.io/hostname: mlops-work-01
-  service:
-    type: LoadBalancer
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: prometheus.homelab.internal
   prometheusSpec:
     nodeSelector:
       kubernetes.io/hostname: mlops-work-01
+    # Ship everything scraped here up to the central hub on the application cluster.
+    # Path is private: prometheus.homelab.internal is an internal-only ExternalDNS
+    # zone (not public), and mlops<->application are joined via Cilium clustermesh.
+    # Prometheus' remote-write-receiver has NO native auth — tighten with a
+    # CiliumNetworkPolicy on the hub (restrict to cluster=mlops) if needed, not app creds.
+    remoteWrite:
+      - url: http://prometheus.homelab.internal:9090/api/v1/write
+    # Local annotation-based discovery so the agent can actually COLLECT the
+    # DCGM/vLLM metrics it forwards. This is per-cluster and MUST stay on the agent —
+    # it is the source of the metrics we remote_write; it is not "global" config.
+    # (parca job dropped — TODO(user): re-add once parca's cluster/target is confirmed.)
     additionalScrapeConfigs:
-      - job_name: parca
-        static_configs:
-          - targets: ['parca-server.default.svc.cluster.local:7070']
-
       - job_name: 'kubernetes-endpoints'
         scrape_interval: 30s
         kubernetes_sd_configs:

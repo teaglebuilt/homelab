@@ -472,7 +472,7 @@ data:
       "time": { "from": "now-6h", "to": "now" },
       "timepicker": {},
       "timezone": "",
-      "title": "AgentGateway - Claude Multi-Gateway Monitoring",
+      "title": "AgentGateway - Agent Gateway Monitoring",
       "uid": "agentgateway-claude-multi",
       "version": 1
     }
