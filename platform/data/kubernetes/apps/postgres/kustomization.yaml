@@ -5,6 +5,8 @@ namespace: data
 resources:
   - cluster.yaml
   - databases/n8n.yaml
+generators:
+  - secrets-generator.yaml
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:

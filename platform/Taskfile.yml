@@ -19,12 +19,19 @@ tasks:
   deploy:
     dir: platform
     summary: 'deploy all platform services running on kubernetes'
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - task: data:deploy
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: ai:deploy
-      - task: automation:deploy
-      - task: observability:deploy
-      - kubectl rollout restart deployment reflector -n kube-system
+      # - task: automation:deploy
+      #   vars: { CLUSTER: 'application' }
+      # - task: observability:deploy
+      #   vars: { CLUSTER: '{{.CLUSTER}}' }
+      # - kubectl rollout restart deployment reflector -n kube-system
 
   destroy:
     dir: platform

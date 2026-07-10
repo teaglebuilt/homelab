@@ -1,16 +1,23 @@
 ---
 version: 3
 
-vars:
-  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
-
 tasks:
   deploy:
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes | kubectl apply -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes/overlays/{{.CLUSTER}} | kubectl apply -f -
 
   destroy:
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+      KUBECONFIG: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes | kubectl delete -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes | kubectl delete -f -

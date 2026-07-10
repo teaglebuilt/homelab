@@ -41,17 +41,19 @@ tasks:
           --wait
 
   deploy:
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/mlops/kubeconfig'
     desc: Deploy AI platform (CRDs must be installed first)
     deps:
       - install-crds
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl apply -n {{.AI_NAMESPACE}} -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl delete -n {{.AI_NAMESPACE}} -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl delete -n {{.AI_NAMESPACE}} -f -
 
   test:
     cmds:
