@@ -162,9 +162,9 @@ tasks:
     cmds:
       - task: cilium:ensure-shared-ca
       - task: mesh-upgrade
-        vars: { CLUSTER: mlops }
-      - task: mesh-upgrade
         vars: { CLUSTER: application }
+      - task: mesh-upgrade
+        vars: { CLUSTER: mlops }
       - task: cilium:clustermesh-status
         vars: { CLUSTER: mlops }
       - task: cilium:clustermesh-status

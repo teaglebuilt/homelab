@@ -12,6 +12,6 @@ spec:
     tracing:
       backendRef:
         name: otel-collector-collector
-        namespace: monitoring
+        namespace: observability
         port: 4317
       protocol: GRPC

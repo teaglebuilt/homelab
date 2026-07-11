@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: "/"
     backendRefs:
-    - name: kube-prometheus-stack-grafana
+    - name: prometheus-community-grafana
       port: 80

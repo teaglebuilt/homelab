@@ -41,19 +41,25 @@ tasks:
           --wait
 
   deploy:
+    dir: ai
+    desc: Deploy AI platform (GPU/mlops-only; skipped on other clusters)
     vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/mlops/kubeconfig'
-    desc: Deploy AI platform (CRDs must be installed first)
-    deps:
-      - install-crds
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    status:
+      # AI platform only runs where there's a GPU (mlops). Treat as up-to-date
+      # (skip, no error) elsewhere so the parent can call this directly.
+      - test "{{.CLUSTER}}" != "mlops"
     cmds:
+      - task: install-crds
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl apply -n {{.AI_NAMESPACE}} -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
+    dir: ai
     cmds:
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./ai/kubernetes | kubectl delete -n {{.AI_NAMESPACE}} -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | kubectl delete -n {{.AI_NAMESPACE}} -f -
 
   test:
     cmds:
