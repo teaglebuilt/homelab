@@ -50,6 +50,15 @@ tasks:
         vars: { CLUSTER: application }
       - task: kubernetes:wait-for-external-certificate
         vars: { CLUSTER: mlops }
+      - task: platform:deploy
+        vars: { CLUSTER: application }
+      - task: platform:deploy
+        vars: { CLUSTER: mlops }
+
+  destroy-kubernetes:
+    cmds:
+      - task: kubernetes:destroy-mlops
+      - task: kubernetes:destroy-application
 
   spin-up-*:
     summary: Used for launching any platform service locally.

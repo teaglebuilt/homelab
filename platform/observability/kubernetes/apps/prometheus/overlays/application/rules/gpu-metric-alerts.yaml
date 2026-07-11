@@ -1,0 +1,30 @@
+---
+# Evaluated on the CENTRAL hub against metrics remote_written from the mlops agent
+# (DCGM_FI_DEV_GPU_UTIL, time_per_output_token_seconds). Agent-mode Prometheus
+# does not evaluate rules, so these must live here, not on the mlops overlay.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gpu.rules
+spec:
+  groups:
+    - name: dcgm-exporter
+      rules:
+        - alert: HighGpuUsage
+          expr: |
+            rate(DCGM_FI_DEV_GPU_UTIL[15m]) > 0.85
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High GPU usage on node {{ $labels.Hostname }} for 15 minutes"
+    - name: vllm.latency.rule
+      rules:
+        - alert: vLLMLatency
+          expr: max_over_time(time_per_output_token_seconds[5m]) >= 0.3
+          for: 5m
+          labels:
+            severity: critical
+            app: my-model
+          annotations:
+            message: Latency of vLLM is too high.

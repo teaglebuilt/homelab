@@ -19,12 +19,22 @@ tasks:
   deploy:
     dir: platform
     summary: 'deploy all platform services running on kubernetes'
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - task: data:deploy
+        vars: { CLUSTER: '{{.CLUSTER}}' }
+      # ai/automation are mlops-only; each task self-skips on other clusters via
+      # its own `status:` guard, so they can be called with the same pattern.
       - task: ai:deploy
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: automation:deploy
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: observability:deploy
-      - kubectl rollout restart deployment reflector -n kube-system
+        vars: { CLUSTER: '{{.CLUSTER}}' }
+      # - kubectl rollout restart deployment reflector -n kube-system
 
   destroy:
     dir: platform

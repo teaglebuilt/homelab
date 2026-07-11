@@ -11,9 +11,9 @@ tasks:
     summary: Deploy the per-cluster observability stack (CLUSTER=mlops|application)
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/../../kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     preconditions:
-      - sh: test -d overlays/{{.CLUSTER}}
+      - sh: test -d kubernetes/overlays/{{.CLUSTER}}
         msg: "No observability overlay for cluster '{{.CLUSTER}}' — expected platform/observability/overlays/{{.CLUSTER}}/"
       - sh: test -f {{.KUBECONFIG_FILE}}
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."

@@ -7,6 +7,7 @@ enable:
   cnpg: true              # CloudNativePG operator
   frontDoor: true         # cloudflare-tunnel + public external-dns live HERE
   gitops: false           # argocd (Phase 2 seam)
+  grafanaOperator: true   # grafana-operator: manages Grafana datasources/dashboards via CRDs (Grafana itself ships with kube-prometheus-stack)
 
 # Empty selectors → no hostname pin (application schedules cert-manager/cnpg on
 # any eligible node). Populate if you want to pin to a specific application node.

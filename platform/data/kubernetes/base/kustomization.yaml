@@ -1,0 +1,7 @@
+---
+# Shared data-plane base: just the `data` namespace. Each cluster overlay composes
+# this with the units that run on it (postgres, qdrant, redis).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml

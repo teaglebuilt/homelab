@@ -12,15 +12,16 @@ resources:
   - mcp-backend.yaml
   - mcp-route.yaml
   - referencegrant-automation-to-mcp.yaml
-helmGlobals:
-  chartHome: ./charts
 helmCharts:
   - name: agentgateway
+    repo: oci://ghcr.io/kgateway-dev/charts
     releaseName: agentgateway
     version: v2.2.1
     namespace: ai
   - name: kagent
+    repo: oci://ghcr.io/kagent-dev/kagent/helm
     releaseName: kagent
+    version: 0.9.11
     namespace: ai
     valuesInline:
       kmcp:
@@ -53,11 +54,11 @@ helmCharts:
             host: ollama.ai.svc.cluster.local:11434
       controller:
         substrate:
-          enabled: true
+          enabled: false
           ateApiEndpoint: "dns:///api.ate-system.svc:443"
           ateApiInsecure: true
       substrateWorkerPool:
-        create: true
+        create: false
       agents:
         istio-agent:
           enabled: false

@@ -1,0 +1,65 @@
+---
+# mlops AGENT overlay — a Prometheus *spoke*. It scrapes local GPU/vLLM targets
+# and remote_writes them to the central `application` hub. Agent mode = no local
+# storage, no UI, no rule evaluation. Anything that needs to be queried, alerted
+# on, or graphed lives on the `application` overlay.
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+  agentMode: true
+  nodeSelector:
+    kubernetes.io/hostname: mlops-work-01
+  prometheusSpec:
+    nodeSelector:
+      kubernetes.io/hostname: mlops-work-01
+    # Ship everything scraped here up to the central hub on the application cluster.
+    # Path is private: prometheus.homelab.internal is an internal-only ExternalDNS
+    # zone (not public), and mlops<->application are joined via Cilium clustermesh.
+    # Prometheus' remote-write-receiver has NO native auth — tighten with a
+    # CiliumNetworkPolicy on the hub (restrict to cluster=mlops) if needed, not app creds.
+    remoteWrite:
+      - url: http://prometheus.homelab.internal:9090/api/v1/write
+    # Local annotation-based discovery so the agent can actually COLLECT the
+    # DCGM/vLLM metrics it forwards. This is per-cluster and MUST stay on the agent —
+    # it is the source of the metrics we remote_write; it is not "global" config.
+    # (parca job dropped — TODO(user): re-add once parca's cluster/target is confirmed.)
+    additionalScrapeConfigs:
+      - job_name: 'kubernetes-endpoints'
+        scrape_interval: 30s
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+)(?::\d+);(\d+)
+            replacement: $1:$2
+
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name

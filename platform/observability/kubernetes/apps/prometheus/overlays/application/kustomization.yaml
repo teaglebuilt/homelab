@@ -1,0 +1,80 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: observability
+resources:
+  - ../../base
+  - rules/gpu-metric-alerts.yaml
+helmCharts:
+  - name: kube-prometheus-stack
+    repo: https://prometheus-community.github.io/helm-charts
+    version: 61.7.1
+    namespace: observability
+    releaseName: prometheus-community
+    additionalValuesFiles:
+      - values.yaml
+      - prometheus-operator.yaml
+    valuesInline:
+      nodeExporter:
+        enabled: false
+      kubernetesServiceMonitors:
+        enabled: false
+      crds:
+        enabled: true
+      alertmanager:
+        enabled: true
+      grafana:
+        # TODO(user): admin creds via SOPS secret, persistence, HTTPRoute hostname.
+        enabled: true
+        grafana.ini:
+          server:
+            root_url: https://grafana.homelab.internal
+        defaultDashboardsEnabled: false
+        # Datasources are managed by the grafana-operator via GrafanaDatasource
+        # CRs — see apps/grafana/overlays/application/datasources/.
+        sidecar:
+          dashboards:
+            enabled: true
+            label: grafana_dashboard
+            labelValue: "1"
+            folder: /tmp/dashboards
+            searchNamespace: observability
+            provider:
+              foldersFromFilesStructure: true
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+          datasources:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+      kubeStateMetrics:
+        enabled: true    # central wants cluster-state metrics
+      kubeApiServer:
+        enabled: false
+      coreDns:
+        enabled: false
+      kubeDns:
+        enabled: false
+      kubeEtcd:
+        enabled: false
+      kubeControllerManager:
+        enabled: false
+      kubeScheduler:
+        enabled: false
+      kubeProxy:
+        enabled: false
+      kubelet:
+        enabled: false

@@ -33,11 +33,20 @@ module "talos_cluster" {
     "application-work-00" = {
       host_node     = "pve"
       machine_type  = "worker"
-      ip            = var.app_worker_node_ip
+      ip            = var.app_worker_one_node_ip
       vm_id         = 501
       cpu           = 4
       disk_size     = 40
       ram_dedicated = 8192
     }
+    # "application-work-01" = {
+    #   host_node     = "pve"
+    #   machine_type  = "worker"
+    #   ip            = var.app_worker_two_node_ip
+    #   vm_id         = 502
+    #   cpu           = 4
+    #   disk_size     = 40
+    #   ram_dedicated = 8192
+    # }
   }
 }

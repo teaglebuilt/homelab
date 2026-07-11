@@ -7,6 +7,7 @@ enable:
   cnpg: true              # CloudNativePG operator
   frontDoor: false        # cloudflare-tunnel + public external-dns — lives on `application`
   gitops: false           # argocd (Phase 2 seam)
+  grafanaOperator: false  # no Grafana on mlops
 
 nodeSelector:
   certManager:

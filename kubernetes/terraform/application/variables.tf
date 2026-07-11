@@ -8,10 +8,15 @@ variable "app_master_node_ip" {
   type        = string
 }
 
-variable "app_worker_node_ip" {
+variable "app_worker_one_node_ip" {
   description = "worker node IP for application"
   type        = string
 }
+
+# variable "app_worker_two_node_ip" {
+#   description = "worker node IP for application"
+#   type        = string
+# }
 
 variable "network_gateway" {
   description = "network gateway (shared 192.168.2.0/24 gateway)"

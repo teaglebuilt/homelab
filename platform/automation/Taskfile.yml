@@ -9,9 +9,15 @@ vars:
 
 tasks:
   deploy:
+    desc: Deploy automation stack (mlops-only; skipped on other clusters)
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+    status:
+      - test "{{.CLUSTER}}" != "mlops"
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | kubectl apply -f -
+
   destroy:
     cmds:
       - |-

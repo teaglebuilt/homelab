@@ -88,16 +88,16 @@ tasks:
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
     preconditions:
       - sh: '[ -n "$APP_MASTER_NODE_IP" ]'
-        msg: "APP_MASTER_NODE_IP is not set — add APP_MASTER_NODE_IP and APP_WORKER_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve). See kubernetes/clusters/application/cluster.yaml."
-      - sh: '[ -n "$APP_WORKER_NODE_IP" ]'
-        msg: "APP_WORKER_NODE_IP is not set — add it to kubernetes/.env."
+        msg: "APP_MASTER_NODE_IP is not set — add APP_MASTER_NODE_IP and APP_WORKER_ONE_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve). See kubernetes/clusters/application/cluster.yaml."
+      - sh: '[ -n "$APP_WORKER_ONE_NODE_IP" ]'
+        msg: "APP_WORKER_ONE_NODE_IP is not set — add it to kubernetes/.env."
     cmds:
       - tofu -chdir=terraform/application init --upgrade
       - |-
         tofu -chdir=terraform/application plan \
           -var app_k8s_api_server_ip=${APP_MASTER_NODE_IP} \
           -var app_master_node_ip=${APP_MASTER_NODE_IP} \
-          -var app_worker_node_ip=${APP_WORKER_NODE_IP} \
+          -var app_worker_one_node_ip=${APP_WORKER_ONE_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var graylog_ip=${GRAYLOG_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
@@ -105,7 +105,7 @@ tasks:
         tofu -chdir=terraform/application apply -auto-approve \
           -var app_k8s_api_server_ip=${APP_MASTER_NODE_IP} \
           -var app_master_node_ip=${APP_MASTER_NODE_IP} \
-          -var app_worker_node_ip=${APP_WORKER_NODE_IP} \
+          -var app_worker_one_node_ip=${APP_WORKER_ONE_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var graylog_ip=${GRAYLOG_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
@@ -121,7 +121,7 @@ tasks:
         tofu -chdir=terraform/application destroy -auto-approve \
           -var app_k8s_api_server_ip=${APP_MASTER_NODE_IP} \
           -var app_master_node_ip=${APP_MASTER_NODE_IP} \
-          -var app_worker_node_ip=${APP_WORKER_NODE_IP} \
+          -var app_worker_one_node_ip=${APP_WORKER_ONE_NODE_IP} \
           -var network_gateway=${PROXMOX_NETWORK_GATEWAY} \
           -var graylog_ip=${GRAYLOG_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
@@ -162,9 +162,9 @@ tasks:
     cmds:
       - task: cilium:ensure-shared-ca
       - task: mesh-upgrade
-        vars: { CLUSTER: mlops }
-      - task: mesh-upgrade
         vars: { CLUSTER: application }
+      - task: mesh-upgrade
+        vars: { CLUSTER: mlops }
       - task: cilium:clustermesh-status
         vars: { CLUSTER: mlops }
       - task: cilium:clustermesh-status

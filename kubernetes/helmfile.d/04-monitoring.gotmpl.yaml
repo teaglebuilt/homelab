@@ -1,13 +1,22 @@
 ---
-# Cluster-local log shipping only.
-#
-# METRICS (Prometheus / Grafana / parca) are NOT here — they live in
-# platform/observability/ as a kustomize stack with per-cluster overlays
-# (prometheus/overlays/<cluster>), deployed via `task platform:observability:deploy`.
-# That path owns the `observability` namespace with PRIVILEGED PodSecurity
-# (platform/observability/namespace.yaml), which a helmfile-created namespace does
-# not get — an earlier inline kube-prometheus-stack release here failed exactly
-# because its namespace defaulted to `restricted` and node-exporter was blocked.
+{{- /* Cluster-local log shipping + the grafana-operator control plane.
+
+       METRICS (Prometheus / Grafana / parca) are NOT here — they live in
+       platform/observability/ as a kustomize stack with per-cluster overlays
+       (prometheus/overlays/<cluster>), deployed via `task platform:observability:deploy`.
+       That path owns the `observability` namespace with PRIVILEGED PodSecurity
+       (platform/observability/namespace.yaml), which a helmfile-created namespace does
+       not get — an earlier inline kube-prometheus-stack release here failed exactly
+       because its namespace defaulted to `restricted` and node-exporter was blocked.
+
+       grafana-operator IS here (gated by enable.grafanaOperator, application-only):
+       it installs the Grafana CRDs cluster-wide so the GrafanaDatasource/Grafana CRs
+       shipped in platform/observability apply cleanly on a single kustomize apply.
+       Grafana itself still ships with kube-prometheus-stack in the platform overlay. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
+{{- $enable := $env | get "enable" dict }}
+{{- $grafanaOperator := $enable | get "grafanaOperator" false }}
 bases:
   - ../defaults.yaml
 
@@ -23,3 +32,13 @@ releases:
     version: 0.44.0
     # values:
     #   - ../apps/monitoring/vector.yaml
+
+  - name: grafana-operator
+    namespace: observability
+    createNamespace: true
+    chart: oci://ghcr.io/grafana/helm-charts/grafana-operator
+    version: 5.24.0
+    installed: {{ $grafanaOperator }}
+    values:
+      - crds:
+          immutable: false
