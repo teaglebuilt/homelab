@@ -4,3 +4,6 @@ kind: Kustomization
 resources:
   - agentgateway.yaml
   - llm-usage.yaml
+  - agent-tracing.yaml
+  - n8n.yaml
+  - agent-gateway.yaml

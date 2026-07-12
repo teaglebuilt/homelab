@@ -1,0 +1,27 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: tempo
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo.observability.svc.cluster.local:3200
+    basicAuth: false
+    isDefault: false
+    editable: true
+    jsonData:
+      # Service graph is backed by the span-metrics written to Prometheus.
+      serviceMap:
+        datasourceUid: prometheus
+      # Link a trace's spans back to its Prometheus metrics.
+      tracesToMetrics:
+        datasourceUid: prometheus

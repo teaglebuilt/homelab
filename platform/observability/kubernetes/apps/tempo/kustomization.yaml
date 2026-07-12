@@ -1,0 +1,55 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+helmCharts:
+  - name: tempo
+    releaseName: tempo
+    repo: https://grafana.github.io/helm-charts
+    version: 1.24.4
+    namespace: observability
+    valuesInline:
+      tempo:
+        updateStrategy: RollingUpdate
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 1Gi
+        memBallastSizeMbs: 128
+        multitenancyEnabled: false
+        reportingEnabled: true
+        retention: 24h
+        # Service graphs + span metrics for the Tempo datasource. Requires the
+        # Prometheus remote-write receiver (--web.enable-remote-write-receiver).
+        metricsGenerator:
+          enabled: true
+          remoteWriteUrl: "http://prometheus-community-kube-prometheus.observability:9090/api/v1/write"
+        overrides:
+          defaults:
+            metrics_generator:
+              processors:
+                - service-graphs
+                - span-metrics
+                - local-blocks
+          per_tenant_override_config: /conf/overrides.yaml
+        per_tenant_overrides: {}
+        server:
+          http_listen_port: 3200
+        storage:
+          trace:
+            backend: local
+            local:
+              path: /var/tempo/traces
+            wal:
+              path: /var/tempo/wal
+        # OTLP is how the otel-collector ships traces here (grpc 4317 / http 4318).
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: "0.0.0.0:4317"
+              http:
+                endpoint: "0.0.0.0:4318"
+      tempoQuery:
+        enabled: false

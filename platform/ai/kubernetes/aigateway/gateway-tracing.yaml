@@ -7,7 +7,7 @@ metadata:
 spec:
   env:
     - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://otel-collector-collector.monitoring.svc.cluster.local:4317"
+      value: "http://otel-collector-mesh.observability.svc.cluster.local:4317"
     - name: OTEL_EXPORTER_OTLP_PROTOCOL
       value: "grpc"
     - name: OTEL_SERVICE_NAME
@@ -19,5 +19,5 @@ spec:
   rawConfig:
     config:
       tracing:
-        otlpEndpoint: "http://otel-collector-collector.monitoring.svc.cluster.local:4317"
+        otlpEndpoint: "http://otel-collector-mesh.observability.svc.cluster.local:4317"
         otlpProtocol: grpc

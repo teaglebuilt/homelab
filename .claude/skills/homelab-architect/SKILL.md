@@ -29,6 +29,18 @@ Load these files from `.ai/context/docs/` based on the task at hand. Do NOT load
 | Cloudflare tunnels or external access | `cloudflare/` |
 | Cross-cutting (new service addition) | Load the service's specific docs + `kgateway/` + `helm/` |
 
+## Skill Routing
+
+Claude code skills relevant to the tools and technologies used in this repository
+
+| Task Domain |    Skill      |
+|-------------|---------------|
+| HTTPRoute / Gateway resources / KGateway | `kgateway` `agentgateway` |
+| kagent / AI Agents / Agent Harness / MCP | `kagent`, `agentgateway` |
+| AI gateway routing | `kgateway` (AI gateway section) |
+| Cilium, Clustermesh, NetworkPolicies, Kubernetes Networking, EBPF | `cilium` (AI gateway section) |
+| Infrastructure Architecture | `infrastructure-architect` |
+
 ## Procedures
 
 ### 1. Evaluate a Technology Choice
