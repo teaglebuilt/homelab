@@ -3,6 +3,7 @@ apiVersion: cilium.io/v2alpha1
 kind: CiliumLoadBalancerIPPool
 metadata:
   name: application-pool
+  namespace: kube-system
 spec:
   blocks:
     - start: ${APP_LB_POOL_START}

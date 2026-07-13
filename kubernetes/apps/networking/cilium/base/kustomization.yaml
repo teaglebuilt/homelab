@@ -1,0 +1,10 @@
+---
+# Base: L2 announcement policy only. LB IP pools are per-cluster and live in the
+# overlays (overlays/<cluster>/ip-pool.yaml), which pull in this base via ../../base.
+# They are applied by the cilium postsync hook via
+# `kustomize build overlays/<cluster> | envsubst`.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kube-system
+resources:
+  - announcement.yaml

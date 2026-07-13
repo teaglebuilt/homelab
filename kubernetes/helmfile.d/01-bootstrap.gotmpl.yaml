@@ -6,7 +6,7 @@
 {{- /* kube-dns clusterIP is derived from the cluster's own SSOT
        (cluster.yaml dnsIP = 10th IP of serviceSubnet = Talos kubelet clusterDNS).
        readFile resolves relative to this helmfile (helmfile.d/), same as the
-       ../clusters/<cluster>/lb-ippool.yaml path used in the cilium hook below. */ -}}
+       ../apps/networking/cilium/overlays/<cluster> path used in the cilium hook below. */ -}}
 {{- $clusterCfg := readFile (printf "../clusters/%s/cluster.yaml" $cluster) | fromYaml }}
 bases:
   - ../defaults.yaml
@@ -69,13 +69,8 @@ releases:
               done
               kubectl wait --for=condition=established --timeout=120s "crd/$crd"
             done
-            kustomize build --enable-exec --enable-helm ../apps/networking/cilium | kubectl apply -f -
 
-            # This cluster's disjoint LB-IPAM pool. Co-located with Cilium (like the L2
-            # announcement above) so it's applied on every cilium sync — including the
-            # Phase 2 mesh-upgrade, guaranteeing clustermesh-apiserver has a pool for its
-            # pinned IP. Ranges come from env (.envrc); envsubst renders them here.
-            envsubst < ../clusters/{{ $cluster }}/lb-ippool.yaml | kubectl apply -f -
+            kustomize build --enable-exec --enable-helm ../apps/networking/cilium/overlays/{{ $cluster }} | envsubst | kubectl apply -f -
 
   - name: coredns
     namespace: kube-system

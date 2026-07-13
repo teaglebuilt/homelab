@@ -1,0 +1,15 @@
+---
+apiVersion: kagent.dev/v1alpha2
+kind: AgentHarness
+metadata:
+  name: hermes-harness
+  namespace: ai
+spec:
+  backend: hermes
+  modelConfigRef: claude-opus-4-5
+  runtime: substrate
+  substrate:
+    gatewayTokenSecretRef:
+      name: harness-gateway-token
+    workerPoolRef:
+      name: kagent-default

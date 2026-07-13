@@ -1,15 +1,4 @@
-# Cilium CLUSTERMESH overlay for the mlops cluster (Phase 2 — mesh activation).
-#
-# Layered ON TOP of apps/networking/cilium/values.yaml AND identity-values.yaml.gotmpl
-# by clusters/mlops/mesh.yaml, applied as a helm UPGRADE (task: connect-clusters).
-#
-# Prerequisites (or clustermesh-apiserver never goes Ready):
-#   1. Both clusters already bootstrapped (Phase 1) and healthy.
-#   2. Shared CA (clusters/_shared/cilium-ca.sops.yaml) applied to kube-system in
-#      BOTH clusters — authMode:cluster signs mesh certs from it.
-#   3. This cluster's LB-IPAM pool present (clusters/mlops/lb-ippool.yaml) so the
-#      apiserver LoadBalancer can pin its IP.
-# Values validated against cilium chart 1.18.11.
+---
 clustermesh:
   useAPIServer: true
   apiserver:

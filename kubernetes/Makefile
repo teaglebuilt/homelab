@@ -1,5 +1,5 @@
-TERRAFORM=tofu -chdir=terraform
-TALOSCONFIG=./generated/talosconfig
+TERRAFORM=tofu -chdir=terraform/{cluster}
+TALOSCONFIG=./generated/{cluster}/talosconfig
 
 include_env_vars:
 	@[ -f ../.envrc ] && set -a && . ../.envrc && set +a
