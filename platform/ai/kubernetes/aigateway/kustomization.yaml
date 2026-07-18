@@ -6,3 +6,4 @@ resources:
   - gateway.yaml
   - gateway-tracing.yaml
   - policies/tracing.yaml
+  - podmonitor.yaml

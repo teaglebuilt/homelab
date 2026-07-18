@@ -71,13 +71,13 @@ helmCharts:
           enabled: true
           exporter:
             otlp:
-              endpoint: http://otel-collector-mesh.observability.svc.cluster.local:4317
+              endpoint: http://otel-collector-headless.observability.svc.cluster.local:4317
               timeout: 15
               insecure: true
         logging:
           enabled: true
           exporter:
             otlp:
-              endpoint: http://otel-collector-mesh.observability.svc.cluster.local:4317
+              endpoint: http://otel-collector-headless.observability.svc.cluster.local:4317
               timeout: 15
               insecure: true

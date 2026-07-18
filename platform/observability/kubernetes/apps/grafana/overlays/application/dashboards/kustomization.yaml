@@ -7,3 +7,5 @@ resources:
   - agent-tracing.yaml
   - n8n.yaml
   - agent-gateway.yaml
+  - envoy-dashboard.yaml
+  - kgateway-dashboard.yaml

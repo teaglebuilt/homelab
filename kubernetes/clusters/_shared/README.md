@@ -43,3 +43,20 @@ sops -d clusters/_shared/cilium-ca.sops.yaml | kubectl apply -f -
 Once present in both clusters, `clustermesh.apiserver.tls.authMode: cluster`
 (set in each cluster's `clustermesh-values.yaml`) makes the operator sign all
 mesh certs from this CA — no `cilium clustermesh` CLI, auto-renewing.
+
+## Helm adoption of the pre-applied Secret
+
+`authMode: cluster` makes the Cilium chart itself want to manage a `cilium-ca`
+Secret. Helm refuses to take over a resource it didn't create unless it carries
+Helm ownership metadata, so the `00-prepare` hook stamps it right after apply:
+
+```bash
+kubectl -n kube-system label secret cilium-ca app.kubernetes.io/managed-by=Helm --overwrite
+kubectl -n kube-system annotate secret cilium-ca \
+  meta.helm.sh/release-name=cilium meta.helm.sh/release-namespace=kube-system --overwrite
+```
+
+Without this the mesh upgrade fails with:
+`Secret "cilium-ca" ... cannot be imported into the current release: invalid ownership metadata`.
+Helm then adopts (does not regenerate) the existing CA, so the shared trust
+anchor is preserved.

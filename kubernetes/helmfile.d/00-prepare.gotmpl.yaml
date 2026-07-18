@@ -26,14 +26,25 @@ hooks:
   # so it exists BEFORE Cilium starts in 01-bootstrap — a fresh cluster then signs
   # its clustermesh/identity certs from the shared root instead of generating its
   # own. Identical ciphertext on every cluster; NEVER regenerate (re-keys the mesh).
+  #
+  # The Helm ownership label/annotations let the Cilium release ADOPT this Secret
+  # instead of failing with "invalid ownership metadata: ... managed-by must be
+  # Helm" once clustermesh (authMode:cluster, set in clusters/<c>/mesh.yaml) makes
+  # the chart manage cilium-ca. Stamped after apply — idempotent on every prepare.
   - events: ["prepare"]
     showlogs: true
     command: "bash"
     args:
       - -c
       - |
+        set -euo pipefail
         sops --decrypt --input-type yaml --output-type yaml \
           ../clusters/_shared/cilium-ca.sops.yaml /dev/stdin | kubectl apply -f -
+        kubectl -n kube-system label secret cilium-ca \
+          app.kubernetes.io/managed-by=Helm --overwrite
+        kubectl -n kube-system annotate secret cilium-ca \
+          meta.helm.sh/release-name=cilium \
+          meta.helm.sh/release-namespace=kube-system --overwrite
   - events: ["prepare"]
     showlogs: true
     command: "kubectl"
