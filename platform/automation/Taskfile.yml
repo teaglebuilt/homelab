@@ -12,18 +12,27 @@ tasks:
     desc: Deploy automation stack (mlops-only; skipped on other clusters)
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     status:
       - test "{{.CLUSTER}}" != "mlops"
     cmds:
+      # KUBECONFIG on the kubectl side — kustomize doesn't need it, kubectl does
+      # (otherwise the apply hits the AMBIENT context / wrong cluster).
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   destroy:
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
 
   n8n:workflows:backup:
     desc: Run n8n workflow/credential export to S3 now
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      - kubectl -n automation create job --from=cronjob/n8n-workflow-backup n8n-workflow-backup-manual-$(date +%s)
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl -n automation create job --from=cronjob/n8n-workflow-backup n8n-workflow-backup-manual-$(date +%s)

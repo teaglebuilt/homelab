@@ -16,7 +16,10 @@ spec:
     orgId: 1
     url: http://prometheus-community-kube-prometheus.observability:9090
     basicAuth: false
-    isDefault: false
+    # Chart-provisioned default datasource is disabled (kube-prometheus-stack
+    # grafana.sidecar.datasources.defaultDatasourceEnabled: false), so the
+    # operator-managed Prometheus datasource is the cluster default.
+    isDefault: true
     editable: true
     jsonData:
       httpMethod: GET

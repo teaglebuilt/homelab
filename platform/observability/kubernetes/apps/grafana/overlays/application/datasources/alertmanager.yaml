@@ -1,0 +1,23 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: alertmanager
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: Alertmanager
+    uid: alertmanager
+    type: alertmanager
+    access: proxy
+    orgId: 1
+    url: http://prometheus-community-kube-alertmanager.observability:9093
+    isDefault: false
+    editable: true
+    jsonData:
+      # Alerts are owned by Prometheus/Alertmanager, not Grafana-managed.
+      handleGrafanaManagedAlerts: false
+      implementation: prometheus

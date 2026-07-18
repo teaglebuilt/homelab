@@ -9,15 +9,17 @@ tasks:
       KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
+      # KUBECONFIG belongs on the kubectl side of the pipe; on the kustomize side it
+      # is ignored and kubectl applies to the AMBIENT context (wrong cluster).
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes/overlays/{{.CLUSTER}} | kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   destroy:
     requires:
       vars: [CLUSTER]
     vars:
       KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
-      KUBECONFIG: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes | kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -

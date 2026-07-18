@@ -10,6 +10,7 @@ helmCharts:
     repo: https://open-telemetry.github.io/opentelemetry-helm-charts
     version: 0.114.1
     namespace: observability
+    includeCRDs: true
     valuesInline:
       manager:
         collectorImage:

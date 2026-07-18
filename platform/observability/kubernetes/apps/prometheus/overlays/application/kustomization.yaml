@@ -31,7 +31,12 @@ helmCharts:
             root_url: https://grafana.homelab.internal
         defaultDashboardsEnabled: false
         # Datasources are managed by the grafana-operator via GrafanaDatasource
-        # CRs — see apps/grafana/overlays/application/datasources/.
+        # CRs — see apps/grafana/overlays/application/datasources/. The operator
+        # owns the Prometheus datasource (uid: prometheus), so the chart must NOT
+        # also file-provision its own default Prometheus datasource with that same
+        # uid — a file-provisioned datasource is read-only over the HTTP API and the
+        # operator's PUT gets rejected: 403 "Cannot update read-only data source".
+        # Alertmanager stays chart-provisioned (no operator CR ships for it).
         sidecar:
           dashboards:
             enabled: true
@@ -48,6 +53,7 @@ helmCharts:
               limits:
                 memory: 256Mi
           datasources:
+            defaultDatasourceEnabled: false
             resources:
               requests:
                 cpu: 50m
