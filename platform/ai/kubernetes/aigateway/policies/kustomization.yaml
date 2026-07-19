@@ -4,4 +4,4 @@ kind: Kustomization
 namespace: ai
 resources:
   - tracing.yaml
-  # - logging.yaml
+  - logging.yaml
