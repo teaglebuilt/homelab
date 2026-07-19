@@ -4,5 +4,6 @@ resources:
   - ../../base
   - ../../apps/prometheus/overlays/application
   - ../../apps/grafana/overlays/application
-  - ../../apps/opentelemetry
+  - ../../apps/opentelemetry/overlays/application
   - ../../apps/tempo
+  - ../../apps/loki

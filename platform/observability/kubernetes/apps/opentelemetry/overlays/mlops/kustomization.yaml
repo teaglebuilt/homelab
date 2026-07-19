@@ -1,9 +1,15 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# mlops: a local "agent" collector. agentgateway/kagent do their own endpoint
+# discovery, which can't see Cilium global-service backends (those live only in
+# the eBPF datapath, not the K8s EndpointSlice). So producers must send to a
+# LOCAL collector with real endpoints; this agent then forwards (OTLP) to the
+# gateway collector on `application` via the otel-collector-mesh global Service
+# (a plain ClusterIP dial, which does route cross-cluster).
 resources:
+  - ../../base
   - otel-collector.yaml
-  - service.yaml
 helmCharts:
   - name: opentelemetry-operator
     releaseName: open-telemetry

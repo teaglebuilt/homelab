@@ -22,8 +22,8 @@ spec:
           host: kagent-querydoc.ai.svc.cluster.local
           port: 8080
           path: /mcp
-      - name: kagent-grafana
-        static:
-          host: kagent-grafana-mcp.ai.svc.cluster.local
-          port: 8000
-          path: /mcp
+      # - name: kagent-grafana
+      #   static:
+      #     host: kagent-grafana-mcp.ai.svc.cluster.local
+      #     port: 8000
+      #     path: /mcp

@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-mesh
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: otel-collector-mesh
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    service.cilium.io/global: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/managed-by: opentelemetry-operator
+    app.kubernetes.io/component: opentelemetry-collector
+    app.kubernetes.io/instance: observability.otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP

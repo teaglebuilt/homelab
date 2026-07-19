@@ -25,3 +25,15 @@ spec:
       # Link a trace's spans back to its Prometheus metrics.
       tracesToMetrics:
         datasourceUid: prometheus
+      # traces -> logs: from a span, jump to the correlated Loki logs. Matches on
+      # the span's service.name (Loki label service_name) within a +/- 1h window
+      # and filters to the exact trace id.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: "-1h"
+        spanEndTimeShift: "1h"
+        filterByTraceID: true
+        filterBySpanID: false
+        tags:
+          - key: service.name
+            value: service_name

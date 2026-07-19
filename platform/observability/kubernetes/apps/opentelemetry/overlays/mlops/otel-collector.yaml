@@ -1,0 +1,50 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  # NOT "otel-collector": that instance label (observability.otel-collector) is
+  # what the otel-collector-mesh global Service selects. Naming this agent
+  # differently keeps the mesh Service backend-less on mlops (so it routes to
+  # application), avoiding a self-referential loop when the agent forwards to it.
+  name: otel-agent
+  namespace: observability
+spec:
+  mode: deployment
+  image: otel/opentelemetry-collector-contrib:latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch:
+        timeout: 10s
+        send_batch_size: 1024
+    exporters:
+      # Forward to the gateway collector on `application`. This is a plain
+      # gRPC dial of the mesh ClusterIP (NOT endpoint discovery), which routes
+      # cross-cluster over Cilium ClusterMesh — verified working.
+      otlp/gateway:
+        endpoint: otel-collector-mesh.observability.svc.cluster.local:4317
+        tls:
+          insecure: true
+      debug:
+        verbosity: normal
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/gateway, debug]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/gateway]

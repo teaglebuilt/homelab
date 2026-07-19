@@ -19,8 +19,15 @@ tasks:
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} \
-          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+        MANIFEST="$(kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}})"
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        # Two-pass apply: a fresh overlay can introduce CRDs (e.g. the OTel
+        # operator) in the same stream as the CRs that use them (OpenTelemetryCollector).
+        # Pass 1 lands the CRDs (dependent CRs may fail on a brand-new cluster);
+        # wait for CRD establishment; pass 2 converges everything.
+        printf '%s\n' "$MANIFEST" | kubectl apply -f - || true
+        kubectl wait --for=condition=established crd --all --timeout=120s >/dev/null 2>&1 || true
+        printf '%s\n' "$MANIFEST" | kubectl apply -f -
 
   destroy:
     dir: observability

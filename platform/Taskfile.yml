@@ -26,8 +26,6 @@ tasks:
     cmds:
       - task: data:deploy
         vars: { CLUSTER: '{{.CLUSTER}}' }
-      # ai/automation are mlops-only; each task self-skips on other clusters via
-      # its own `status:` guard, so they can be called with the same pattern.
       - task: ai:deploy
         vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: automation:deploy

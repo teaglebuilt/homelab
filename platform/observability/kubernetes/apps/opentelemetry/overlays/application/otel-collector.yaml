@@ -1,3 +1,4 @@
+---
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
@@ -51,13 +52,15 @@ spec:
         tls:
           insecure: true
       otlphttp/loki:
-        endpoint: http://loki.observability.svc.cluster.local:3100/otlp
+        # Push via the loki gateway (nginx) which routes /otlp/v1/logs to the write
+        # path. Works for SingleBinary and SimpleScalable alike.
+        endpoint: http://loki-gateway.observability.svc.cluster.local/otlp
         tls:
           insecure: true
         headers:
           X-Scope-OrgID: "1"
       prometheusremotewrite:
-        endpoint: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090/api/v1/write
+        endpoint: http://prometheus-community-kube-prometheus.observability.svc.cluster.local:9090/api/v1/write
         tls:
           insecure: true
         resource_to_telemetry_conversion:
@@ -77,3 +80,7 @@ spec:
         metrics:
           receivers: [spanmetrics]
           exporters: [prometheus, prometheusremotewrite, debug]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlphttp/loki, debug]

@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ../../base
   - ../../apps/prometheus/overlays/mlops
+  - ../../apps/opentelemetry/overlays/mlops

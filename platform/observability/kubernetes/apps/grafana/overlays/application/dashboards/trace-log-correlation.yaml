@@ -1,0 +1,216 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trace-log-correlation-dashboard
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  trace-log-correlation.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Trace <-> log correlation for the AI gateway. Pick a trace from the table to load its span waterfall and the exact log lines that carry the same trace_id.",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "description": "Recent traces. Click 'Load below' on a Trace ID to drive the waterfall + logs panels; 'Explore' opens the full trace view.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "align": "left", "cellOptions": { "type": "auto" }, "inspect": false },
+              "mappings": [],
+              "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Trace ID" },
+                "properties": [
+                  { "id": "custom.width", "value": 320 },
+                  {
+                    "id": "links",
+                    "value": [
+                      { "title": "Load below", "url": "?var-traceID=${__data.fields[\"Trace ID\"]}" },
+                      { "title": "Explore", "url": "/explore?left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceql%22,%22query%22:%22${__data.fields[\"Trace ID\"]}%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D" }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Duration" },
+                "properties": [ { "id": "unit", "value": "ms" } ]
+              }
+            ]
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+          "id": 1,
+          "options": {
+            "cellHeight": "sm",
+            "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+            "showHeader": true,
+            "sortBy": [ { "desc": true, "displayName": "Start Time" } ]
+          },
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "datasource": { "type": "tempo", "uid": "tempo" },
+              "limit": 30,
+              "query": "{}",
+              "queryType": "traceqlSearch",
+              "refId": "A",
+              "tableType": "traces"
+            }
+          ],
+          "title": "Recent Traces",
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "includeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                  "durationMs": "Duration",
+                  "rootServiceName": "Service",
+                  "rootTraceName": "Operation",
+                  "startTimeUnixNano": "Start Time",
+                  "traceID": "Trace ID"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "description": "Span waterfall for the selected trace. Each span links out to its correlated logs via the Tempo datasource 'traces to logs' config.",
+          "fieldConfig": { "defaults": {}, "overrides": [] },
+          "gridPos": { "h": 15, "w": 14, "x": 0, "y": 8 },
+          "id": 2,
+          "options": {},
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "datasource": { "type": "tempo", "uid": "tempo" },
+              "query": "${traceID}",
+              "queryType": "traceql",
+              "refId": "A"
+            }
+          ],
+          "title": "Trace Waterfall  —  $traceID",
+          "type": "traces"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Log lines carrying the same trace_id (OTLP structured metadata). Empty until a trace is selected above.",
+          "fieldConfig": { "defaults": {}, "overrides": [] },
+          "gridPos": { "h": 15, "w": 10, "x": 14, "y": 8 },
+          "id": 3,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "{service_name=~\".+\"} | trace_id=\"${traceID}\"",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Correlated Logs (this trace)",
+          "type": "logs"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Live AI-gateway access log + app logs. The trace_id in each line links back into Tempo (Loki datasource derived field).",
+          "fieldConfig": { "defaults": {}, "overrides": [] },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 23 },
+          "id": 4,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "{service_name=~\"$service\"}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "AI Gateway Logs (click a line's trace_id to jump to its trace)",
+          "type": "logs"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 41,
+      "tags": ["ai-gateway", "traces", "logs", "correlation"],
+      "templating": {
+        "list": [
+          {
+            "current": { "text": "", "value": "" },
+            "hide": 0,
+            "label": "Trace ID",
+            "name": "traceID",
+            "options": [ { "selected": true, "text": "", "value": "" } ],
+            "query": "",
+            "type": "textbox"
+          },
+          {
+            "current": { "text": "All", "value": ".+" },
+            "datasource": { "type": "loki", "uid": "loki" },
+            "definition": "label_values(service_name)",
+            "hide": 0,
+            "includeAll": true,
+            "allValue": ".+",
+            "label": "Service",
+            "multi": false,
+            "name": "service",
+            "options": [],
+            "query": { "label": "service_name", "refId": "LokiVariableQueryEditor-VariableQuery", "stream": "", "type": 1 },
+            "refresh": 2,
+            "regex": "",
+            "type": "query"
+          }
+        ]
+      },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "AI Gateway - Trace & Log Correlation",
+      "uid": "ai-trace-log-correlation",
+      "version": 1
+    }

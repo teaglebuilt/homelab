@@ -6,6 +6,13 @@ metadata:
   namespace: ai
 spec:
   gatewayClassName: agentgateway
+  # Applies the OTel exporter env + tracing rawConfig from the
+  # AgentgatewayParameters to this gateway's data plane.
+  infrastructure:
+    parametersRef:
+      name: agentgateway-otel
+      group: agentgateway.dev
+      kind: AgentgatewayParameters
   listeners:
   - name: http
     protocol: HTTP
