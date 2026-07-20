@@ -25,23 +25,19 @@ spec:
       path: /metrics
       interval: 30s
       scrapeTimeout: 10s
-
       relabelings:
         # Basics
         - sourceLabels: [__meta_kubernetes_pod_name]
           targetLabel: pod
         - sourceLabels: [__meta_kubernetes_namespace]
           targetLabel: namespace
-
         # Canonical gateway identity (matches Gateway object name)
         - sourceLabels: [__meta_kubernetes_pod_label_gateway_networking_k8s_io_gateway_name]
           targetLabel: gateway_name
-
         # Keep compatibility with your existing rules/dashboards:
         # gateway_instance == gateway_name (truthy, stable, no guessing)
         - sourceLabels: [__meta_kubernetes_pod_label_gateway_networking_k8s_io_gateway_name]
           targetLabel: gateway_instance
-
         # Optional: tag Claude gateways with provider/model (only when it matches)
         - sourceLabels: [gateway_name]
           regex: claude-(sonnet|opus|haiku)-gateway

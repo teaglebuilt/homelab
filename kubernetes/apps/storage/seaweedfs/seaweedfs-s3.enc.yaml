@@ -1,0 +1,25 @@
+apiVersion: ENC[AES256_GCM,data:rQI=,iv:gEAUFikr/LTdHT2RtJYAKnYxnFWJ2Y8ShxZPgm3TuY0=,tag:hkuRgt78mmx1Uc2nJV0MqA==,type:str]
+kind: ENC[AES256_GCM,data:3y6nueQ3,iv:LQL2JLm9JQl1NpQsHL5LE7Zcd57VGt3bwdoMlhPqDt4=,tag:eRlgwfgt6t+yyDxpaCW/qQ==,type:str]
+metadata:
+    name: ENC[AES256_GCM,data:/4zEtoZ/aJ7BqMHR,iv:o0r6nZnhv/Lo0Ilsoxpzs5ieKfN1afU4Pmr/mDk6vIw=,tag:FlH9NVRaIlQjvetDUsALVg==,type:str]
+    namespace: ENC[AES256_GCM,data:Vxe9wTg0tA==,iv:72YwhBojZXJC7g7QB8HvRgHSCczGK2+cKbkmpKSdUC8=,tag:psbDSxmGqlfBh3W9yHaA4Q==,type:str]
+type: ENC[AES256_GCM,data:ygThdpN9,iv:+oJvk7dKGwcDde2i7pHbq/C9aOZEYD4POUxn2CLZiT8=,tag:9l1ILRTC0gNiYObDeMcHFA==,type:str]
+stringData:
+    s3.json: ENC[AES256_GCM,data:wQ3oQ+5TVl7w6xcwCFNpKXg51LaIi2R7t1h1D936hsJ3w3JVZlGX1DXF2ckmzLjWGcDc2x34QPQH0owj/mk7S7xwcrSfgXDjlni4+3ZkukDCAe6ercHUdQlpQ5PLNffTU7MI2uAVtn9xnp/LCnfE1IfLfFVCrDe32ygSsigO29Ot0VAj6yUx+LUKiL68lAzDkXwUHZiTDKbJlS86FoGycBZAJ/oyLdER0eoOELfo0Rg24CcBHmI1ysxabBl8IUSNCTSjr1MyyNex,iv:NV0EgBG6LUj2RfSy2RcjShs3blEqtN/Qwse2TNAM5rk=,tag:g3bSHddJudMSCAF7EFZFlQ==,type:str]
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:GCYpTA==,iv:9nPFsIn4f6sk0Gxd2ggv6hAcVfPA8VzboQuBSmTNoB0=,tag:UgAyydsEI3kOhyh3E639Zg==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:eX58sHYB5PS2gJFJWKXfyOpeGtrfsm8oRfUAWhFtvy8PZ5ZwDz4Jjd5miljeu+sHIPEwXcen2/ix6troMj+b8A==,iv:6ZTWqZ7C/QhrZD/PMxlpploBfanGbwSXpUWjDAVH6BI=,tag:cyzqha55Pe5zYzSspxfziQ==,type:str]
+sops:
+    kms:
+        - arn: arn:aws:kms:us-east-1:626956831217:key/f22ea8b8-ec28-4d80-988e-7372419dbc28
+          created_at: "2026-07-20T21:36:13Z"
+          enc: AQICAHgf2Bz/yC/N+d80dqtXyzpCypiaZx1Lgwl8YcJR1TYnOAH5wKm2dccN3xFL1bwZc5eNAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMqZiN/8HeT26MWH0WAgEQgDu3q3Iyld3We0Qc5/JqAGfDuUiVofCi9owgYYR6k75Lj7f8NSkMH9eN2QEuG3dYdMVwWsiGYq/n+gQU4A==
+          aws_profile: ""
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2026-07-20T21:36:13Z"
+    mac: ENC[AES256_GCM,data:if3toqvcgi99aIsTM27zf3exyme/kkLPnrj109mtphIhkHYMe/x1Jne++T3wYFtCDbBEmP3Fqk6EphX/fVKv3krf5TFRnUcvWMtbL5ku4bMdfH4sQfLlJeeGAYi3KR9DyehNQKFqcF1NUCR7R/eZTSbs32PN8ejXAs0FS/QTGUQ=,iv:Y5nUZ1bO+EIyZ/w2YjYp6oz9YiYrNRYTiJKGe88V+B0=,tag:ap9xSr3ywMMS5BwXPAMrpw==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData|apiVersion|metadata|kind|type)$
+    version: 3.8.1

@@ -1,0 +1,62 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seaweedfs-bucket-init
+  namespace: storage
+  labels:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/part-of: homelab
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: seaweedfs
+        app.kubernetes.io/part-of: homelab
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bucket-init
+          image: amazon/aws-cli:2.31.19
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: seaweedfs-s3
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seaweedfs-s3
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+            - name: S3_ENDPOINT
+              value: http://seaweedfs-s3.storage.svc.cluster.local:8333
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -u
+              echo "Waiting for SeaweedFS S3 endpoint at ${S3_ENDPOINT} ..."
+              for i in $(seq 1 60); do
+                if aws --endpoint-url "${S3_ENDPOINT}" s3 ls >/dev/null 2>&1; then
+                  echo "SeaweedFS S3 is reachable."
+                  break
+                fi
+                echo "  attempt ${i}: not ready yet, sleeping 5s"
+                sleep 5
+              done
+              for bucket in loki-chunks loki-ruler loki-admin; do
+                echo "Ensuring bucket s3://${bucket}"
+                aws --endpoint-url "${S3_ENDPOINT}" s3 mb "s3://${bucket}" || true
+              done
+              echo "Buckets present:"
+              aws --endpoint-url "${S3_ENDPOINT}" s3 ls
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi

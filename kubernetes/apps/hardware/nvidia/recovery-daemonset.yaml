@@ -40,6 +40,13 @@ spec:
                   fieldPath: spec.nodeName
             - name: POLL_SECONDS
               value: "15"
+            # Fan-runaway leading indicator (see watch.sh header). Cordon/reset
+            # at/above FAN_RUNAWAY_PCT; clear our preemptive cordon below
+            # FAN_RECOVER_PCT. Keep the gap for hysteresis.
+            - name: FAN_RUNAWAY_PCT
+              value: "95"
+            - name: FAN_RECOVER_PCT
+              value: "85"
             - name: MAX_ATTEMPTS
               value: "3"
             - name: WINDOW_SECONDS

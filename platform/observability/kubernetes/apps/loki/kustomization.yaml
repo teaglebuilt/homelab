@@ -17,7 +17,7 @@ helmCharts:
           configs:
             - from: "2024-04-01"
               store: tsdb
-              object_store: filesystem
+              object_store: s3
               schema: v13
               index:
                 prefix: loki_index_
@@ -41,12 +41,27 @@ helmCharts:
           max_query_parallelism: 16
           max_entries_limit_per_query: 10000
         storage:
-          type: filesystem
+          type: s3
+          bucketNames:
+            chunks: loki-chunks
+            ruler: loki-ruler
+            admin: loki-admin
+          s3:
+            # External SeaweedFS S3 service. Credentials come from the
+            # s3-credentials secret via singleBinary.extraEnvFrom below.
+            endpoint: http://seaweedfs-s3.storage.svc.cluster.local:8333
+            insecure: true
+            s3ForcePathStyle: true
       singleBinary:
         replicas: 1
+        extraEnvFrom:
+          - secretRef:
+              name: s3-credentials
         persistence:
           enabled: true
-          storageClass: nfs-csi
+          # Local scratch only (WAL / boltdb cache / compactor workdir). Durable
+          # log data lives in S3 (SeaweedFS), so this is node-local disk, not NFS.
+          storageClass: local-path
           accessModes:
             - ReadWriteOnce
           size: 20Gi
@@ -77,3 +92,5 @@ helmCharts:
         enabled: false
       test:
         enabled: false
+generators:
+  - s3-credentials-generator.yaml

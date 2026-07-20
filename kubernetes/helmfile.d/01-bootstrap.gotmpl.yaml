@@ -125,6 +125,16 @@ releases:
             else
               echo "No NFS storage resources for cluster '{{ $cluster }}' — skipping."
             fi
+      {{- if eq $cluster "application" }}
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            kustomize build --enable-alpha-plugins --enable-exec ../apps/storage/seaweedfs | kubectl apply -f -
+      {{- end }}
 
   - name: metrics-server
     chart: metrics-server/metrics-server

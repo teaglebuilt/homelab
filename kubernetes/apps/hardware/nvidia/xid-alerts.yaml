@@ -27,7 +27,7 @@ spec:
           expr: |
             increase(DCGM_FI_DEV_XID_ERRORS{xid="79"}[5m]) > 0
             or
-            absent(DCGM_FI_DEV_GPU_UTIL{Hostname="mlops-work-01"}) == 1
+            absent(DCGM_FI_DEV_GPU_UTIL{Hostname="mlops-work-00"}) == 1
           for: 2m
           labels:
             severity: critical
