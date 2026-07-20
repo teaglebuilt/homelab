@@ -47,8 +47,6 @@ helmCharts:
             ruler: loki-ruler
             admin: loki-admin
           s3:
-            # External SeaweedFS S3 service. Credentials come from the
-            # s3-credentials secret via singleBinary.extraEnvFrom below.
             endpoint: http://seaweedfs-s3.storage.svc.cluster.local:8333
             insecure: true
             s3ForcePathStyle: true
@@ -57,14 +55,20 @@ helmCharts:
         extraEnvFrom:
           - secretRef:
               name: s3-credentials
+        # Scratch only (WAL / boltdb cache / compactor workdir). Durable
+        # chunks/index live in S3 (SeaweedFS). Keep persistence.enabled=false so
+        # we never create a volumeClaimTemplate (immutable on StatefulSets);
+        # instead mount an emptyDir at /var/loki. Required because the chart
+        # sets readOnlyRootFilesystem=true and with no mount Loki fails with
+        # "mkdir /var/loki: read-only file system".
         persistence:
-          enabled: true
-          # Local scratch only (WAL / boltdb cache / compactor workdir). Durable
-          # log data lives in S3 (SeaweedFS), so this is node-local disk, not NFS.
-          storageClass: local-path
-          accessModes:
-            - ReadWriteOnce
-          size: 20Gi
+          enabled: false
+        extraVolumes:
+          - name: data
+            emptyDir: {}
+        extraVolumeMounts:
+          - name: data
+            mountPath: /var/loki
         resources:
           limits:
             memory: 2Gi
