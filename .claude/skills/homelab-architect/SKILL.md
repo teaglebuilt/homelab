@@ -1,20 +1,11 @@
-# Homelab Architect Skill
-
-
-> Use this skill when designing infrastructure, evaluating technology choices, planning deployments, reviewing architecture, or making decisions about how services fit together in the homelab.
-
-## Agent
-
-Use with agent: `architect`
-
-## Context: fork
-
-Heavy knowledge loading -- always fork to avoid polluting the main conversation.
-
-## Before You Begin
-
-1. Always read `CLAUDE.md` at the repo root for current conventions and layout
-2. Load the relevant knowledge from `.ai/context/docs/` based on the task (see routing table below)
+---
+name: homelab-architect
+description: Plan, evaluate, or review infrastructure changes in the teaglebuilt homelab repository.
+argument-hint: "<architecture task>"
+context: fork
+agent: architect
+disable-model-invocation: true
+---
 
 ## Knowledge Routing
 
@@ -40,6 +31,15 @@ Claude code skills relevant to the tools and technologies used in this repositor
 | AI gateway routing | `kgateway` (AI gateway section) |
 | Cilium, Clustermesh, NetworkPolicies, Kubernetes Networking, EBPF | `cilium` (AI gateway section) |
 | Infrastructure Architecture | `infrastructure-architect` |
+
+## Agent Routing
+
+| Task Domain |    Agent               |
+|-------------|------------------------|
+| Kubernetes  | `kubernetes-architect` |
+| Networking  | `network-agent`        |
+| Security    | `security-agent`       |
+| LLM         | `llm-architect`        |
 
 ## Procedures
 

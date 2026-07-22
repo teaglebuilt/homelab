@@ -34,6 +34,16 @@ Claude code skills relevant to the tools and technologies used in this repositor
 | HTTPRoute / Gateway resources / KGateway | `kgateway` `agentgateway` |
 | kagent / AI Agents / Agent Harness / MCP | `kagent`, `agentgateway` |
 | AI gateway routing | `kgateway` (AI gateway section) |
+| Kubernetes Networking, Multi Cluster, Service Communication | `cilium` |
+
+## Agent Routing
+
+| Task Domain |    Agent     |
+|-------------|---------------|
+| Kubernetes | `kubernetes-developer` |
+| Networking | `network-agent` |
+| Security   | `security-agent` |
+| Terraform  | `terraform-agent` |
 
 ### AgentGateway Skill
 

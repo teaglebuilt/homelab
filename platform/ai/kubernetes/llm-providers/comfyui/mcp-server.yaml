@@ -1,0 +1,30 @@
+---
+apiVersion: kagent.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: comfyui-mcp-server
+  namespace: ai
+  labels:
+    app: comfyui-mcp-server
+spec:
+  deployment:
+    image: ghcr.io/astral-sh/uv:python3.12-alpine   # provides uvx
+    cmd: uvx
+    args:
+      - comfy-mcp-server
+    port: 3000
+    env:
+      COMFY_URL: "http://comfyui.ai.svc.cluster.local"
+      COMFY_WORKFLOW_JSON_FILE: "/workflows/workflow_api.json"
+      PROMPT_NODE_ID: "6"
+      OUTPUT_NODE_ID: "9"
+      OUTPUT_MODE: "file"
+    volumeMounts:
+      - name: workflow
+        mountPath: /workflows
+        readOnly: true
+    volumes:
+      - name: workflow
+        configMap:
+          name: comfyui-workflow
+  transportType: stdio

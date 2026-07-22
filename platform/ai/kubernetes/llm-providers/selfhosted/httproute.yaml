@@ -1,0 +1,23 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llmd-inference-route
+  namespace: ai
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: llmd-inference-gateway
+  rules:
+    - backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: llmd-pool
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+      timeouts:
+        # 5-minute timeout — inference on CPU can be slow for longer prompts
+        request: 300s

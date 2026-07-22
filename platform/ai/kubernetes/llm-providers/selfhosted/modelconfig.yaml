@@ -1,0 +1,16 @@
+---
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: llmd-vllm-config
+  namespace: ai
+spec:
+  apiKeySecret: llmd-dummy-api-key
+  apiKeySecretKey: api-key
+  # Must match the model name in InferenceModel / vLLM server
+  model: Qwen/Qwen2.5-0.5B-Instruct
+  # Use OpenAI provider because vLLM serves an OpenAI-compatible API
+  provider: OpenAI
+  openAI:
+    # Find it with: kubectl get svc -n llmd-workshop
+    baseUrl: http://20.245.68.222/v1

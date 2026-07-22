@@ -53,17 +53,17 @@ docs/                 # MkDocs documentation site
 - Environment variables are sourced from `kubernetes/.env` and `containers/.env` via Taskfile dotenv.
 - SOPS-encrypted secrets match `kubernetes/*` and `platform/*` path patterns.
 - The homelab-gateway chart is a wrapper: it vendors kgateway CRDs + kgateway as subchart dependencies, then adds Gateway/HTTPRoute/Certificate templates on top.
-- Platform services that need K8s resources put them in a `k8s/` subdirectory (e.g., `platform/ai/k8s/`).
+- Platform services that need K8s resources put them in a `kubernetes/` subdirectory (e.g., `platform/ai/kubernetes/`).
 - Node selector `kubernetes.io/hostname: mlops-work-01` is used for GPU and cert-manager workloads.
 
 ## Deployment Flow
 
-1. `task deploy-mlops-cluster` runs the full pipeline:
-   - Terraform provisions Talos VMs via Proxmox
-   - Talos bootstraps the cluster
-   - Helmfile stages deploy in order (00 through 04)
-   - Platform services deploy via `task platform:deploy`
-2. Individual stages: `task kubernetes:sync-cluster` for Helmfile, `task platform:deploy` for Docker Compose stacks.
+**Command**:`task deploy-kubernetes`
+
+- Terraform provisions Talos VMs via Proxmox
+- Talos bootstraps the cluster
+- Helmfile stages deploy in order (00 through 04)
+- Platform services deploy via `task platform:deploy CLUSTER=$CLUSTER{admin,application,mlops}`
 
 ## Working With This Repo
 
@@ -73,6 +73,21 @@ docs/                 # MkDocs documentation site
 - The `generated/` directory is Helmfile output. Do not edit it directly.
 - Gateway API resources (Gateway, HTTPRoute, ReferenceGrant) follow the v1 spec via kgateway.
 
-## Operation Details
+## Agentic Tools
 
-- `mlops-work-00` is the capable node. Time splitting is not yet enabled.
+### Live Cluster Tools (via homelab-kagent MCP server)
+
+The `homelab-kagent` MCP server (configured in `.mcp.json`) proxies through the agentgateway in the `ai` namespace and exposes the kagent tool server. Use these tools when you need to ground architecture decisions in the actual current state of the cluster — what's really deployed, how networking is actually wired, what policies are actually enforced.
+
+Relevant tool families:
+- `kagent-tools_helm_*` — see what's actually released and at which version
+- `kagent-tools_k8s_*` — get/describe/apply/delete/patch resources, get events, pod logs, exec commands
+- `kagent-tools_cilium_*` — endpoint health, BPF maps, identities, IP cache, PCAP recorders, encryption state
+- `kagent-tools_argo_*` — rollout list/pause/promote/set-image, gateway plugin verification
+
+When to use these over local `kubectl`:
+- Use MCP tools when you need the result inline in the conversation (e.g., to verify a change landed, inspect live state, debug a failing pod).
+- Use local `kubectl` via Bash when the output is large, you need piping, or the command is destructive and you want the user to see it explicitly.
+- Treat these tools as read-leaning: `k8s_get_*`, `k8s_describe_*`, `helm_get_release`, `cilium_get_endpoint_health` first; modifications only after confirming intent.
+
+These tools talk to the same cluster as `kubectl` — changes are real. Respect the same safety rules you would for direct cluster access.

@@ -12,6 +12,11 @@ spec:
           services:
             matchLabels:
               app: github-mcp-server
+      - name: comfyui-mcp-server
+        static:
+          host: comfyui-mcp-server.ai.svc.cluster.local
+          port: 3000
+          path: /mcp
       - name: kagent-tools
         static:
           host: kagent-tools.ai.svc.cluster.local
