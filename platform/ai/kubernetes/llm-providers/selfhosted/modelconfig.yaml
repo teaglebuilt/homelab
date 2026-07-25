@@ -7,10 +7,8 @@ metadata:
 spec:
   apiKeySecret: llmd-dummy-api-key
   apiKeySecretKey: api-key
-  # Must match the model name in InferenceModel / vLLM server
-  model: Qwen/Qwen2.5-0.5B-Instruct
-  # Use OpenAI provider because vLLM serves an OpenAI-compatible API
+  # Must match --served-model-name on the vLLM Deployment.
+  model: vllm-selfhosted
   provider: OpenAI
   openAI:
-    # Find it with: kubectl get svc -n llmd-workshop
-    baseUrl: http://20.245.68.222/v1
+    baseUrl: http://vllm-selfhosted.ai.svc.cluster.local:8000/v1

@@ -6,3 +6,11 @@ metadata:
 value: 100000
 globalDefault: false
 description: "Priority for GPU inference workloads"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: gpu-training
+value: 10000
+globalDefault: false
+description: "Priority for GPU training/distillation jobs; below gpu-serving so inference preempts training"

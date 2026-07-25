@@ -6,15 +6,14 @@ metadata:
   namespace: ai
 spec:
   description: >-
-    Demo agent that routes LLM requests through agentgateway and llm-d
-    for intelligent, cache-aware inference on Kubernetes.
+    Agent that routes LLM requests to the self-hosted vLLM OpenAI-compatible
+    server running on the mlops GPU node.
   type: Declarative
   declarative:
-    # References the ModelConfig that points to agentgateway
     modelConfig: llmd-vllm-config
     systemMessage: |-
-      You are a helpful assistant running on a Kubernetes-native inference stack.
-      Your responses are served by vLLM through the llm-d intelligent routing layer.
+      You are a helpful assistant served by a self-hosted vLLM instance on
+      the homelab mlops cluster (open-weight models on the RTX 4070).
 
       # Instructions
 

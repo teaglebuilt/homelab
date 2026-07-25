@@ -2,22 +2,30 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: llmd-inference-route
+  name: vllm-selfhosted
   namespace: ai
+  labels:
+    app: vllm-selfhosted
+    component: llm-provider
 spec:
   parentRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: llmd-inference-gateway
+    - name: ai-gateway
+      namespace: ai
   rules:
-    - backendRefs:
-        - group: inference.networking.k8s.io
-          kind: InferencePool
-          name: llmd-pool
-      matches:
+    - matches:
         - path:
             type: PathPrefix
-            value: /
+            value: /vllm
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - group: agentgateway.dev
+          kind: AgentgatewayBackend
+          name: vllm-selfhosted
       timeouts:
-        # 5-minute timeout — inference on CPU can be slow for longer prompts
+        # Model cold-start / long completions on a single consumer GPU.
         request: 300s

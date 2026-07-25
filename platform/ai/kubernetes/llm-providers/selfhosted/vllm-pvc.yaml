@@ -1,0 +1,14 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: vllm-pvc
+  namespace: ai
+spec:
+  storageClassName: nfs-csi
+  volumeName: vllm-ai-storage
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 200Gi

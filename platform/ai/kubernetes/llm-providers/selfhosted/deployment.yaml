@@ -2,84 +2,108 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llmd-model-server
-  namespace: llmd-workshop
+  name: vllm-selfhosted
+  namespace: ai
   labels:
-    app: llmd-model-server
+    app: vllm-selfhosted
+    app.kubernetes.io/name: vllm-selfhosted
+    app.kubernetes.io/part-of: homelab
+    component: llm-provider
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
-      app: llmd-model-server
+      app: vllm-selfhosted
   template:
     metadata:
       labels:
-        app: llmd-model-server
+        app: vllm-selfhosted
+        app.kubernetes.io/name: vllm-selfhosted
+        app.kubernetes.io/part-of: homelab
+        component: llm-provider
     spec:
+      priorityClassName: gpu-serving # or gpu-training
+      runtimeClassName: nvidia
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
       containers:
         - name: vllm
-          # CPU-optimized vLLM image — no GPU required
-          # Supports both AVX2 (AMD EPYC) and AVX512 (Intel) with runtime detection
-          image: "vllm/vllm-openai-cpu:v0.18.0"
+          # Node driver 570.172.08 exposes CUDA 12.8. v0.25.1 requires CUDA 13;
+          # v0.11.0 is the pinned CUDA 12.8-compatible OpenAI server image.
+          image: vllm/vllm-openai:v0.11.0
           imagePullPolicy: IfNotPresent
-          command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
           args:
             - "--model"
-            - "Qwen/Qwen2.5-0.5B-Instruct"  # Smallest Qwen2.5 variant for CPU feasibility
+            # Safe first boot on 12GB VRAM (4070 SUPER). Step up to AWQ 7–8B later.
+            - "Qwen/Qwen2.5-3B-Instruct"
+            - "--served-model-name"
+            - "vllm-selfhosted"
             - "--port"
             - "8000"
+            - "--max-model-len"
+            - "4096"
+            - "--gpu-memory-utilization"
+            - "0.85"
             - "--enable-auto-tool-choice"
             - "--tool-call-parser"
             - "hermes"
+            # Mirror NIM's CUDA-graph disable on this GPU — capture often OOMs at startup.
+            - "--enforce-eager"
           env:
-            - name: PORT
-              value: "8000"
-            # CPU KV cache size in GB — controls how much prompt context can be cached.
-            # This is what enables cache-aware routing via the EPP.
-            - name: VLLM_CPU_KVCACHE_SPACE
-              value: "2"
+            - name: HF_HOME
+              value: /data/providers/vllm
+            - name: HUGGINGFACE_HUB_CACHE
+              value: /data/providers/vllm
+            - name: PYTORCH_ALLOC_CONF
+              value: expandable_segments:True
           ports:
             - containerPort: 8000
               name: http
               protocol: TCP
-          livenessProbe:
-            failureThreshold: 240
-            httpGet:
-              path: /health
-              port: http
-              scheme: HTTP
-            initialDelaySeconds: 180
-            periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
-          readinessProbe:
-            failureThreshold: 600
-            httpGet:
-              path: /health
-              port: http
-              scheme: HTTP
-            initialDelaySeconds: 180
-            periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
           resources:
-            limits:
-              cpu: "4"
-              memory: "8Gi"
             requests:
+              cpu: "2"
+              memory: 6Gi
+              nvidia.com/gpu: "1"
+            limits:
+              # Node has ~15.5Gi allocatable; leave headroom for kubelet/system (same ceiling as NIM).
               cpu: "4"
-              memory: "8Gi"
+              memory: 12Gi
+              nvidia.com/gpu: "1"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            failureThreshold: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            periodSeconds: 30
+            failureThreshold: 3
           volumeMounts:
-            - mountPath: /data
-              name: data
-            - mountPath: /dev/shm
-              name: shm
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
+            - name: hf-cache
+              mountPath: /data
+            - name: shm
+              mountPath: /dev/shm
+      terminationGracePeriodSeconds: 60
       volumes:
-        - name: data
-          emptyDir: {}
-        # /dev/shm as Memory-backed emptyDir for vLLM's shared memory IPC
+        - name: hf-cache
+          persistentVolumeClaim:
+            claimName: vllm-pvc
         - name: shm
           emptyDir:
             medium: Memory
+            sizeLimit: 2Gi

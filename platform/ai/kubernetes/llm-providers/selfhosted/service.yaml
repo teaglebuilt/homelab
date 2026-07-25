@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-selfhosted
+  namespace: ai
+  labels:
+    app: vllm-selfhosted
+    app.kubernetes.io/name: vllm-selfhosted
+    app.kubernetes.io/part-of: homelab
+    component: llm-provider
+spec:
+  type: ClusterIP
+  selector:
+    app: vllm-selfhosted
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP

@@ -15,7 +15,7 @@ spec:
     spec:
       runtimeClassName: nvidia
       nodeSelector:
-        kubernetes.io/hostname: mlops-work-00
+        nvidia.com/gpu.present: "true"
       containers:
       - name: crawl4ai
         image: unclecode/crawl4ai:basic

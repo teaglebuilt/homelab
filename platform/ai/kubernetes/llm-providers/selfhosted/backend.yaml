@@ -1,0 +1,14 @@
+---
+# AgentgatewayBackend: OpenAI-compatible (vLLM). gateway.kgateway.dev Backend does not support spec.ai.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: vllm-selfhosted
+  namespace: ai
+spec:
+  ai:
+    provider:
+      openai:
+        model: vllm-selfhosted
+      host: vllm-selfhosted.ai.svc.cluster.local
+      port: 8000

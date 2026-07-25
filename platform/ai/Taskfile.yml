@@ -55,16 +55,12 @@ tasks:
     vars:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/mlops/kubeconfig'
     status:
-      # AI platform only runs where there's a GPU (mlops). Treat as up-to-date
-      # (skip, no error) elsewhere so the parent can call this directly.
       - test "{{.CLUSTER}}" != "mlops"
     cmds:
       - task: install-crds
         vars: { CLUSTER: 'mlops' }
-      # KUBECONFIG must be on the kubectl side of the pipe — on the kustomize side
-      # it does nothing and kubectl applies to the AMBIENT context (wrong cluster).
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | kubectl apply -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
     dir: ai

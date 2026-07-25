@@ -30,9 +30,6 @@ helmCharts:
       model:
         ngcAPISecret: ngc-api-secret
       terminationGracePeriodSeconds: 60
-      # mlops-work-00 has only ~15.5 GiB allocatable memory. Previous limit of
-      # 16Gi caused the kernel cgroup to OOM-kill (exit 137) during model load.
-      # Lowering ceiling to fit the node while leaving headroom for kubelet/system.
       resources:
         requests:
           cpu: "4"

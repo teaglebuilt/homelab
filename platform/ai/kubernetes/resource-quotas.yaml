@@ -1,3 +1,7 @@
+---
+# Namespace-wide defaults for the ai namespace. Sized to fit a single GPU
+# LLM provider (vLLM / NIM / Ollama) plus gateway/controller headroom on
+# mlops-work-00 (~15.5Gi allocatable memory, 1x nvidia.com/gpu).
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -5,9 +9,11 @@ metadata:
   namespace: ai
 spec:
   hard:
-    limits.cpu: "2"
-    limits.memory: 4Gi
-    limits.ephemeral-storage: 2Gi
-    requests.cpu: "1"
-    requests.memory: 4Gi
-    requests.ephemeral-storage: 1Gi
+    limits.cpu: "16"
+    limits.memory: 24Gi
+    limits.ephemeral-storage: 20Gi
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    requests.ephemeral-storage: 10Gi
+    requests.nvidia.com/gpu: "1"
+    limits.nvidia.com/gpu: "1"

@@ -23,7 +23,7 @@ spec:
       hostPID: true
       restartPolicy: Never
       nodeSelector:
-        kubernetes.io/hostname: mlops-work-00
+        nvidia.com/gpu.present: "true"
       tolerations:
         - operator: Exists
       containers:
