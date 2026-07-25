@@ -8,23 +8,12 @@ metadata:
     app: comfyui-mcp-server
 spec:
   deployment:
-    image: ghcr.io/astral-sh/uv:python3.12-alpine   # provides uvx
-    cmd: uvx
+    image: node:24-alpine3.21          # artokun/comfyui-mcp requires Node >= 22
+    cmd: npx
     args:
-      - comfy-mcp-server
+      - "-y"
+      - comfyui-mcp
     port: 3000
     env:
-      COMFY_URL: "http://comfyui.ai.svc.cluster.local"
-      COMFY_WORKFLOW_JSON_FILE: "/workflows/workflow_api.json"
-      PROMPT_NODE_ID: "6"
-      OUTPUT_NODE_ID: "9"
-      OUTPUT_MODE: "file"
-    volumeMounts:
-      - name: workflow
-        mountPath: /workflows
-        readOnly: true
-    volumes:
-      - name: workflow
-        configMap:
-          name: comfyui-workflow
+      COMFYUI_URL: "http://comfyui.ai.svc.cluster.local"   # Service :80 -> pod :8188
   transportType: stdio

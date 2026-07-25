@@ -10,6 +10,12 @@ Template-free configuration customization for Kubernetes. Used in this repo insi
 - Used with `--enable-exec` and `--enable-helm` flags for plugin support
 - Combined with `envsubst` for environment variable substitution in some cases
 
+## References
+
+1. [Base Overlay Structure](base-overlay-structure.md)
+2. [Transformers](kustomize-transformers.md)
+3. [Remote Gitops](kustomize-remote-gitops.md)
+
 ## Documentation to Scrape
 
 See `scrape-plan.md` for URLs. Key topics:

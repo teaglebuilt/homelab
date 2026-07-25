@@ -1,0 +1,29 @@
+interface:
+  display_name: talos
+  short_description: 'Version-aware Talos Linux expertise for this homelab. Use for
+    talosctl,
+
+    Talos machine configuration and patches, Image Factory schematics, system
+
+    extensions, Proxmox Talos VMs, cluster bootstrap, Talos or Kubernetes
+
+    upgrades, etcd backup and recovery, node diagnostics, NVIDIA GPU support,
+
+    or the siderolabs/talos Terraform provider. Also use when changing
+
+    tf_modules/talos_cluster, kubernetes/terraform/*, Talos Taskfiles, or
+
+    Talos-specific cluster definitions. Do not use for ordinary Kubernetes app
+
+    manifests, Helm releases, HTTPRoutes, or UniFi changes unless the issue
+
+    specifically crosses into the Talos host or machine configuration layer.'
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

@@ -33,7 +33,7 @@ that fails fast if `clusters/_shared/cilium-ca.sops.yaml` is missing.
 | mlops explicit CIDR | `kubernetes/terraform/mlops-cluster.tf` | ✅ `10.244.0.0/16` |
 | application cluster | `kubernetes/terraform/application/` (separate root) | ✅ `terraform validate` ✅, needs real IP vars to apply |
 | Cilium overlays | `kubernetes/clusters/{mlops,application}/clustermesh-values.yaml` | ✅ render clean vs chart 1.18.11 |
-| LB pools | `kubernetes/clusters/{mlops,application}/lb-ippool.yaml` | ✅ staged (not yet in kustomize) |
+| LB pools | `kubernetes/apps/networking/cilium/overlays/{mlops,application}/ip-pool.yaml` | ✅ in per-cluster kustomize overlays |
 | Per-cluster deploy | `kubernetes/clusters/{mlops,application}/helmfile.yaml` | ✅ overlay injection validated |
 | Overlay injection | `kubernetes/helmfile.d/01-bootstrap.gotmpl.yaml` (`clusterOverlay` conditional) | ✅ backward-compatible |
 | Shared CA procedure | `kubernetes/clusters/_shared/README.md` | ✅ documented |
@@ -51,9 +51,10 @@ references a missing file).
 ### LB pool cutover
 Both clusters share the L2, so the single shared `proxmox-pool` (`.12–.255`) is replaced by the disjoint per-cluster pools:
 - `ip-pool.yaml` / `proxmox-pool` are **removed** from the repo. Each cluster's
-  `clusters/<name>/lb-ippool.yaml` (mlops `.200–.240`, admin `.241–.254`) is now
-  applied automatically by the **cilium release's postsync hook** (envsubst-rendered),
-  so it lands on every `helmfile sync`. Pools start at `.200` so they never overlap
+  `apps/networking/cilium/overlays/<cluster>/ip-pool.yaml` (mlops `.200–.240`, admin `.241–.254`)
+  is now applied automatically by the **cilium release's postsync hook** via
+  `kustomize build overlays/<cluster> | envsubst`, so it lands on every `helmfile sync`.
+  Pools start at `.200` so they never overlap
   the static node IPs (mlops `.19/.20/.195`, admin `.6/.7`) or hosts (`.100/.101`).
 - **One-time manual cleanup** on the running mlops cluster (nothing recreates the
   legacy CR anymore, so this is no longer in any task):

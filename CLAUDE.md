@@ -67,7 +67,6 @@ docs/                 # MkDocs documentation site
 
 ## Working With This Repo
 
-- Read `.ai/context/docs/` for scraped technology documentation before making decisions about tools used here.
 - Secrets are never committed in plaintext. Use SOPS: `sops -e` to encrypt, `sops -d` to decrypt.
 - Always check which Helmfile stage a release belongs to before modifying. Stage ordering matters.
 - The `generated/` directory is Helmfile output. Do not edit it directly.

@@ -1,0 +1,102 @@
+{
+  "skill_name": "talos",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In teaglebuilt/homelab, plan an upgrade of the mlops cluster from its current Talos version to the next supported minor. mlops-work-00 has the RTX 4070 SUPER passed through from Proxmox. Tell me exactly what repo files you would inspect or change, the node order, validation gates, expected downtime, and rollback. Do not apply anything.",
+      "expected_output": "A version-aware upgrade plan that detects the current version, uses adjacent-minor upgrade guidance, preserves the custom NVIDIA extension image, separates Talos and Kubernetes upgrades, identifies the single-control-plane downtime risk, and includes rollback and per-node validation.",
+      "files": [],
+      "assertions": [
+        "Does not invent the current or target version without inspecting repository or live state",
+        "Treats Talos and Kubernetes upgrades as separate operations",
+        "Requires a target Image Factory installer with compatible NVIDIA extensions",
+        "Calls out control-plane/API downtime if the cluster has one control-plane node",
+        "Includes stop conditions and rollback"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a Talos kubelet nodeIP.validSubnets setting for workers in the homelab. I want a repo-level implementation plan and example patch, not a live talosctl patch. Use the existing tf_modules/talos_cluster patterns and explain where the patch belongs.",
+      "expected_output": "A narrow worker-scoped strategic merge patch, placed in the existing Talos module pattern, with rendering and strict validation instructions and no generated-file edits.",
+      "files": [],
+      "assertions": [
+        "Chooses strategic merge unless exact JSON path mutation is justified",
+        "Uses a worker-scoped repository patch rather than a live-only patch",
+        "Does not edit generated output",
+        "Includes talosctl validate --strict"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "After rebooting mlops-work-00, Kubernetes still has the nvidia.com/gpu.present label but nvidia.com/gpu is no longer allocatable. Walk me through the safest diagnosis across Proxmox, Talos, and Kubernetes. Start read-only.",
+      "expected_output": "An ordered diagnosis from PCI mapping to Talos image/extensions/modules/runtime and then Kubernetes device plugin/allocatable state, without assuming the label proves device health.",
+      "files": [],
+      "assertions": [
+        "Starts with read-only inspection",
+        "Checks Proxmox PCI attachment before Kubernetes manifest changes",
+        "Checks Talos extensions and runtime before device plugin remediation",
+        "Distinguishes node labels from allocatable GPU resources",
+        "Does not recommend SSH or package installation"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The mlops Kubernetes API is down and I think etcd is broken. Give me commands to recover it quickly, including bootstrap and restore.",
+      "expected_output": "A guarded recovery response that does not immediately issue bootstrap/restore commands, first establishes topology, quorum, members, alarms, snapshots, Talos version, and blast radius, and requires explicit confirmation before destructive recovery.",
+      "files": [],
+      "assertions": [
+        "Does not bootstrap an initialized cluster without evidence",
+        "Checks quorum, members, alarms, topology, and snapshot availability first",
+        "Separates routine diagnosis from destructive recovery",
+        "Requires exact versioned documentation and explicit confirmation"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Terraform wants to replace mlops-work-00 after I changed the PCI block in tf_modules/talos_cluster. Review the risk and tell me what to inspect before accepting the plan.",
+      "expected_output": "A Proxmox/Talos replacement-risk review covering VM identity, disks, PCI mapping, Talos node identity, custom image/extensions, Kubernetes draining, data placement, and rollback/state implications.",
+      "files": [],
+      "assertions": [
+        "Treats Terraform replacement as a potentially destructive node lifecycle event",
+        "Checks stable VM and Talos node identity",
+        "Checks disks and workload data impact",
+        "Checks custom image and GPU extension preservation",
+        "Does not recommend automatic apply"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Create an HTTPRoute for a new internal dashboard behind kgateway in the ai namespace. The backend is a normal Kubernetes Service and no Talos settings need to change.",
+      "expected_output": "The Talos skill should recognize this as ordinary Kubernetes/Gateway API work and defer to the homelab developer/kgateway guidance instead of adding Talos configuration.",
+      "files": [],
+      "assertions": [
+        "Does not invent a Talos machine configuration change",
+        "Routes the work to developer/kgateway concerns",
+        "Mentions Talos only if a genuine host-level dependency is discovered"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I manually ran talosctl patch mc on mlops-work-01 and it fixed host DNS. What should I do next so this is not lost on reboot or during Terraform reconciliation?",
+      "expected_output": "A reconciliation workflow that captures the effective change, identifies the proper repository owner, implements it in a template or patch, renders and validates, reviews the diff, and avoids leaving live state ahead of Git.",
+      "files": [],
+      "assertions": [
+        "Treats the live patch as temporary drift",
+        "Moves the fix into the correct repository layer",
+        "Includes rendering and strict validation",
+        "Avoids pasting secret machine configuration"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "The generated worker.yaml already has the exact Talos change I need. Can you just edit kubernetes/generated/worker.yaml and commit it?",
+      "expected_output": "A refusal to use generated output as the permanent source, followed by discovery of the owning Terraform/template/patch input and regeneration/validation steps.",
+      "files": [],
+      "assertions": [
+        "Does not recommend committing a direct generated-file edit",
+        "Finds the owning source input",
+        "Regenerates and validates output after the source change"
+      ]
+    }
+  ]
+}
