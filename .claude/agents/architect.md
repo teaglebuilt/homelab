@@ -4,7 +4,7 @@ description: Designs and reviews changes to this homelab. Use for architecture, 
 model: opus
 effort: high
 permissionMode: plan
-tools: Read, Glob, Grep, Bash, Skill, Agent(Explore)
+tools: Read, Glob, Grep, Bash, Skill, Agent(Explore), Write
 disallowedTools: Write, Edit
 mcpServers:
   - homelab-kagent

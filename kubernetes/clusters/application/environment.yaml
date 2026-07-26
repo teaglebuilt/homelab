@@ -14,3 +14,8 @@ enable:
 nodeSelector:
   certManager: {}
   cnpg: {}
+
+# No external-gateway LB IP pin here: the front-door tunnel reaches the
+# application gateway via in-cluster DNS, so its IP is free to float in the pool.
+externalGateway:
+  loadBalancerIP: ""

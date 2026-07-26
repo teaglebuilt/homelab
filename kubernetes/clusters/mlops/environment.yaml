@@ -14,3 +14,9 @@ nodeSelector:
     kubernetes.io/hostname: mlops-work-01
   cnpg:
     kubernetes.io/hostname: mlops-work-01
+
+# Pin the external gateway's LoadBalancer IP. The front-door tunnel (on
+# `application`) routes n8n.teaglebuilt.tech straight to this IP to reach n8n
+# across the ClusterMesh, so it must not drift out of the dynamic LB pool.
+externalGateway:
+  loadBalancerIP: "192.168.2.201"

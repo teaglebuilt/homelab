@@ -1,12 +1,11 @@
 ---
-
 name: homelab-architect
 description: Plan, evaluate, review, or design infrastructure changes in the teaglebuilt homelab repository.
 argument-hint: "<architecture task>"
 context: fork
 agent: architect
 disable-model-invocation: true
-------------------------------
+---
 
 # Homelab Architecture Task
 

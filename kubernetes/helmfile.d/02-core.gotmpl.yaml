@@ -13,6 +13,8 @@
        empty {} selectors render as no-pin. */ -}}
 {{- $nsCert := $ns | get "certManager" dict }}
 {{- $nsCnpg := $ns | get "cnpg" dict }}
+{{- /* Optional per-cluster external-gateway LB IP pin (empty = dynamic pool). */ -}}
+{{- $extLbIp := ($env | get "externalGateway" dict) | get "loadBalancerIP" "" }}
 bases:
   - ../defaults.yaml
 
@@ -108,6 +110,9 @@ releases:
       - external:
           domain: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
+          {{- if $extLbIp }}
+          loadBalancerIP: {{ $extLbIp | quote }}
+          {{- end }}
 
   - name: cnpg
     namespace: cnpg-system

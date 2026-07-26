@@ -6,6 +6,11 @@ metadata:
   namespace: kube-system
 spec:
   gatewayClassName: cilium
+  {{- with .Values.external.loadBalancerIP }}
+  infrastructure:
+    annotations:
+      io.cilium/lb-ipam-ips: {{ . | quote }}
+  {{- end }}
   listeners:
     - name: https-wildcard
       protocol: HTTPS
