@@ -48,7 +48,9 @@ mesh certs from this CA — no `cilium clustermesh` CLI, auto-renewing.
 
 `authMode: cluster` makes the Cilium chart itself want to manage a `cilium-ca`
 Secret. Helm refuses to take over a resource it didn't create unless it carries
-Helm ownership metadata, so the `00-prepare` hook stamps it right after apply:
+Helm ownership metadata. The `00-prepare` hook stamps it during bootstrap, and
+`mesh-upgrade` repeats the same idempotent apply/adoption immediately before
+Helm enables ClusterMesh:
 
 ```bash
 kubectl -n kube-system label secret cilium-ca app.kubernetes.io/managed-by=Helm --overwrite

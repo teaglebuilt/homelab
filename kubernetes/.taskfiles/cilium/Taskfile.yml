@@ -16,6 +16,30 @@ tasks:
     cmds:
       - '{{.TASKFILE_DIR}}/create-ca.sh'
 
+  apply-shared-ca:
+    summary: Apply the shared Cilium CA and make it adoptable by the Cilium Helm release
+    dir: '{{.TASKFILE_DIR}}/../..'
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/../../generated/{{.CLUSTER}}/kubeconfig'
+    preconditions:
+      - sh: test -f clusters/_shared/cilium-ca.sops.yaml
+        msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml first."
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}}."
+    cmds:
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        set -euo pipefail
+        sops --decrypt --input-type yaml --output-type yaml \
+          clusters/_shared/cilium-ca.sops.yaml /dev/stdin | kubectl apply -f -
+        kubectl -n kube-system label secret cilium-ca \
+          app.kubernetes.io/managed-by=Helm --overwrite
+        kubectl -n kube-system annotate secret cilium-ca \
+          meta.helm.sh/release-name=cilium \
+          meta.helm.sh/release-namespace=kube-system --overwrite
+
   clustermesh-status:
     summary: Read-only ClusterMesh health for a cluster
     requires:

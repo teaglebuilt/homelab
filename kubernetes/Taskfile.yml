@@ -155,6 +155,11 @@ tasks:
       - sh: 'test -f clusters/_shared/cilium-ca.sops.yaml'
         msg: "Shared CA missing: generate clusters/_shared/cilium-ca.sops.yaml (see clusters/_shared/README.md) and apply it to BOTH clusters first — authMode:cluster needs it or clustermesh-apiserver never goes Ready."
     cmds:
+      # mesh.yaml includes stage 01 only, so stage 00's CA adoption hook does not
+      # run here. Reapply and stamp Helm ownership before every mesh upgrade;
+      # all operations are idempotent and preserve the shared trust anchor.
+      - task: cilium:apply-shared-ca
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/mesh.yaml sync --selector name=cilium
 
   connect-clusters:
