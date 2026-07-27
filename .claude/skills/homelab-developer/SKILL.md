@@ -78,16 +78,15 @@ with existing repository patterns and state the assumption.
 Load only the skills required for the task. Each domain skill owns its own implementation
 procedure — do not reimplement that guidance here.
 
-| Domain                                                                                    | Skill                       |
-| ----------------------------------------------------------------------------------------- | --------------------------- |
-| Talos machine configuration, patches, Image Factory, extensions, upgrades, etcd, Proxmox  | `talos`                     |
+| Domain                                                                                     | Skill                       |
+| -----------------------------------------------------------------------------------------  | --------------------------- |
+| Talos machine configuration, patches, Image Factory, extensions, upgrades, etcd, Proxmox   | `talos`                     |
 | Cilium, ClusterMesh, Hubble, LB IPAM, L2 announcements, NetworkPolicy, eBPF networking     | `cilium`                    |
 | Gateway API, Gateway, HTTPRoute, ReferenceGrant, traffic policies, standard API routing    | `kgateway`                  |
 | MCP, A2A, LLM-provider routing, agent traffic, agent connectivity                          | `agentgateway`              |
 | kagent agents, ModelConfig, MCPServer, AgentHarness, Substrate, memory, HITL               | `kagent`                    |
 | NVIDIA NIM deployment and model serving                                                    | `nvidia-nim`                |
 | Observability pipelines, OpenTelemetry, Prometheus, Loki, Tempo, dashboards, alerts        | `observability-engineering` |
-| Host hardening, RBAC, secret exposure, supply chain, image scanning                        | `host-security`             |
 | n8n workflow authoring and maintenance                                                     | `n8n-workflow`              |
 
 For Helm, Helmfile, Kustomize, Terraform, Docker Compose, and secrets work — which have no
