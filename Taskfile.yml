@@ -54,6 +54,14 @@ tasks:
         vars: { CLUSTER: application }
       - task: platform:deploy
         vars: { CLUSTER: mlops }
+      - task: deploy-cloudflare-tunnel
+
+  deploy-cloudflare-tunnel:
+    desc: Apply the Cloudflare tunnel remote ingress config (terraform/cloudflare_tunnel.tf). Idempotent.
+    dir: terraform
+    cmds:
+      - terraform init -input=false
+      - terraform apply -auto-approve -input=false
 
   destroy-kubernetes:
     cmds:
