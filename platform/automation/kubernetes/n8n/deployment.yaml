@@ -152,7 +152,7 @@ spec:
               memory: 512Mi
       containers:
         - name: n8n
-          image: ghcr.io/n8n-io/n8n:latest
+          image: ghcr.io/n8n-io/n8n:2.31.7
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5678
@@ -176,6 +176,8 @@ spec:
             - secretRef:
                 name: n8n-secrets
           env:
+            - name: N8N_LOG_LEVEL
+              value: "info"
             - name: N8N_METRICS
               value: "true"
             - name: N8N_SECURE_COOKIE
@@ -195,6 +197,8 @@ spec:
             - name: N8N_VERSION_NOTIFICATIONS_ENABLED
               value: "false"
             - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+              value: "true"
+            - name: N8N_SKIP_AUTH_ON_OAUTH_CALLBACK
               value: "true"
             - name: DB_POSTGRESDB_USER
               valueFrom:

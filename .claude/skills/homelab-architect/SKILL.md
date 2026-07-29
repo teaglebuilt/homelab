@@ -41,6 +41,7 @@ Load only the skills required for the task.
 | kagent agents, AgentHarness, Substrate, agent memory, HITL or kagent CRDs                         | `kagent`                                                                  |
 | General architecture methods, ADRs or capacity planning                                           | `infrastructure-architect`, only when its broader methods materially help |
 | NVIDIA NIM deployment and model serving                                                           | `nvidia-nim`                                                              |
+| cloudflare tunnels, cloudflare_tunnel.tf, cloudflare/                                                                               | `cloudflare-one`                                                          |
 
 Use `.ai/context/docs/` only when:
 

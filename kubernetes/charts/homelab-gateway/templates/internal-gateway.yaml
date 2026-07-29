@@ -28,3 +28,15 @@ spec:
     allowedRoutes:
       namespaces:
         from: All
+  - name: https-external-domain
+    port: 443
+    protocol: HTTPS
+    hostname: "{{ .Values.external.domain }}"
+    tls:
+      mode: Terminate
+      certificateRefs:
+        - kind: Secret
+          name: external-cloudflare-tls
+    allowedRoutes:
+      namespaces:
+        from: All

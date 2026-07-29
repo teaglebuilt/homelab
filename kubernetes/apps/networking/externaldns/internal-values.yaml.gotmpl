@@ -36,7 +36,7 @@ policy: sync
 sources: ["ingress", "service", "gateway-httproute", "gateway-tlsroute"]
 txtOwnerId: k8s-internal
 txtPrefix: k8s-internal.
-domainFilters: ["internal"]
+domainFilters: ["internal", "teaglebuilt.tech"]
 interval: 1m
 triggerLoopOnEvent: true
 {{- if eq (.Values | get "cluster" "mlops") "mlops" }}

@@ -4,12 +4,12 @@ cloudflare:
   tunnelName: homelab_external
   tunnelId: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
   secret: {{ requiredEnv "CLOUDFLARE_TUNNEL_SECRET" }}
+  # NOTE: this tunnel is remotely managed (source=cloudflare) — cloudflared IGNORES
+  # the ingress rules below and pulls its config from Cloudflare's edge. Tunnel
+  # routing is owned in terraform/cloudflare_tunnel.tf, NOT here (that is where the
+  # n8n.teaglebuilt.tech -> mlops gateway rule lives). These rules are retained only
+  # as documentation of the intended default backends.
   ingress:
-    - hostname: n8n.teaglebuilt.tech
-      service: https://192.168.2.201
-      originRequest:
-        noTLSVerify: true
-        originServerName: n8n.teaglebuilt.tech
     - hostname: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
       service: https://cilium-gateway-homelab-external-gateway.kube-system.svc.cluster.local
       originRequest:
