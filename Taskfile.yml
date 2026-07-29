@@ -59,6 +59,9 @@ tasks:
   deploy-cloudflare-tunnel:
     desc: Apply the Cloudflare tunnel remote ingress config (terraform/cloudflare_tunnel.tf). Idempotent.
     dir: terraform
+    env:
+      TF_VAR_HOMELAB_EXTERNAL_TUNNEL_ID: ${CLOUDFLARE_TUNNEL_ID}
+      TF_VAR_CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
     cmds:
       - terraform init -input=false
       - terraform apply -auto-approve -input=false

@@ -16,6 +16,9 @@ spec:
     - matches:
         - path:
             type: PathPrefix
+            value: /rest/oauth1-credential/
+        - path:
+            type: PathPrefix
             value: /rest/oauth2-credential/
       backendRefs:
         - name: n8n-service

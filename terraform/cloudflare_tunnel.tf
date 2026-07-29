@@ -1,19 +1,16 @@
 variable "cloudflare_account_id" {
   description = "Cloudflare account tag that owns the homelab_external tunnel."
   type        = string
-  default     = "ce70bbe5880cef2c1874b61b39a55436"
 }
 
 variable "homelab_external_tunnel_id" {
   description = "ID of the existing homelab_external cloudflared tunnel."
   type        = string
-  default     = "862aefa7-f9b9-4c2d-be08-d3911716c583"
 }
 
 variable "mlops_external_gateway_ip" {
   description = "Pinned LB IP of the mlops homelab-external-gateway (Cilium LB-IPAM)."
   type        = string
-  default     = "192.168.2.201"
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab_external" {
