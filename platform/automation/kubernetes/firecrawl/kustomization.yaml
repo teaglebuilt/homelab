@@ -52,8 +52,7 @@ helmCharts:
         healthCheck:
           enabled: false
       redis:
-        image: redis:alpine
-        replicaCount: 1
+        enabled: false
       service:
         api:
           type: ClusterIP
@@ -68,8 +67,8 @@ helmCharts:
         NUM_WORKERS_PER_QUEUE: "4"
         PORT: "3002"
         HOST: "0.0.0.0"
-        REDIS_URL: "redis://firecrawl-firecrawl-redis:6379"
-        REDIS_RATE_LIMIT_URL: "redis://firecrawl-firecrawl-redis:6379"
+        REDIS_URL: "redis://redis-service.data.svc.cluster.local:6379"
+        REDIS_RATE_LIMIT_URL: "redis://redis-service.data.svc.cluster.local:6379"
         PLAYWRIGHT_MICROSERVICE_URL: "http://firecrawl-firecrawl-playwright:3000"
         USE_DB_AUTHENTICATION: "false"
         HDX_NODE_BETA_MODE: "1"
