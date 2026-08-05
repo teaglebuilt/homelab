@@ -1,0 +1,93 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: automation
+resources:
+  - internal-httproute.yaml
+  - mcp-deployment.yaml
+  - mcp-service.yaml
+  - mcpserver.yaml
+helmCharts:
+  - name: firecrawl
+    releaseName: firecrawl
+    namespace: automation
+    valuesInline:
+      replicaCount: 1
+      nuqWorker:
+        replicaCount: 2
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "500m"
+      nuqPostgres:
+        replicaCount: 1
+        image:
+          repository: ghcr.io/firecrawl/nuq-postgres
+          tag: latest
+          pullPolicy: Always
+        auth:
+          username: postgres
+          database: postgres
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        persistence:
+          enabled: false
+      image:
+        repository: ghcr.io/firecrawl/firecrawl
+        tag: "latest"
+        pullPolicy: Always
+        dockerSecretEnabled: false
+      playwright:
+        repository: ghcr.io/firecrawl/playwright-service
+        tag: "latest"
+        pullPolicy: Always
+        healthCheck:
+          enabled: false
+      redis:
+        image: redis:alpine
+        replicaCount: 1
+      service:
+        api:
+          type: ClusterIP
+          port: 3002
+        playwright:
+          type: ClusterIP
+          port: 3000
+        redis:
+          type: ClusterIP
+          port: 6379
+      config:
+        NUM_WORKERS_PER_QUEUE: "4"
+        PORT: "3002"
+        HOST: "0.0.0.0"
+        REDIS_URL: "redis://firecrawl-firecrawl-redis:6379"
+        REDIS_RATE_LIMIT_URL: "redis://firecrawl-firecrawl-redis:6379"
+        PLAYWRIGHT_MICROSERVICE_URL: "http://firecrawl-firecrawl-playwright:3000"
+        USE_DB_AUTHENTICATION: "false"
+        HDX_NODE_BETA_MODE: "1"
+        NUQ_DATABASE_URL: "postgresql://postgres:password@firecrawl-firecrawl-nuq-postgres:5432/postgres"
+      playwrightConfig:
+        PORT: "3000"
+      secret:
+        OPENAI_API_KEY: ""
+        SLACK_WEBHOOK_URL: ""
+        LLAMAPARSE_API_KEY: ""
+        BULL_AUTH_KEY: ""
+        TEST_API_KEY: ""
+        POSTHOG_API_KEY: ""
+        POSTHOG_HOST: ""
+        SCRAPING_BEE_API_KEY: ""
+        STRIPE_PRICE_ID_STANDARD: ""
+        STRIPE_PRICE_ID_SCALE: ""
+        FIRE_ENGINE_BETA_URL: ""
+        REDIS_PASSWORD: ""
+      ingress:
+        enabled: false

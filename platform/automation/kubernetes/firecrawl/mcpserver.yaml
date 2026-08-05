@@ -1,0 +1,11 @@
+---
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: firecrawl
+  namespace: automation
+spec:
+  description: "Firecrawl MCP (self-hosted): scrape, crawl, map, search, extract"
+  protocol: STREAMABLE_HTTP
+  url: http://firecrawl-mcp.automation.svc.cluster.local:3000/mcp
+  timeout: 120s
