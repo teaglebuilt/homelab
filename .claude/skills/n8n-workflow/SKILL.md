@@ -16,6 +16,14 @@ Pass the agent:
 
 After the agent returns, surface the workflow URL and JSON path to the user.
 
+## Scraping Workflows
+
+Since firecrawl is self hosted we use `HTTP Request Node` instead of firecrawl node.
+
+When building workflows to scrape use self hosted firecrawl and HTTP Request Nodes.
+
+For firecrawl reference, docs, API, etc...go to https://docs.firecrawl.dev/llms-full.txt
+
 ## Plugin
 
 - n8n-mcp-skills - use skills or plugin for extended information that you can use such as workflow patterns, syntax, node configuration, etc...

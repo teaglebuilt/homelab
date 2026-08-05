@@ -16,8 +16,6 @@ tasks:
     status:
       - test "{{.CLUSTER}}" != "mlops"
     cmds:
-      # KUBECONFIG on the kubectl side — kustomize doesn't need it, kubectl does
-      # (otherwise the apply hits the AMBIENT context / wrong cluster).
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 

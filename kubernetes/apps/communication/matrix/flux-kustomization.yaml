@@ -1,0 +1,25 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matrix
+  namespace: flux-system
+spec:
+  interval: 10m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: "./k8s/applications/matrix"
+  prune: true
+  wait: true
+  dependsOn:
+    - name: ingress-nginx
+      namespace: flux-system
+    - name: cert-manager
+      namespace: flux-system
+    - name: authentik-blueprint-matrix-provider # Wait for Authentik OIDC application to be created
+      namespace: flux-system
+    - name: external-secrets-config
+      namespace: flux-system
+# Note: Matrix Synapse needs OIDC discovery endpoint at startup (from provider),
+# but oauth-client-secret (from matrix-secret) is only needed for OAuth login flows later

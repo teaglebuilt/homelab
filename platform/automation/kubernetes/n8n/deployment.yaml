@@ -107,7 +107,8 @@ spec:
               cpu: 200m
               memory: 64Mi
         - name: import-workflows
-          image: ghcr.io/n8n-io/n8n:latest
+          # Keep the CLI in lockstep with the runtime container (was :latest).
+          image: ghcr.io/n8n-io/n8n:2.33.0
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "/scripts/import-workflows.sh"]
           envFrom:
@@ -152,7 +153,9 @@ spec:
               memory: 512Mi
       containers:
         - name: n8n
-          image: ghcr.io/n8n-io/n8n:2.31.7
+          # 2.33.0 fixes the Postgres workflow-statistics rollup crash
+          # (firstEvent.getTime is not a function) — n8n-io/n8n#34669 / PR #34670.
+          image: ghcr.io/n8n-io/n8n:2.33.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5678

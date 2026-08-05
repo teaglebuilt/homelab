@@ -1,7 +1,4 @@
 ---
-# Firecrawl MCP server in Streamable HTTP mode (https://docs.firecrawl.dev/mcp-server/local).
-# Runs the `firecrawl-mcp` npm package via npx and points at the self-hosted Firecrawl
-# API in this namespace, so no cloud key is required. Exposes /mcp on port 3000.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

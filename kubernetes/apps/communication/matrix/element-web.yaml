@@ -1,0 +1,139 @@
+---
+# ConfigMap for Element web client configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-web-config
+  namespace: matrix
+data:
+  config.json: |
+    {
+      "default_server_config": {
+        "m.homeserver": {
+          "base_url": "https://matrix.test-cluster.agentydragon.com",
+          "server_name": "test-cluster.agentydragon.com"
+        }
+      },
+      "brand": "Element",
+      "integrations_ui_url": "https://scalar.vector.im/",
+      "integrations_rest_url": "https://scalar.vector.im/api",
+      "integrations_widgets_urls": [
+        "https://scalar.vector.im/_matrix/integrations/v1",
+        "https://scalar.vector.im/api",
+        "https://scalar-staging.vector.im/_matrix/integrations/v1",
+        "https://scalar-staging.vector.im/api",
+        "https://scalar-staging.riot.im/scalar/api"
+      ],
+      "hosting_signup_link": "https://element.io/matrix-services?utm_source=element-web&utm_medium=web",
+      "bug_report_endpoint_url": "https://element.io/bugreports/submit",
+      "uisi_autorageshake_app": "element-auto-uisi",
+      "showLabsSettings": true,
+      "features": {},
+      "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx"
+    }
+---
+# Deployment for Element web client
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element-web
+  namespace: matrix
+  labels:
+    app: element-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: element-web
+  template:
+    metadata:
+      labels:
+        app: element-web
+    spec:
+      containers:
+        - name: element-web
+          image: vectorim/element-web:v1.11.90
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.json
+              subPath: config.json
+              readOnly: true
+          env:
+            - name: NGINX_ENVSUBST_OUTPUT_DIR
+              value: "/tmp"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 101
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: config
+          configMap:
+            name: element-web-config
+---
+# Service for Element web client
+apiVersion: v1
+kind: Service
+metadata:
+  name: element-web
+  namespace: matrix
+  labels:
+    app: element-web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: element-web
+---
+# Ingress for Element web client
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: element-web
+  namespace: matrix
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - chat.test-cluster.agentydragon.com
+      secretName: element-web-tls
+  rules:
+    - host: chat.test-cluster.agentydragon.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: element-web
+                port:
+                  name: http

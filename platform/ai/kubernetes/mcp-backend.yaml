@@ -22,6 +22,11 @@ spec:
           host: playwright-mcp.ai.svc.cluster.local
           port: 8931
           path: /mcp
+      - name: firecrawl
+        static:
+          host: firecrawl-mcp.automation.svc.cluster.local
+          port: 3000
+          path: /mcp
       - name: kagent-tools
         static:
           host: kagent-tools.ai.svc.cluster.local

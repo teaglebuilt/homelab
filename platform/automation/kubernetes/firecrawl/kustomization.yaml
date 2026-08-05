@@ -14,13 +14,13 @@ helmCharts:
     valuesInline:
       replicaCount: 1
       nuqWorker:
-        replicaCount: 2
+        replicaCount: 1
         resources:
           requests:
-            memory: "1Gi"
+            memory: "512Mi"
             cpu: "250m"
           limits:
-            memory: "2Gi"
+            memory: "1Gi"
             cpu: "500m"
       nuqPostgres:
         replicaCount: 1
