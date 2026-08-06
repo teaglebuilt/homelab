@@ -6,3 +6,4 @@ resources:
   - pv.yaml
   - ../../apps/postgres
   - ../../apps/qdrant
+  - ../../apps/redis

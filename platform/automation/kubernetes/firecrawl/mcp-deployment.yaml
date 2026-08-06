@@ -1,0 +1,85 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firecrawl-mcp
+  namespace: automation
+  labels:
+    app: firecrawl-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firecrawl-mcp
+  template:
+    metadata:
+      labels:
+        app: firecrawl-mcp
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: firecrawl-mcp
+          image: node:22-alpine
+          # npx fetches firecrawl-mcp@3.23.0 from the npm registry on start (needs egress).
+          command: ["npx", "-y", "firecrawl-mcp@3.23.0"]
+          env:
+            - name: HTTP_STREAMABLE_SERVER
+              value: "true"
+            - name: FIRECRAWL_API_URL
+              value: http://firecrawl-firecrawl-api.automation.svc.cluster.local:3002
+            - name: FIRECRAWL_API_KEY
+              value: fc-self-hosted
+            # Writable npm cache/home for the non-root user.
+            - name: HOME
+              value: /home/node
+            - name: HOST
+              value: "0.0.0.0"
+            - name: npm_config_cache
+              value: /home/node/.npm
+          ports:
+            - name: http
+              containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: home
+              mountPath: /home/node
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: home
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

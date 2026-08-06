@@ -7,14 +7,19 @@ metadata:
 spec:
   mcp:
     targets:
+      - name: federated
+        selector:
+          services:
+            matchLabels:
+              agentgateway.dev/mcp-federation: "true"
       - name: github-mcp-server
         selector:
           services:
             matchLabels:
               app: github-mcp-server
-      - name: comfyui-mcp-server
+      - name: firecrawl
         static:
-          host: comfyui-mcp-server.ai.svc.cluster.local
+          host: firecrawl-mcp.automation.svc.cluster.local
           port: 3000
           path: /mcp
       - name: kagent-tools
