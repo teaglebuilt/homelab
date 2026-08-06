@@ -22,7 +22,9 @@ Since firecrawl is self hosted we use `HTTP Request Node` instead of firecrawl n
 
 When building workflows to scrape use self hosted firecrawl and HTTP Request Nodes.
 
-For firecrawl reference, docs, API, etc...go to https://docs.firecrawl.dev/llms-full.txt
+For Firecrawl API/reference, use the `firecrawl` entry in `.ai/context/docs.md`
+(fetch the `llms.txt` index first; follow one endpoint page — do not inline the
+`llms-full.txt` dump).
 
 ## Plugin
 

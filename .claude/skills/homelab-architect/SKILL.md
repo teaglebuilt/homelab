@@ -43,13 +43,14 @@ Load only the skills required for the task.
 | NVIDIA NIM deployment and model serving                                                           | `nvidia-nim`                                                              |
 | cloudflare tunnels, cloudflare_tunnel.tf, cloudflare/                                                                               | `cloudflare-one`                                                          |
 
-Use `.ai/context/docs/` only when:
+Use `.ai/context/docs.md` only when:
 
 * No appropriate skill exists.
-* Repository-specific scraped documentation is needed.
 * The selected domain skill explicitly routes to those documents.
+* A needed external-doc detail is not covered by any skill.
 
-Do not load both an entire documentation directory and a domain skill by default.
+`docs.md` is a Tier-3 external-doc router. Fetch its `llms.txt` index first, follow a
+single deep link, and never inline an `llms-full.txt` dump into context.
 
 ## Specialist Agent Delegation
 

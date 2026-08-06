@@ -6,6 +6,7 @@ resources:
   - github.yaml
   - memory.yaml
   - context7.yaml
+  - firecrawl.yaml
   # playwright server + RemoteMCPServer moved to the browser_use Helm chart
   # (platform/ai/agents/browser_use); no longer built here.
 generators:

@@ -93,10 +93,11 @@ For Helm, Helmfile, Kustomize, Terraform, Docker Compose, and secrets work — w
 dedicated domain skill — read
 [references/repo-native-procedures.md](references/repo-native-procedures.md).
 
-Do not load every skill. Do not load a complete `.ai/context/docs/` directory and a domain
-skill for the same subject. Use `.ai/context/docs/` only when no suitable domain skill
-exists, the domain skill explicitly routes there, or repository-specific scraped material
-contains details the skill lacks.
+
+Do not load every skill. Use `.ai/context/docs.md` only when no suitable domain skill
+exists, the domain skill explicitly routes there, or the skill lacks a needed detail.
+`docs.md` is a Tier-3 external-doc router: fetch its `llms.txt` index first, follow a
+single deep link, and never inline an `llms-full.txt` dump into context.
 
 ## Specialist Agent Routing
 
@@ -200,6 +201,7 @@ separately.
 * [ ] The final diff contains no unrelated changes.
 * [ ] Live changes were not made without explicit authorization.
 * [ ] Repository state reflects every approved persistent live change.
+
 ## Required Output
 
 1. **Implemented change**

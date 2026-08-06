@@ -6,7 +6,9 @@ resources:
   - internal-httproute.yaml
   - mcp-deployment.yaml
   - mcp-service.yaml
-  - mcpserver.yaml
+  # RemoteMCPServer moved to platform/ai/kubernetes/mcp/firecrawl.yaml so the
+  # kagent controller (namespace ai) owns the CR; the Deployment/Service stay
+  # here since that's where firecrawl-mcp actually runs.
 helmCharts:
   - name: firecrawl
     releaseName: firecrawl
