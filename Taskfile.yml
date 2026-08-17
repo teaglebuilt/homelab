@@ -59,9 +59,15 @@ tasks:
   deploy-cloudflare-tunnel:
     desc: Apply the Cloudflare tunnel remote ingress config (terraform/cloudflare_tunnel.tf). Idempotent.
     dir: terraform
+    requires:
+      vars:
+        - CLOUDFLARE_TUNNEL_ID
+        - CLOUDFLARE_ACCOUNT_TAG
+        - MLOPS_EXTERNAL_GATEWAY_IP
     env:
-      TF_VAR_HOMELAB_EXTERNAL_TUNNEL_ID: ${CLOUDFLARE_TUNNEL_ID}
-      TF_VAR_CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
+      TF_VAR_homelab_external_tunnel_id: '{{.CLOUDFLARE_TUNNEL_ID}}'
+      TF_VAR_cloudflare_account_id: '{{.CLOUDFLARE_ACCOUNT_TAG}}'
+      TF_VAR_mlops_external_gateway_ip: '{{.MLOPS_EXTERNAL_GATEWAY_IP}}'
     cmds:
       - terraform init -input=false
       - terraform apply -auto-approve -input=false
