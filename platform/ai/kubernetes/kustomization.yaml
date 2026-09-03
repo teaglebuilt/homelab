@@ -9,9 +9,6 @@ resources:
   - integrations
   - mcp
   - ui-http-route.yaml
-  - mcp-backend.yaml
-  - mcp-route.yaml
-  - referencegrant-automation-to-mcp.yaml
 helmCharts:
   - name: agentgateway
     repo: oci://ghcr.io/kgateway-dev/charts

@@ -107,7 +107,8 @@ releases:
       {{- end }}
       - cert-manager/cert-manager
     values:
-      - external:
+      - cluster: {{ $cluster }}
+        external:
           domain: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
           {{- if $extLbIp }}

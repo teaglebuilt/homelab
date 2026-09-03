@@ -26,7 +26,11 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   memory {
     dedicated   = each.value.ram_dedicated
-    floating    = each.value.ram_dedicated / 2
+    # floating = 0 (default) disables ballooning. K8s nodes need a fixed,
+    # predictable memory ceiling for kubelet eviction accounting; the
+    # previous `ram_dedicated / 2` value parked every mlops VM at half its
+    # configured RAM because Talos never signals the balloon driver to
+    # inflate back toward `dedicated`.
   }
 
   network_device {

@@ -3,12 +3,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: ai
 resources:
+  - mcp-federated-backends.yaml
+  # - policies/mcp-authz.yaml
+  - mcp-route.yaml
+  - referencegrants.yaml
   - github.yaml
   - memory.yaml
   - context7.yaml
   - firecrawl.yaml
-  # playwright server + RemoteMCPServer moved to the browser_use Helm chart
-  # (platform/ai/agents/browser_use); no longer built here.
 generators:
   - secrets-generator.yaml
 replacements:

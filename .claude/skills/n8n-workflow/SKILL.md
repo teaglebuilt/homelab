@@ -20,11 +20,16 @@ After the agent returns, surface the workflow URL and JSON path to the user.
 
 Since firecrawl is self hosted we use `HTTP Request Node` instead of firecrawl node.
 
-When building workflows to scrape use self hosted firecrawl and HTTP Request Nodes.
+Do not design the scrape here. Run the `/scrape` skill first — it delegates to
+the `scraping-architect` subagent, which picks the tier and returns the exact
+`/v2` request body, then hand that payload to this agent to wire into nodes.
+That agent also knows which firecrawl features are unavailable on our
+self-hosted stack (`actions`, `screenshot`, and LLM extraction all are), so it
+prevents workflows that fail only at runtime.
 
-For Firecrawl API/reference, use the `firecrawl` entry in `.ai/context/docs.md`
-(fetch the `llms.txt` index first; follow one endpoint page — do not inline the
-`llms-full.txt` dump).
+Request bodies for the common shapes — single scrape, map then batch, crawl
+with polling, webhooks — are in
+`.claude/skills/scrape/resources/n8n-http-patterns.md`.
 
 ## Plugin
 

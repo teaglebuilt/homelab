@@ -5,6 +5,7 @@ namespace: data
 resources:
   - cluster.yaml
   - databases/n8n.yaml
+  - databases/kagent.yaml
 generators:
   - secrets-generator.yaml
 generatorOptions:

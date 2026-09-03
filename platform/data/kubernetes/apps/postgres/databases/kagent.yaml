@@ -1,0 +1,13 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: kagent-memory
+  namespace: data
+spec:
+  name: kagent-memory
+  owner: kagent-memory
+  cluster:
+    name: postgres
+  extensions:
+    - name: pgvector

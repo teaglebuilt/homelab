@@ -1,0 +1,29 @@
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: mcp-backend
+  namespace: ai
+spec:
+  mcp:
+    targets:
+      - name: federated
+        selector:
+          services:
+            matchLabels:
+              agentgateway.dev/mcp-federation: "true"
+      - name: firecrawl
+        static:
+          host: firecrawl-mcp.automation.svc.cluster.local
+          port: 3000
+          path: /mcp
+      - name: kagent-tools
+        static:
+          host: kagent-tools.ai.svc.cluster.local
+          port: 8084
+          path: /mcp
+      - name: kagent-controller
+        static:
+          host: kagent-controller.ai.svc.cluster.local
+          port: 8083
+          path: /mcp

@@ -34,8 +34,13 @@ extraArgs:
   - --ignore-ingress-tls-spec
 policy: sync
 sources: ["ingress", "service", "gateway-httproute", "gateway-tlsroute"]
-txtOwnerId: k8s-internal
-txtPrefix: k8s-internal.
+# Owner ID MUST be unique per cluster. Every cluster's internal-dns writes to the
+# same UniFi controller, so a shared owner id makes each instance believe it owns
+# the other's records: under policy=sync they delete each other's A and TXT records
+# every reconcile. Ownership TXT then never survives a loop, every record reads as
+# unowned, and external-dns silently drops all UPDATEs (an IP change never applies).
+txtOwnerId: k8s-{{ .Values | get "cluster" "mlops" }}
+txtPrefix: k8s-{{ .Values | get "cluster" "mlops" }}.
 domainFilters: ["internal", "teaglebuilt.tech"]
 interval: 1m
 triggerLoopOnEvent: true

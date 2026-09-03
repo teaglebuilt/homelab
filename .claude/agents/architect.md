@@ -6,8 +6,6 @@ effort: high
 permissionMode: plan
 tools: Read, Glob, Grep, Bash, Skill, Agent(Explore), Write
 disallowedTools: Write, Edit
-mcpServers:
-  - homelab-kagent
 maxTurns: 30
 color: blue
 ---

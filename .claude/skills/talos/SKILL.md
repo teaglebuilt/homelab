@@ -10,10 +10,6 @@ description: >
   Talos-specific cluster definitions. Do not use for ordinary Kubernetes app
   manifests, Helm releases, HTTPRoutes, or UniFi changes unless the issue
   specifically crosses into the Talos host or machine configuration layer.
-metadata:
-  product: talos-linux
-  repository: teaglebuilt/homelab
-  documentation-policy: version-matched-official-sources
 ---
 
 # Talos Linux for the Homelab

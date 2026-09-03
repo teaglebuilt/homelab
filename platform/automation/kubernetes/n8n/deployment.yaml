@@ -184,7 +184,7 @@ spec:
             - name: N8N_METRICS
               value: "true"
             - name: N8N_SECURE_COOKIE
-              value: "false"
+              value: "true"
             - name: N8N_HOST
               value: n8n.teaglebuilt.tech
             - name: N8N_EDITOR_BASE_URL

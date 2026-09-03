@@ -1,0 +1,21 @@
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: mcp-authz
+  namespace: ai
+spec:
+  targetRefs:
+  - group: agentgateway.dev
+    kind: AgentgatewayBackend
+    name: mcp-backend
+  backend:
+    mcp:
+      authorization:
+        action: Allow
+        policy:
+          matchExpressions:
+          - 'mcp.tool.target == "kagent-tools" && mcp.tool.name == "shell"'
+          # - 'mcp.tool.target == "kagent-tools" && mcp.tool.name.startsWith("k8s_")'
+          # - 'mcp.tool.target == "kagent-tools" && mcp.tool.name == "datetime_get_current_time"'
+          # - 'mcp.tool.target == "kagent-controller"'

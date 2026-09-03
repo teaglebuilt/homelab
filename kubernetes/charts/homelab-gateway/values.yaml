@@ -1,4 +1,16 @@
 ---
+# Cluster identity, injected by helmfile from clusters/<name>/. Every cluster's
+# internal-dns writes to the same UniFi controller, so anything that would
+# otherwise be a shared DNS name must be qualified per cluster.
+cluster: mlops
+
+hubble:
+  # Defaults to hubble-<cluster>.homelab.internal. Must stay a SINGLE label under
+  # homelab.internal: the internal cert is *.homelab.internal and the internal
+  # gateway listener matches *.homelab.internal, and a DNS wildcard covers exactly
+  # one label — hubble.<cluster>.homelab.internal would break TLS and listener match.
+  hostname: ""
+
 ghcrSecret:
   enabled: true
   namespace: default          # where ghcr-credentials lives and ghcr-secret is created

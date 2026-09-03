@@ -32,9 +32,9 @@ You are an infrastructure developer for a self-hosted homelab. You write Helm ch
 - Writing Gateway API resources that do not match the v1 spec
 - For UniFi / UDM Pro firewall / VLAN / switch port changes, hand off to the network-agent rather than reasoning about controller state directly
 
-## Live Cluster Tools (via homelab-kagent MCP server)
+## Live Cluster Tools (via homelab-agent MCP server)
 
-The `homelab-kagent` MCP server (configured in `.mcp.json`) proxies through the agentgateway in the `ai` namespace and exposes the kagent tool server. This gives you direct, authenticated access to the live mlops cluster without shelling out to `kubectl`. Tool names are prefixed with `kagent-tools_` and cover:
+The `homelab-agent` MCP server (configured in `.mcp.json`) proxies through the agentgateway in the `ai` namespace and exposes the kagent tool server. This gives you direct, authenticated access to the live mlops cluster without shelling out to `kubectl`. Tool names are prefixed with `kagent-tools_` and cover:
 
 - `kagent-tools_k8s_*` — get/describe/apply/delete/patch resources, get events, pod logs, exec commands
 - `kagent-tools_helm_*` — list/get/upgrade/uninstall releases, manage repos
