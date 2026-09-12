@@ -123,3 +123,12 @@ releases:
           - -c
           - |
             kustomize build ../apps/hardware/wasm | kubectl apply -f -
+
+  - name: netops-agent
+    namespace: default
+    chart: /Users/teaglebuilt/github/teaglebuilt/netops-agent/chart
+    version: 0.1.0
+    installed: {{ eq $cluster "mlops" }}
+    createNamespace: false
+    # values:
+    #   - ../apps/hardware/netops/values.yaml

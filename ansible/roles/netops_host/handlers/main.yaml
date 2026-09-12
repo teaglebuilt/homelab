@@ -1,0 +1,9 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Restart netops agent
+  ansible.builtin.systemd_service:
+    name: "{{ netops_unit_name }}.service"
+    state: restarted

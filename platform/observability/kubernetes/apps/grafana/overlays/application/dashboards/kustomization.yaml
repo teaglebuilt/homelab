@@ -10,3 +10,4 @@ resources:
   - agent-gateway.yaml
   - envoy-dashboard.yaml
   - kgateway-dashboard.yaml
+  - network-operations.yaml

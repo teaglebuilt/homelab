@@ -1,0 +1,26 @@
+---
+# Vantage point. On a hypervisor this is always "host": sysfs here exposes the
+# real trained PCIe link, the AER status registers, and the Thunderbolt bus an
+# eGPU enclosure attaches over. The Talos DaemonSet runs the same binary with
+# role=guest, which publishes device presence only. See docs/index.md.
+netops_role: host
+
+netops_bin_src: "{{ playbook_dir }}/../../dist/netops-agent"
+netops_bin_dest: /usr/local/bin/netops-agent
+
+netops_listen_port: 9101
+
+# Empty lets the agent discover the default-route NIC from /proc/net/route.
+netops_device: ""
+
+# sysfs root. On the hypervisor this is the real one, not a bind mount.
+netops_sysfs: /sys
+
+netops_unit_name: netops-agent
+netops_log_level: info
+
+# Fail the play if the agent does not serve metrics after starting. Worth
+# keeping on: a BPF program that fails to load exits the process, and without
+# this check a broken deploy looks successful.
+netops_verify: true
+netops_verify_timeout: 20

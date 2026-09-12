@@ -1,5 +1,18 @@
 ---
 hooks:
+  # netops-agent (and other hostNetwork/BPF workloads) land in `default`. Cluster
+  # PSS defaults to baseline/restricted — label privileged before stage 03.
+  - events: ["prepare"]
+    showlogs: true
+    command: "bash"
+    args:
+      - -c
+      - |
+        kubectl label namespace default \
+          pod-security.kubernetes.io/enforce=privileged \
+          pod-security.kubernetes.io/audit=privileged \
+          pod-security.kubernetes.io/warn=privileged \
+          --overwrite
   - events: ["prepare"]
     showlogs: true
     command: "bash"

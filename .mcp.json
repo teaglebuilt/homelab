@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "homelab-kagent": {
+    "homelab-agent": {
       "type": "http",
       "url": "http://${AI_GATEWAY_IP}/mcp",
       "headers": {}
