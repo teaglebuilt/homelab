@@ -1,23 +1,31 @@
 ---
 ollama:
   enabled: false
+ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
+
+enableOpenaiApi: true
+openaiApiKeyExistingSecret: openwebui-agentgateway
+openaiApiKeyExistingSecretKey: api-key
+openaiBaseApiUrl: >-
+  http://agentgateway-proxy.agentgateway-system.svc.cluster.local
 
 persistence:
   enabled: true
+  annotations:
+    helm.sh/resource-policy: keep
 
 service:
   port: 80
 
-ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
 extraEnvVars:
   - name: WEBUI_URL
     value: https://openwebui.homelab.internal
   - name: K8S_FLAG
     value: "true"
-  - name: OLLAMA_HOST
-    value: http://ollama.ai.svc.cluster.local:11434
-  - name: OLLAMA_BASE_URL
-    value: http://ollama.ai.svc.cluster.local:11434
+  # - name: OLLAMA_HOST
+  #   value: http://ollama.ai.svc.cluster.local:11434
+  # - name: OLLAMA_BASE_URL
+  #   value: http://ollama.ai.svc.cluster.local:11434
   - name: ENABLE_RAG_WEB_SEARCH
     value: "True"
   - name: SEARXNG_QUERY_URL
@@ -29,12 +37,12 @@ extraEnvVars:
   - name: ENABLE_IMAGE_GENERATION
     value: "false"
   # NVIDIA NIM Configuration (OpenAI-compatible API)
-  - name: OPENAI_API_BASE_URL
-    value: http://nim.ai.svc.cluster.local:8000/v1
-  - name: OPENAI_API_KEY
-    value: "not-required"
-  - name: ENABLE_OPENAI_API
-    value: "true"
+  # - name: OPENAI_API_BASE_URL
+  #   value: http://nim.ai.svc.cluster.local:8000/v1
+  # - name: OPENAI_API_KEY
+  #   value: "not-required"
+  # - name: ENABLE_OPENAI_API
+  #   value: "true"
   # Piper TTS Configuration (via openedai-speech)
   - name: AUDIO_TTS_ENGINE
     value: "openai"
@@ -56,6 +64,8 @@ extraEnvVars:
       secretKeyRef:
         name: openwebui-secrets
         key: webui_api_key
+  - name: QDRANT_URI
+    value: "http://qdrant.data.svc.cluster.local:6333"
   - name: QDRANT_API_KEY
     valueFrom:
       secretKeyRef:
@@ -82,7 +92,15 @@ extraEnvVars:
       secretKeyRef:
         name: aws-credentials
         key: aws_secret_access_key
-
+  - name: VECTOR_DB
+    value: "qdrant"
+  - name: RAG_EMBEDDING_ENGINE
+    value: "openai"
+  - name: RAG_OPENAI_API_BASE_URL
+    value: >-
+      http://agentgateway-proxy.agentgateway-system.svc.cluster.local/v1
+  - name: RAG_EMBEDDING_MODEL
+    value: "embeddings"
 requests:
   cpu: 60m
   memory: 256Mi

@@ -1,0 +1,95 @@
+---
+- name: Assert the binary exists on the control machine
+  ansible.builtin.assert:
+    that:
+      - netops_bin_src is exists
+    fail_msg: >-
+      {{ netops_bin_src }} not found. Build and extract it first:
+      `make dist` in the netops-agent repo, or point netops_bin_src at a
+      binary you already have.
+    quiet: true
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: Check the kernel exposes BTF
+  ansible.builtin.stat:
+    path: /sys/kernel/btf/vmlinux
+  register: netops_btf
+
+- name: Fail early when BTF is missing
+  ansible.builtin.fail:
+    msg: >-
+      /sys/kernel/btf/vmlinux is absent, so the CO-RE programs cannot load.
+      This host needs a kernel built with CONFIG_DEBUG_INFO_BTF.
+  when: not netops_btf.stat.exists
+
+- name: Install the agent binary
+  ansible.builtin.copy:
+    src: "{{ netops_bin_src }}"
+    dest: "{{ netops_bin_dest }}"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart netops agent
+
+- name: Install the systemd unit
+  ansible.builtin.template:
+    src: netops-agent.service.j2
+    dest: "/etc/systemd/system/{{ netops_unit_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart netops agent
+
+- name: Flush handlers so verification runs against the new build
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start the agent
+  ansible.builtin.systemd_service:
+    name: "{{ netops_unit_name }}.service"
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for the metrics port
+  ansible.builtin.wait_for:
+    port: "{{ netops_listen_port }}"
+    host: 127.0.0.1
+    timeout: "{{ netops_verify_timeout }}"
+  when: netops_verify
+
+# A BPF program that fails to load takes the process down, and systemd will
+# happily report "activating (auto-restart)" forever. Scraping the endpoint is
+# the only check that proves the programs actually attached.
+- name: Scrape the agent
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ netops_listen_port }}/metrics"
+    return_content: true
+  register: netops_metrics
+  retries: 5
+  delay: 2
+  until: netops_metrics is succeeded
+  when: netops_verify
+
+- name: Assert the NIC programs attached
+  ansible.builtin.assert:
+    that:
+      - "'netops_rx_bytes_total' in netops_metrics.content"
+    fail_msg: >-
+      The agent is serving metrics but netops_rx_bytes_total is absent, so the
+      tcx/ingress program did not attach. Check `journalctl -u
+      {{ netops_unit_name }}`.
+    quiet: true
+  when: netops_verify
+
+- name: Report the GPU-class functions this host can see
+  ansible.builtin.debug:
+    msg: >-
+      {{ netops_metrics.content_lines
+         | select('match', '^netops_pci_device_present')
+         | list
+         | default(['none - no real GPU-class function on this host'], true) }}
+  when: netops_verify

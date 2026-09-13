@@ -1,0 +1,7 @@
+---
+# Deploys the host-vantage-point netops agent to the Proxmox hypervisors.
+- name: Deploy netops agent to Proxmox hosts
+  hosts: proxmox
+  become: true
+  roles:
+    - role: ../roles/netops_host

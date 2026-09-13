@@ -1,0 +1,30 @@
+# Guest-vantage netops agent (Talos DaemonSet). Chart lives in the sibling
+# repo: ../netops-agent/chart (path from helmfile.d: ../../netops-agent/chart).
+# Host-vantage instances run on Proxmox via ansible/roles/netops_host and are
+# scraped as a static target by the application Prometheus hub.
+#
+# Metrics: prometheus.io scrape annotations → mlops Prometheus agent
+# (kubernetes-pods job) → remote_write → application hub.
+image:
+  repository: ghcr.io/teaglebuilt/netops-agent
+  # Pin to the digest-equivalent tag currently running on mlops (not mutable "dev").
+  tag: aea1aac
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+pcie:
+  role: guest
+  sysfsRoot: /host/sys
+
+metrics:
+  port: 9101
+  hostPort: 0
+  scrapeAnnotations: true
+
+tolerations:
+  - operator: Exists
+
+agent:
+  enabled: false

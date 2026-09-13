@@ -3,10 +3,33 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - agentgateway.yaml
-  - llm-usage.yaml
   - agent-tracing.yaml
   - trace-log-correlation.yaml
-  - n8n.yaml
   - agent-gateway.yaml
   - envoy-dashboard.yaml
   - kgateway-dashboard.yaml
+configMapGenerator:
+  - name: netops-dashboard
+    namespace: observability
+    files:
+      - netops.json=../../../../../../dashboards/network-operations.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: llm-usage
+    namespace: observability
+    files:
+      - llm-usage.json=../../../../../../dashboards/llm-usage.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: n8n
+    namespace: observability
+    files:
+      - n8n.json=../../../../../../dashboards/n8n.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true

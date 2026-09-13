@@ -64,3 +64,23 @@ prometheus:
           - source_labels: [__meta_kubernetes_pod_name]
             action: replace
             target_label: kubernetes_pod_name
+
+      # Host-vantage netops on Proxmox (ansible netops_host). Guest agents on the
+      # three mlops Talos nodes are a DaemonSet (helmfile 03-hardware → sibling
+      # chart ../../netops-agent/chart) scraped by the mlops Prometheus agent via
+      # prometheus.io annotations, then remote_written here — do not static-scrape
+      # the node IPs from the hub.
+      - job_name: netops-host
+        scrape_interval: 30s
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - 192.168.2.100:9101
+            labels:
+              netops_role: host
+              proxmox_host: pve1
+          - targets:
+              - 192.168.2.101:9101
+            labels:
+              netops_role: host
+              proxmox_host: pve2

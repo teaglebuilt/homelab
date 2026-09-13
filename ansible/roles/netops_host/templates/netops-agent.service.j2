@@ -1,0 +1,54 @@
+# {{ ansible_managed }}
+[Unit]
+Description=netops agent (host vantage point) - eBPF NIC and PCIe fabric telemetry
+Documentation=https://github.com/teaglebuilt/netops
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart={{ netops_bin_dest }}
+Restart=always
+RestartSec=5s
+
+Environment=NETOPS_ROLE={{ netops_role }}
+Environment=NETOPS_SYSFS={{ netops_sysfs }}
+{% if netops_device %}
+Environment=NETOPS_DEVICE={{ netops_device }}
+{% endif %}
+
+# Runs as root because loading and attaching BPF programs requires it, but the
+# capability bounding set is cut to exactly what the agent uses. Everything
+# else -- CAP_SYS_MODULE, CAP_SYS_PTRACE, CAP_SETUID and the rest -- is dropped
+# for the lifetime of the process.
+#   CAP_BPF            load programs, create and read maps
+#   CAP_PERFMON        fentry/fexit tracing attach
+#   CAP_SYS_ADMIN      BTF access and tcx attach on this kernel
+#   CAP_NET_ADMIN      tcx/ingress attach on the host NIC
+#   CAP_SYS_RESOURCE   RLIMIT_MEMLOCK for map allocation
+#   CAP_DAC_READ_SEARCH  read aer_dev_* under /sys
+CapabilityBoundingSet=CAP_BPF CAP_PERFMON CAP_SYS_ADMIN CAP_NET_ADMIN CAP_SYS_RESOURCE CAP_DAC_READ_SEARCH
+
+# This agent only ever reads. Nothing it does requires writing to the host.
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=no
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+SystemCallArchitectures=native
+
+# /sys must stay readable: the PCIe link, AER and Thunderbolt gauges are all
+# sysfs reads, and ProtectSystem=strict alone would not hide it, but naming it
+# explicitly documents the dependency and survives a future ProtectKernelTunables.
+ReadOnlyPaths=/sys
+
+[Install]
+WantedBy=multi-user.target
