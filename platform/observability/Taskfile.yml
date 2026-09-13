@@ -2,7 +2,7 @@
 version: 3
 
 vars:
-  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone
   TERRAFORM: tofu -chdir=terraform
 
 tasks:
