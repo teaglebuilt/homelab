@@ -34,8 +34,12 @@ extraArgs:
   - --ignore-ingress-tls-spec
 policy: sync
 sources: ["ingress", "service", "gateway-httproute", "gateway-tlsroute"]
-txtOwnerId: k8s-internal
-txtPrefix: k8s-internal.
+# Both clusters share one UniFi provider. A shared owner ID or prefix under policy=sync
+# causes each cluster to see the other's TXT registry records as foreign-owned and exclude
+# those hostnames from its plan entirely — leaving A records unmanaged. Per-cluster values
+# for both settings put the two registries at disjoint record names so neither blocks the other.
+txtOwnerId: k8s-internal-{{ .Values | get "cluster" "mlops" }}
+txtPrefix: k8s-internal-{{ .Values | get "cluster" "mlops" }}.
 domainFilters: ["internal", "teaglebuilt.tech"]
 interval: 1m
 triggerLoopOnEvent: true

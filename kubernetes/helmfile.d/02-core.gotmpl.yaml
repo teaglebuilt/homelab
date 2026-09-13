@@ -113,6 +113,8 @@ releases:
           {{- if $extLbIp }}
           loadBalancerIP: {{ $extLbIp | quote }}
           {{- end }}
+      - hubbleRoute:
+          enabled: {{ $enable | get "hubbleRoute" true }}
 
   - name: cnpg
     namespace: cnpg-system
