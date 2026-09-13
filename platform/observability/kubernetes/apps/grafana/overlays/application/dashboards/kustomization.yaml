@@ -5,7 +5,6 @@ resources:
   - agentgateway.yaml
   - agent-tracing.yaml
   - trace-log-correlation.yaml
-  - n8n.yaml
   - agent-gateway.yaml
   - envoy-dashboard.yaml
   - kgateway-dashboard.yaml
@@ -21,7 +20,15 @@ configMapGenerator:
   - name: llm-usage
     namespace: observability
     files:
-      - netops.json=../../../../../../dashboards/llm-usage.json
+      - llm-usage.json=../../../../../../dashboards/llm-usage.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: n8n
+    namespace: observability
+    files:
+      - n8n.json=../../../../../../dashboards/n8n.json
     options:
       labels:
         grafana_dashboard: "1"

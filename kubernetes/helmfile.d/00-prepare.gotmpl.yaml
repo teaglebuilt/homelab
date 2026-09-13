@@ -35,15 +35,6 @@ hooks:
       - |
         sops --decrypt --input-type yaml --output-type yaml \
           ../apps/secrets/ghcr-credentials.enc.yaml /dev/stdin | kubectl apply -f -
-  # Shared Cilium mesh trust anchor (cilium-ca in kube-system). Applied in stage 00
-  # so it exists BEFORE Cilium starts in 01-bootstrap — a fresh cluster then signs
-  # its clustermesh/identity certs from the shared root instead of generating its
-  # own. Identical ciphertext on every cluster; NEVER regenerate (re-keys the mesh).
-  #
-  # The Helm ownership label/annotations let the Cilium release ADOPT this Secret
-  # instead of failing with "invalid ownership metadata: ... managed-by must be
-  # Helm" once clustermesh (authMode:cluster, set in clusters/<c>/mesh.yaml) makes
-  # the chart manage cilium-ca. Stamped after apply — idempotent on every prepare.
   - events: ["prepare"]
     showlogs: true
     command: "bash"
@@ -64,7 +55,7 @@ hooks:
     args:
       - apply
       - -f
-      - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
+      - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/experimental/gateway.networking.k8s.io_gatewayclasses.yaml
       - -f
       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml
       - -f
@@ -75,6 +66,8 @@ hooks:
       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
       - -f
       - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
+      - -f
+      - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.2.0/config/crd/experimental/gateway.networking.k8s.io_tcproutes.yaml
       - -f
       - https://github.com/prometheus-operator/prometheus-operator/releases/download/v0.82.1/stripped-down-crds.yaml
       - -f

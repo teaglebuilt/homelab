@@ -1829,7 +1829,7 @@
  },
  "timepicker": {},
  "timezone": "America/Denver",
- "title": "kagent - LLM Token Usage",
- "uid": "kagent-llm-usage",
+ "title": "LLM Token Usage",
+ "uid": "llm-usage",
  "version": 45
 }

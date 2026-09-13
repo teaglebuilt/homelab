@@ -65,7 +65,7 @@ extraEnvVars:
         name: openwebui-secrets
         key: webui_api_key
   - name: QDRANT_URI
-    value: "http://qdrant.ai.svc.cluster.local:6333"
+    value: "http://qdrant.data.svc.cluster.local:6333"
   - name: QDRANT_API_KEY
     valueFrom:
       secretKeyRef:

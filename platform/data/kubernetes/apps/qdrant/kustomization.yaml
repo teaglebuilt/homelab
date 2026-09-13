@@ -5,7 +5,7 @@ namespace: data
 helmCharts:
   - name: qdrant
     repo: https://qdrant.github.io/qdrant-helm
-    namespace: ai
+    namespace: data
     version: 1.14.1
     releaseName: qdrant
     includeCRDs: true
