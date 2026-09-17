@@ -128,7 +128,7 @@ releases:
     namespace: default
     chart: /Users/teaglebuilt/github/teaglebuilt/netops-agent/chart
     version: 0.1.0
-    installed: {{ eq $cluster "mlops" }}
+    installed: true
     createNamespace: false
-    # values:
-    #   - ../apps/hardware/netops/values.yaml
+    values:
+      - ../apps/hardware/netops/values.yaml

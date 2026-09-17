@@ -3,8 +3,14 @@
 # Host-vantage instances run on Proxmox via ansible/roles/netops_host and are
 # scraped as a static target by the application Prometheus hub.
 #
-# Metrics: prometheus.io scrape annotations → mlops Prometheus agent
-# (kubernetes-pods job) → remote_write → application hub.
+# Metrics: Service + ServiceMonitor → mlops Prometheus agent (job="netops-agent")
+# → remote_write → application hub. The hub is the single pane; nothing queries
+# the mlops agent directly.
+#
+# Host-vantage series are a separate thing and must not be conflated: they arrive
+# at the hub as job="netops-host" with netops_role/proxmox_host labels and no
+# nodename. Guest panels in the network-operations dashboard filter on
+# job="netops-agent" for exactly that reason.
 image:
   repository: ghcr.io/teaglebuilt/netops-agent
   # Pin to the digest-equivalent tag currently running on mlops (not mutable "dev").
@@ -21,7 +27,23 @@ pcie:
 metrics:
   port: 9101
   hostPort: 0
-  scrapeAnnotations: true
+  # ServiceMonitor owns discovery now. Leaving the annotations on as well would
+  # make the agent's `kubernetes-pods` job scrape the same endpoints a second
+  # time, doubling every series under a second job name.
+  scrapeAnnotations: false
+  serviceMonitor:
+    enabled: true
+    # platform/observability/dashboards/network-operations.json hardcodes
+    # job="netops-agent" throughout.
+    jobName: netops-agent
+    additionalLabels:
+      # REQUIRED. The mlops PrometheusAgent CR carries
+      #   serviceMonitorSelector: {matchLabels: {release: prometheus-community}}
+      # (release name from the kube-prometheus-stack helmChart in
+      # platform/observability/kubernetes/apps/prometheus/overlays/mlops/).
+      # Without this label the ServiceMonitor is created and then ignored —
+      # no targets, no error.
+      release: prometheus-community
 
 tolerations:
   - operator: Exists

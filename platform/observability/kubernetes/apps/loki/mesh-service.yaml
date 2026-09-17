@@ -1,0 +1,25 @@
+---
+# Cilium ClusterMesh front door for Loki push/query. Same pattern as
+# otel-collector-mesh: real backends on `application`, backend-less on `mlops`
+# so Vector Agents on both clusters can use one DNS name.
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-gateway-mesh
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: loki-gateway-mesh
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    service.cilium.io/global: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki
+  ports:
+    - name: http
+      port: 80
+      targetPort: http-metrics
+      protocol: TCP

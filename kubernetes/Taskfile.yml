@@ -194,3 +194,13 @@ tasks:
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl wait certificate external-certificate \
           -n kube-system --for=condition=Ready --timeout=5m
+
+  sync-release:
+    dir: kubernetes
+    requires:
+      vars: [NAME]
+    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync --selector name={{.NAME}}

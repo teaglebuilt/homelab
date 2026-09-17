@@ -1,0 +1,134 @@
+---
+{{- $cluster := .Values | get "cluster" "mlops" }}
+role: "Agent"
+customConfig:
+  data_dir: "/vector-data-dir"
+
+  sources:
+    kubernetes_logs:
+      type: "kubernetes_logs"
+      use_apiserver_cache: true
+      pod_annotation_fields:
+        container_image: "image"
+        container_name: "container"
+
+    # Talos sends json_lines over UDP; raw socket avoids a spurious syslog parse.
+    talos_syslog:
+      type: "socket"
+      address: "0.0.0.0:5140"
+      mode: "udp"
+      decoding:
+        codec: "bytes"
+
+  transforms:
+    # Defensive: sees ALL pod logs (ai-gateway, kgateway, etc.). Non-matching lines pass through.
+    parse_access_logs:
+      type: "remap"
+      inputs:
+        - "kubernetes_logs"
+      source: |
+        msg, err = string(.message)
+        if err == null {
+          parts = split(msg, "\t")
+          if length(parts) >= 3 {
+            tail = join!(slice!(parts, 2), "\t")
+            logfmt_str = replace(tail, r'^request\s+', "")
+            parsed, perr = parse_logfmt(logfmt_str)
+            if perr == null {
+              # agentgateway uses dotted names; Loki derivedFields matches trace_id
+              if exists(parsed."trace.id") {
+                .trace_id = parsed."trace.id"
+              }
+              if exists(parsed."span.id") {
+                .span_id = parsed."span.id"
+              }
+            }
+          }
+        }
+
+    talos_json_parse:
+      type: "remap"
+      inputs:
+        - "talos_syslog"
+      source: |
+        parsed, err = parse_json(.message)
+        if err == null && is_object(parsed) {
+          # Talos json_lines often includes time/ts; don't clobber Vector's .timestamp.
+          del(parsed.time)
+          del(parsed.ts)
+          del(parsed.timestamp)
+          . = merge(., parsed)
+        }
+
+    enrich_logs:
+      type: "remap"
+      inputs:
+        - "parse_access_logs"
+        - "talos_json_parse"
+      source: |
+        .cluster = "{{ $cluster }}"
+        if !exists(.kubernetes.pod_namespace) {
+          .kubernetes.pod_namespace = "host"
+          .kubernetes.pod_name = string(.kubernetes.pod_name) ?? "talos"
+          .kubernetes.container_name = string(.kubernetes.container_name) ?? "syslog"
+          .service_name = "talos"
+        } else if exists(.kubernetes.pod_labels."app.kubernetes.io/name") {
+          .service_name = string!(.kubernetes.pod_labels."app.kubernetes.io/name")
+        } else {
+          .service_name = string(.kubernetes.container_name) ?? "unknown"
+        }
+        # Ensure trace/span fields always exist so structured_metadata templates render.
+        if !exists(.trace_id) { .trace_id = "" }
+        if !exists(.span_id) { .span_id = "" }
+
+  sinks:
+    # graylog.homelab.internal NXDOMAIN; GRAYLOG_IP=192.168.2.11:1514 is syslog, not GELF/12201.
+    # Disabled so a dead sink cannot backpressure Loki. Re-enable when GELF resolves.
+    # graylog_gelf:
+    #   type: "gelf"
+    #   inputs: ["enrich_logs"]
+    #   endpoint: "udp://192.168.2.11:12201"
+    #   compression: "gzip"
+
+    loki:
+      type: "loki"
+      inputs:
+        - "enrich_logs"
+      # Cilium global Service: local backends on application, ClusterMesh hop from mlops.
+      endpoint: "http://loki-gateway-mesh.observability.svc.cluster.local"
+      tenant_id: "1"
+      encoding:
+        codec: "json"
+      out_of_order_action: "accept"
+      # Static cluster from helmfile. Dynamic keys must survive helmfile gotmpl AND
+      # the chart's `tpl` on customConfig — hence the nested escaping.
+      # pod/container demoted to structured_metadata to cut stream cardinality.
+      labels:
+        cluster: "{{ $cluster }}"
+        service_name: '{{`{{ "{{ service_name }}" }}`}}'
+        namespace: '{{`{{ "{{ kubernetes.pod_namespace }}" }}`}}'
+        source_type: '{{`{{ "{{ source_type }}" }}`}}'
+      # Powers Grafana Loki→Tempo derivedFields (matcherRegex: trace_id).
+      structured_metadata:
+        pod: '{{`{{ "{{ kubernetes.pod_name }}" }}`}}'
+        container: '{{`{{ "{{ kubernetes.container_name }}" }}`}}'
+        trace_id: '{{`{{ "{{ trace_id }}" }}`}}'
+        span_id: '{{`{{ "{{ span_id }}" }}`}}'
+
+# hostPort so Talos on the node can reach this agent's UDP listener (no ClusterIP needed).
+containerPorts:
+  - name: syslog-udp
+    containerPort: 5140
+    hostPort: 5140
+    protocol: UDP
+
+service:
+  enabled: false
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "256Mi"

@@ -13,6 +13,18 @@ prometheus:
   prometheusSpec:
     nodeSelector:
       kubernetes.io/hostname: mlops-work-01
+    # Attribution for everything this spoke ships to the hub. Without it, mlops
+    # series are indistinguishable from the hub's own targets once they land in
+    # the central TSDB (`cluster` had zero label values before this).
+    #
+    # NOTE on the asymmetry: externalLabels are applied on remote_write, federation
+    # and alerting — NOT to a Prometheus server's own locally-stored series. So this
+    # label appears on mlops series AT THE HUB, but setting the same key on the
+    # application overlay would NOT back-label the hub's locally-scraped targets.
+    # Hub-local series (incl. job="netops-host") stay unlabeled; they remain
+    # distinguishable by the `netops_role`/`proxmox_host` labels that job applies.
+    externalLabels:
+      cluster: mlops
     # Ship everything scraped here up to the central hub on the application cluster.
     # Path is private: prometheus.homelab.internal is an internal-only ExternalDNS
     # zone (not public), and mlops<->application are joined via Cilium clustermesh.

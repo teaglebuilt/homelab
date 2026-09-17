@@ -2,7 +2,7 @@
 machine:
   logging:
     destinations:
-      - endpoint: "udp://${log_destination}/"
+      - endpoint: "udp://127.0.0.1:5140/"
         format: "json_lines"
         extraTags:
           server: pve2
