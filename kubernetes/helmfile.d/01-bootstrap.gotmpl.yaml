@@ -8,6 +8,12 @@
        readFile resolves relative to this helmfile (helmfile.d/), same as the
        ../apps/networking/cilium/overlays/<cluster> path used in the cilium hook below. */ -}}
 {{- $clusterCfg := readFile (printf "../clusters/%s/cluster.yaml" $cluster) | fromYaml }}
+{{- /* Per-cluster toggles — same SSOT as 02-core. enable.clusterMesh controls whether
+       the meshOverlay (passed from clusters/<cluster>/helmfile.yaml) is included here
+       so that routine syncs (sync-cluster, bootstrap-cluster) preserve the mesh config
+       without requiring a separate mesh-upgrade invocation. */ -}}
+{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
+{{- $enable := $env | get "enable" dict }}
 bases:
   - ../defaults.yaml
 
@@ -49,9 +55,10 @@ releases:
       - {{ $identity }}
       {{- end }}
       {{- $mesh := .Values | get "meshOverlay" "" }}
-      {{- if $mesh }}
-      # Phase 2 ClusterMesh overlay (apiserver + peering), injected as a helm
-      # upgrade by clusters/<name>/mesh.yaml AFTER both clusters exist + shared CA.
+      {{- if and $mesh ($enable | get "clusterMesh" true) }}
+      # ClusterMesh overlay (apiserver + peering). Included in normal syncs when
+      # enable.clusterMesh=true (environment.yaml SSOT) so bootstrap-cluster and
+      # sync-cluster preserve the mesh config without a separate mesh-upgrade call.
       - {{ $mesh }}
       {{- end }}
     hooks:

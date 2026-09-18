@@ -126,24 +126,6 @@ tasks:
           -var graylog_ip=${GRAYLOG_IP} \
           -var proxmox_ssh_private_key=${PROXMOX_NODE_ONE_PRIVATE_KEY}
 
-  bootstrap-cluster:
-    summary: Phase 1 — base bootstrap for a cluster (plain Cilium + identity, no mesh) and its LB-IPAM pool
-    dir: kubernetes
-    requires:
-      vars: [CLUSTER]
-    vars:
-      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
-    preconditions:
-      - sh: test -f {{.KUBECONFIG_FILE}}
-        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
-      - sh: >-
-          KUBECONFIG={{.KUBECONFIG_FILE}}
-          sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
-        msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
-    cmds:
-      - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
-
-
   mesh-upgrade:
     summary: Phase 2 — activate ClusterMesh on a cluster (Cilium helm upgrade with the clustermesh overlay)
     dir: kubernetes

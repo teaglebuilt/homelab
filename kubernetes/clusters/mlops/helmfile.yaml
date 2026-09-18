@@ -5,6 +5,10 @@ helmfiles:
     values:
       - cluster: mlops
       - identityOverlay: ../clusters/mlops/identity-values.yaml.gotmpl
+      # meshOverlay is always passed; 01-bootstrap.gotmpl.yaml gates it on
+      # enable.clusterMesh (read from environment.yaml) so setting that flag
+      # to false is the single toggle to disable mesh without editing this file.
+      - meshOverlay: ../clusters/mlops/clustermesh-values.yaml.gotmpl
   - path: ../../helmfile.d/02-core.gotmpl.yaml
     values:
       - cluster: mlops

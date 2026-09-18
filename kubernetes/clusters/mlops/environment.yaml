@@ -8,6 +8,8 @@ enable:
   frontDoor: false        # cloudflare-tunnel + public external-dns — lives on `application`
   gitops: false           # argocd (Phase 2 seam)
   grafanaOperator: false  # no Grafana on mlops
+  hubbleRoute: false      # application owns hubble.homelab.internal; its Hubble UI observes both clusters via ClusterMesh
+  clusterMesh: true       # include clustermesh overlay in normal helmfile syncs (not only mesh-upgrade path)
 
 nodeSelector:
   certManager:

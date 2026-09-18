@@ -1,4 +1,9 @@
 ---
+hubbleRoute:
+  # application owns hubble.homelab.internal; set to false on mlops so both
+  # clusters' external-dns do not fight over the same A record with different targets.
+  enabled: true
+
 ghcrSecret:
   enabled: true
   namespace: default          # where ghcr-credentials lives and ghcr-secret is created
