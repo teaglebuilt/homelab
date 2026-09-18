@@ -1,0 +1,8 @@
+---
+private_bridges:
+  - name: vmbr10
+    comment: "gateway"
+
+private_bridges_interfaces_dir: /etc/network/interfaces.d
+private_bridges_interfaces_file: /etc/network/interfaces
+private_bridges_reload: true

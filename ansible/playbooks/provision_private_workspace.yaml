@@ -1,0 +1,7 @@
+---
+- name: Provision host state for the private workspace
+  hosts: private_workspace
+  become: true
+  roles:
+    - role: ../roles/pve_private_bridges
+    - role: ../../machines/private/images

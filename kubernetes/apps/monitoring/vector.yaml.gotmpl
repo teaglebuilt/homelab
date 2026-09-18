@@ -9,8 +9,9 @@ customConfig:
       type: "kubernetes_logs"
       use_apiserver_cache: true
       pod_annotation_fields:
+        # Keep default kubernetes.container_name — templates/structured_metadata
+        # reference that path. Renaming to "container" broke Loki sink rendering.
         container_image: "image"
-        container_name: "container"
 
     # Talos sends json_lines over UDP; raw socket avoids a spurious syslog parse.
     talos_syslog:
@@ -51,13 +52,18 @@ customConfig:
       inputs:
         - "talos_syslog"
       source: |
-        parsed, err = parse_json(.message)
-        if err == null && is_object(parsed) {
-          # Talos json_lines often includes time/ts; don't clobber Vector's .timestamp.
-          del(parsed.time)
-          del(parsed.ts)
-          del(parsed.timestamp)
-          . = merge(., parsed)
+        # socket+bytes yields a bytes message; coerce before parse_json.
+        msg, merr = string(.message)
+        if merr == null {
+          parsed, err = parse_json(msg)
+          if err == null && is_object(parsed) {
+            # Talos json_lines often includes time/ts; don't clobber Vector's .timestamp.
+            del(parsed.time)
+            del(parsed.ts)
+            del(parsed.timestamp)
+            # merge! — socket source typing leaves `.` as a union, so merge is fallible.
+            . = merge!(., parsed)
+          }
         }
 
     enrich_logs:
@@ -77,7 +83,9 @@ customConfig:
         } else {
           .service_name = string(.kubernetes.container_name) ?? "unknown"
         }
-        # Ensure trace/span fields always exist so structured_metadata templates render.
+        # Templates fail hard on missing fields — always materialize keys used by the sink.
+        .kubernetes.pod_name = string(.kubernetes.pod_name) ?? ""
+        .kubernetes.container_name = string(.kubernetes.container_name) ?? ""
         if !exists(.trace_id) { .trace_id = "" }
         if !exists(.span_id) { .span_id = "" }
 

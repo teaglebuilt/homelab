@@ -1,0 +1,62 @@
+---
+- name: Ensure interfaces.d is sourced
+  ansible.builtin.lineinfile:
+    path: "{{ private_bridges_interfaces_file }}"
+    line: "source {{ private_bridges_interfaces_dir }}/*"
+    regexp: '^\s*source\s+/etc/network/interfaces\.d/\*\s*$'
+    state: present
+  notify: Reload pve networking
+
+- name: Write isolated bridge definitions
+  ansible.builtin.template:
+    src: bridge.cfg.j2
+    dest: "{{ private_bridges_interfaces_dir }}/{{ item.name }}.cfg"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ private_bridges }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: Reload pve networking
+
+- name: Apply network changes before verifying
+  ansible.builtin.meta: flush_handlers
+
+- name: Read IPv4 addresses on the isolated bridges
+  ansible.builtin.command: "ip -4 -brief addr show {{ item.name }}"
+  register: private_bridge_addrs
+  changed_when: false
+  loop: "{{ private_bridges }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Fail when an isolated bridge has a host-side address
+  ansible.builtin.fail:
+    msg: >-
+      {{ item.item.name }} has a host-side IPv4 address ({{ item.stdout }}).
+      It must stay `inet manual` so the Proxmox host cannot route between this
+      bridge and the LAN.
+  when: "'/' in item.stdout"
+  loop: "{{ private_bridge_addrs.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Look for enslaved ports on the isolated bridges
+  ansible.builtin.find:
+    paths: "/sys/class/net/{{ item.name }}/brif"
+    file_type: any
+  register: private_bridge_ports
+  loop: "{{ private_bridges }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Fail when an isolated bridge has an uplink
+  ansible.builtin.fail:
+    msg: >-
+      {{ item.item.name }} has enslaved ports
+      ({{ item.files | map(attribute='path') | map('basename') | join(', ') }}).
+      An isolated bridge must have none, or guests on it reach the LAN.
+  when: item.matched | int > 0
+  loop: "{{ private_bridge_ports.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"

@@ -37,3 +37,51 @@ tasks:
           -var proxmox_node={{.PROXMOX_NODE}} \
           -var vm_id=200 \
           -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY
+
+  provision_private:
+    dir: private/workspace
+    env:
+      PROXMOX_VE_INSECURE: "true"
+      PROXMOX_VE_USERNAME: "${PROXMOX_USERNAME}"
+      PROXMOX_VE_PASSWORD: "${PROXMOX_PASSWORD}"
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_AGENT: "false"
+      PROXMOX_VE_SSH_PUBLIC_KEY: "{{.PROXMOX_NODE_ONE_PUBLIC_KEY}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    vars:
+      PROXMOX_NODE: '{{.PROXMOX_NODE_ONE_NAME | default "pve"}}'
+    cmds:
+      - "{{.TERRAFORM}} init --upgrade"
+      - |-
+        {{.TERRAFORM}} plan \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY
+      - |-
+        {{.TERRAFORM}} apply -auto-approve \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY
+
+  provision_egress:
+    dir: private/egress
+    env:
+      PROXMOX_VE_INSECURE: "true"
+      PROXMOX_VE_USERNAME: "${PROXMOX_USERNAME}"
+      PROXMOX_VE_PASSWORD: "${PROXMOX_PASSWORD}"
+      PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
+      PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+      PROXMOX_VE_SSH_AGENT: "false"
+      PROXMOX_VE_SSH_PUBLIC_KEY: "{{.PROXMOX_NODE_ONE_PUBLIC_KEY}}"
+      PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
+    vars:
+      PROXMOX_NODE: '{{.PROXMOX_NODE_ONE_NAME | default "pve"}}'
+    cmds:
+      - "{{.TERRAFORM}} init --upgrade"
+      - |-
+        {{.TERRAFORM}} plan \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY
+      - |-
+        {{.TERRAFORM}} apply -auto-approve \
+          -var proxmox_node={{.PROXMOX_NODE}} \
+          -var proxmox_ssh_private_key=$PROXMOX_VE_SSH_PRIVATE_KEY

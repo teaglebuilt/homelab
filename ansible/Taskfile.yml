@@ -22,3 +22,7 @@ tasks:
   provision_netops_agent:
     cmds:
       - ansible-playbook playbooks/deploy_netops_host.yaml -i inventory.ini
+
+  provision_private_workspace:
+    cmds:
+      - ansible-playbook playbooks/provision_private_workspace.yaml -i inventory.ini

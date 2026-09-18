@@ -1,0 +1,25 @@
+---
+version: 3
+
+vars:
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+
+tasks:
+  deploy:
+    desc: Deploy SearXNG into the ai namespace (mlops-only; skipped on other clusters)
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    status:
+      - test "{{.CLUSTER}}" != "mlops"
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/searxng | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+
+  destroy:
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/searxng | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -

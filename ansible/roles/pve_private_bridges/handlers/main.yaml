@@ -1,0 +1,5 @@
+---
+- name: Reload pve networking
+  ansible.builtin.command: ifreload -a
+  when: private_bridges_reload | bool
+  changed_when: true

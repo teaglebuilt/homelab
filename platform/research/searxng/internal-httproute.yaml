@@ -1,0 +1,22 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: searxng-http-route
+  namespace: ai
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: searxng.homelab.internal
+spec:
+  parentRefs:
+    - name: homelab-internal-gateway
+      namespace: kube-system
+  hostnames:
+    - searxng.homelab.internal
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: searxng
+          port: 8080
