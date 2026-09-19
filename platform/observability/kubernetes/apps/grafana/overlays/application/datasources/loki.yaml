@@ -14,19 +14,15 @@ spec:
     type: loki
     access: proxy
     orgId: 1
-    # Query through the loki gateway (nginx) so this works regardless of the
-    # deployment mode (SingleBinary / SimpleScalable both front reads here).
     url: http://loki-gateway.observability.svc.cluster.local
     basicAuth: false
     isDefault: false
     editable: true
     jsonData:
-      # logs -> traces: OTLP logs land in Loki with trace_id/span_id as structured
-      # metadata. Turn the trace_id into a clickable link into the Tempo datasource.
       derivedFields:
         - name: TraceID
           matcherType: label
-          matcherRegex: trace_id
+          matcherRegex: '^trace_id$'
           datasourceUid: tempo
           url: "${__value.raw}"
           urlDisplayLabel: View Trace

@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - agentgateway.yaml
   - agent-tracing.yaml
-  - trace-log-correlation.yaml
   - agent-gateway.yaml
   - envoy-dashboard.yaml
   - kgateway-dashboard.yaml
@@ -29,6 +28,14 @@ configMapGenerator:
     namespace: observability
     files:
       - n8n.json=../../../../../../dashboards/n8n.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: aigateway
+    namespace: observability
+    files:
+      - aigateway.json=../../../../../../dashboards/aigateway.json
     options:
       labels:
         grafana_dashboard: "1"

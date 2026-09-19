@@ -19,21 +19,23 @@ spec:
     isDefault: false
     editable: true
     jsonData:
-      # Service graph is backed by the span-metrics written to Prometheus.
       serviceMap:
         datasourceUid: prometheus
-      # Link a trace's spans back to its Prometheus metrics.
       tracesToMetrics:
         datasourceUid: prometheus
-      # traces -> logs: from a span, jump to the correlated Loki logs. Matches on
-      # the span's service.name (Loki label service_name) within a +/- 1h window
-      # and filters to the exact trace id.
       tracesToLogsV2:
         datasourceUid: loki
         spanStartTimeShift: "-1h"
         spanEndTimeShift: "1h"
         filterByTraceID: true
         filterBySpanID: false
+        customQuery: false
         tags:
+          - key: k8s.cluster.name
+            value: cluster
           - key: service.name
             value: service_name
+          - key: k8s.namespace.name
+            value: namespace
+          - key: k8s.pod.name
+            value: pod
