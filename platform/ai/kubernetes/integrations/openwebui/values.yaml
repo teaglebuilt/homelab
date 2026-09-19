@@ -29,7 +29,7 @@ extraEnvVars:
   - name: ENABLE_RAG_WEB_SEARCH
     value: "True"
   - name: SEARXNG_QUERY_URL
-    value: "http://searxng.ai.svc.cluster.local:8080/search?q=<query>"
+    value: "http://searxng.research.svc.cluster.local:8080/search?q=<query>"
   - name: RAG_WEB_SEARCH_ENGINE
     value: "searxng"
   - name: USE_CUDA_DOCKER
@@ -98,7 +98,7 @@ extraEnvVars:
     value: "openai"
   - name: RAG_OPENAI_API_BASE_URL
     value: >-
-      http://agentgateway-proxy.agentgateway-system.svc.cluster.local/v1
+      http://ai-gateway.ai.svc.cluster.local/v1
   - name: RAG_EMBEDDING_MODEL
     value: "embeddings"
 requests:

@@ -47,28 +47,8 @@ spec:
           kind: RemoteMCPServer
           name: devbot-computer-control
           toolNames: [] # Empty list = use all available tools
-
-    # Deployment configuration
     deployment:
-      # Note: The actual desktop pod is deployed separately via deployment.yaml
-      # This just configures the agent runtime container
       env:
-        - name: GITEA_URL
-          value: "https://git.test-cluster.agentydragon.com"
-        - name: GITEA_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: devbot-credentials
-              key: gitea-token
-        - name: HARBOR_URL
-          value: "https://registry.test-cluster.agentydragon.com"
-        - name: HARBOR_USERNAME
-          value: "devbot"
-        - name: HARBOR_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: devbot-credentials
-              key: harbor-password
         - name: WORKSPACE
           value: "/home/devbot/workspace"
       resources:

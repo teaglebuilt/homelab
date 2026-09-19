@@ -10,6 +10,7 @@ spec:
     server running on the mlops GPU node.
   type: Declarative
   declarative:
+    runtime: python
     modelConfig: llmd-vllm-config
     systemMessage: |-
       You are a helpful assistant served by a self-hosted vLLM instance on

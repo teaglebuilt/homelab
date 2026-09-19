@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: searxng
-  namespace: ai
+  namespace: research
 spec:
   selector:
     app: searxng
