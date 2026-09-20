@@ -11,7 +11,7 @@ configMapGenerator:
   - name: netops-dashboard
     namespace: observability
     files:
-      - netops.json=../../../../../../dashboards/network-operations.json
+      - netops.json=network-operations.json
     options:
       labels:
         grafana_dashboard: "1"
@@ -19,7 +19,7 @@ configMapGenerator:
   - name: llm-usage
     namespace: observability
     files:
-      - llm-usage.json=../../../../../../dashboards/llm-usage.json
+      - llm-usage.json=llm-usage.json
     options:
       labels:
         grafana_dashboard: "1"
@@ -27,7 +27,7 @@ configMapGenerator:
   - name: n8n
     namespace: observability
     files:
-      - n8n.json=../../../../../../dashboards/n8n.json
+      - n8n.json=n8n.json
     options:
       labels:
         grafana_dashboard: "1"
@@ -35,7 +35,7 @@ configMapGenerator:
   - name: aigateway
     namespace: observability
     files:
-      - aigateway.json=../../../../../../dashboards/aigateway.json
+      - aigateway.json=aigateway.json
     options:
       labels:
         grafana_dashboard: "1"
