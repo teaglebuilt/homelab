@@ -16,7 +16,7 @@ resource "talos_image_factory_schematic" "this" {
   })
 }
 
-resource "proxmox_virtual_environment_download_file" "this" {
+resource "proxmox_download_file" "this" {
   for_each = var.nodes
 
   node_name    = each.value.host_node
