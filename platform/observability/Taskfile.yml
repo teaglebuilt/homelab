@@ -19,7 +19,15 @@ tasks:
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."
     cmds:
       - |-
-        MANIFEST="$(kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}})"
+        # Belt-and-suspenders: flags are also inlined here so they are never
+        # dropped when this task is called from the parent platform:deploy chain
+        # via `task: observability:deploy vars: { CLUSTER: ... }`.
+        MANIFEST="$(kustomize build \
+          --enable-helm \
+          --enable-exec \
+          --enable-alpha-plugins \
+          --load-restrictor LoadRestrictionsNone \
+          kubernetes/overlays/{{.CLUSTER}})"
         export KUBECONFIG='{{.KUBECONFIG_FILE}}'
         # Two-pass apply: a fresh overlay can introduce CRDs (e.g. the OTel
         # operator) in the same stream as the CRs that use them (OpenTelemetryCollector).
@@ -33,7 +41,12 @@ tasks:
     dir: observability
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} \
+        kustomize build \
+          --enable-helm \
+          --enable-exec \
+          --enable-alpha-plugins \
+          --load-restrictor LoadRestrictionsNone \
+          kubernetes/overlays/{{.CLUSTER}} \
           | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
 
   provision:
