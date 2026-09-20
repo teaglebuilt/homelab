@@ -33,7 +33,7 @@ metrics:
   scrapeAnnotations: false
   serviceMonitor:
     enabled: true
-    # platform/observability/dashboards/network-operations.json hardcodes
+    # platform/observability/kubernetes/apps/grafana/overlays/application/dashboards/network-operations.json hardcodes
     # job="netops-agent" throughout.
     jobName: netops-agent
     additionalLabels:
