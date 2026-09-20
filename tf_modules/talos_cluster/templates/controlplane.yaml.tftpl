@@ -1,4 +1,9 @@
 machine:
+  install:
+    # Extensions are only applied at install/upgrade time. Without this, an
+    # upgrade resolves the generic installer and silently drops the schematic's
+    # extensions (here, the qemu guest agent).
+    image: ${installer_image}
   certSANs:
     - ${hostname}
     - ${node_ip}

@@ -20,6 +20,7 @@ data "talos_machine_configuration" "this" {
   config_patches = each.value.machine_type == "controlplane" ? [
     templatefile("${path.module}/templates/controlplane.yaml.tftpl", {
       hostname        = each.key
+      installer_image = data.talos_image_factory_urls.this[each.key].urls.installer
       node_name       = each.value.host_node
       node_ip         = [for k, v in var.nodes : v.ip if v.machine_type == "controlplane"][0]
       cluster_name    = var.cluster.cluster_name
@@ -37,6 +38,7 @@ data "talos_machine_configuration" "this" {
   ] : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname        = each.key
+      installer_image = data.talos_image_factory_urls.this[each.key].urls.installer
       node_name       = each.value.host_node
       node_ip         = each.value.ip
       cluster_name    = var.cluster.cluster_name
