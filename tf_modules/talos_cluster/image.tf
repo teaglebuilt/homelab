@@ -17,10 +17,7 @@ resource "talos_image_factory_schematic" "this" {
 }
 
 resource "proxmox_virtual_environment_download_file" "this" {
-  for_each = {
-    for k, v in var.nodes : k => v
-    if !fileexists("/var/lib/vz/template/iso/talos-${k}-nocloud-amd64.img")
-  }
+  for_each = var.nodes
 
   node_name    = each.value.host_node
   content_type = "iso"
@@ -31,4 +28,8 @@ resource "proxmox_virtual_environment_download_file" "this" {
   decompression_algorithm = "gz"
   verify                  = var.cluster.verify_image_download
   overwrite               = false
+
+  lifecycle {
+    ignore_changes = [url, verify, overwrite, decompression_algorithm]
+  }
 }
