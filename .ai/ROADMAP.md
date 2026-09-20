@@ -16,9 +16,11 @@
   - [ ] - RAG
     - [X] Knowledge Vector Storage
     - [ ] Knowledge Retrievel
-      - [ ] - Build WebSearch With SearXNG
-        - [ ] - Support private search with shadowsocks, v2ray, tor, etc...
+  - [ ] - Agent Execution Sandbox
+  - [ ] - Agent Desktop
   - [ ] - AI Observability
+  - [ ] - Add more GPU
+  - [ ] - setup llmd for multi gpu support for inference https://llm-d.ai/docs/infrastructure/gateway/agentgateway
 - [ ] - Build Software Factory
 - [ ] - Build Scraping Platform
 - [ ] - Build Trading Platform
