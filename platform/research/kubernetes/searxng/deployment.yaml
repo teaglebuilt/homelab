@@ -19,9 +19,28 @@ spec:
         runAsUser: 977
         runAsGroup: 977
         fsGroup: 977
+      initContainers:
+        - name: fix-perms
+          image: docker.io/library/busybox:1.37
+          command:
+            - sh
+            - -c
+            - chown -R 977:977 /var/cache/searxng /tmp
+          volumeMounts:
+            - name: cache
+              mountPath: /var/cache/searxng
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
       containers:
         - name: searxng
-          image: docker.io/searxng/searxng:2025.9.15-8b7a4a4
+          image: docker.io/searxng/searxng:latest
           ports:
             - name: http
               containerPort: 8080
@@ -32,6 +51,8 @@ spec:
               value: 0.0.0.0
             - name: SEARXNG_PORT
               value: "8080"
+            - name: TMPDIR
+              value: /tmp
             - name: SEARXNG_SECRET
               valueFrom:
                 secretKeyRef:
@@ -44,6 +65,8 @@ spec:
               readOnly: true
             - name: cache
               mountPath: /var/cache/searxng
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /healthz
@@ -72,4 +95,6 @@ spec:
           configMap:
             name: searxng-settings
         - name: cache
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
