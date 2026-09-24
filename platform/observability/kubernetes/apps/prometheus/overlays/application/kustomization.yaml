@@ -4,7 +4,8 @@ kind: Kustomization
 namespace: observability
 resources:
   - ../../base
-  - rules/gpu-metric-alerts.yaml
+  - rules/gpu-alerts.yaml
+  - rules/vllm-alerts.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: https://prometheus-community.github.io/helm-charts

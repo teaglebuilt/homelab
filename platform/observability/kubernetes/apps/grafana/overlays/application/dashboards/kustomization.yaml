@@ -7,36 +7,7 @@ resources:
   - agent-gateway.yaml
   - envoy-dashboard.yaml
   - kgateway-dashboard.yaml
-configMapGenerator:
-  - name: netops-dashboard
-    namespace: observability
-    files:
-      - netops.json=network-operations.json
-    options:
-      labels:
-        grafana_dashboard: "1"
-      disableNameSuffixHash: true
-  - name: llm-usage
-    namespace: observability
-    files:
-      - llm-usage.json=llm-usage.json
-    options:
-      labels:
-        grafana_dashboard: "1"
-      disableNameSuffixHash: true
-  - name: n8n
-    namespace: observability
-    files:
-      - n8n.json=n8n.json
-    options:
-      labels:
-        grafana_dashboard: "1"
-      disableNameSuffixHash: true
-  - name: aigateway
-    namespace: observability
-    files:
-      - aigateway.json=aigateway.json
-    options:
-      labels:
-        grafana_dashboard: "1"
-      disableNameSuffixHash: true
+  - network-operations.yaml
+  - llm-usage.yaml
+  - n8n.yaml
+  - aigateway.yaml

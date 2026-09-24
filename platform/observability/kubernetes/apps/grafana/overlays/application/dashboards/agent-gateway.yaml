@@ -1,13 +1,14 @@
 ---
-apiVersion: v1
-kind: ConfigMap
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
 metadata:
-  name: aigateway-cost-tracking-dashboard
+  name: aigateway-cost-tracking
   namespace: observability
-  labels:
-    grafana_dashboard: "1"
-data:
-  agentgateway.json: |-
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  json: |
     {
       "annotations": {
         "list": [
@@ -25,7 +26,7 @@ data:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 16,
+      "id": null,
       "links": [],
       "panels": [
         {

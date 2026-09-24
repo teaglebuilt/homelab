@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vllm.rules
+spec:
+  groups:
+    - name: vllm.latency.rule
+      rules:
+        - alert: vLLMLatency
+          expr: max_over_time(time_per_output_token_seconds[5m]) >= 0.3
+          for: 5m
+          labels:
+            severity: critical
+            app: my-model
+          annotations:
+            message: Latency of vLLM is too high.

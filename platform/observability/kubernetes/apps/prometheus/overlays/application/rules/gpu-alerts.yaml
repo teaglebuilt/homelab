@@ -1,0 +1,58 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gpu.rules
+spec:
+  groups:
+    - name: gpu.hardware
+      rules:
+        - alert: GPUXidError
+          expr: DCGM_FI_DEV_XID_ERRORS > 0
+          for: 0m
+          labels: { severity: critical }
+          annotations:
+            summary: "Xid error on GPU {{ $labels.gpu }} ({{ $labels.Hostname }})"
+            description: "Xid errors are hardware or driver faults. Check dmesg and the Xid reference before recycling the node."
+        - alert: GPUHot
+          expr: DCGM_FI_DEV_GPU_TEMP > 83
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "GPU {{ $labels.gpu }} above 83C for 5m"
+            description: "Coarse threshold. Per-card slowdown points differ (82C to 94C observed), so confirm against this card's own limit."
+        - alert: GPUUncorrectableECC
+          expr: increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL[10m]) > 0
+          for: 0m
+          labels: { severity: critical }
+          annotations:
+            summary: "Uncorrectable ECC error on GPU {{ $labels.gpu }}"
+            description: "Double-bit ECC. Results computed on this GPU are suspect. Drain the node."
+
+    - name: gpu.throttling
+      rules:
+        - alert: GPUThermalThrottling
+          expr: increase(DCGM_FI_DEV_THERMAL_VIOLATION[10m]) > 0
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "GPU {{ $labels.gpu }} thermally throttled"
+            description: "Real throttling, from the violation counter rather than a sampled clock. Check airflow and neighbouring workloads."
+        - alert: GPUPowerThrottling
+          expr: increase(DCGM_FI_DEV_POWER_VIOLATION[10m]) > 0
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "GPU {{ $labels.gpu }} power capped"
+            description: "The card is hitting its power limit. Expected under sustained load on some SKUs; unexpected means the limit is set low."
+
+    - name: gpu.meta
+      rules:
+        - alert: HighGpuUsage
+          expr: |
+            rate(DCGM_FI_DEV_GPU_UTIL[15m]) > 0.85
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High GPU usage on node {{ $labels.Hostname }} for 15 minutes"
