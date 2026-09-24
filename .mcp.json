@@ -12,6 +12,10 @@
         "Authorization": "Bearer ${N8N_API_KEY}"
       }
     },
+    "siderolabs-docs": {
+      "type": "http",
+      "url": "https://docs.siderolabs.com/mcp"
+    },
     "unifi": {
       "type": "stdio",
       "command": "uvx",

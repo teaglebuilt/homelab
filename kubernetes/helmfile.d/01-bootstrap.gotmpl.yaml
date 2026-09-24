@@ -45,6 +45,12 @@ releases:
     chart: cilium/cilium
     version: 1.18.11
     createNamespace: true
+    # helm --wait blocks on the clustermesh-apiserver LoadBalancer getting an
+    # ingress IP, but that IP comes from the CiliumLoadBalancerIPPool applied in
+    # the postsync hook below — a deadlock on a fresh install. Readiness is
+    # gated in that hook instead; helm returns as soon as it has applied.
+    wait: false
+    waitForJobs: false
     values:
       - ../apps/networking/cilium/values.yaml
       {{- $identity := .Values | get "identityOverlay" "" }}
@@ -70,14 +76,29 @@ releases:
           - |
             set -euo pipefail
 
+            kubectl -n kube-system wait --for=condition=Available deploy/cilium-operator --timeout=300s
+
             for crd in ciliuml2announcementpolicies.cilium.io ciliumloadbalancerippools.cilium.io; do
+              deadline=$((SECONDS + 300))
               until kubectl get crd "$crd" >/dev/null 2>&1; do
+                [ "$SECONDS" -lt "$deadline" ] || { echo "CRD $crd never registered by cilium-operator"; exit 1; }
                 echo "waiting for CRD $crd to be registered by cilium-operator..."; sleep 3
               done
               kubectl wait --for=condition=established --timeout=120s "crd/$crd"
             done
 
             kustomize build --enable-exec --enable-helm ../apps/networking/cilium/overlays/{{ $cluster }} | envsubst | kubectl apply -f -
+
+            kubectl -n kube-system rollout status ds/cilium --timeout=600s
+
+            if kubectl -n kube-system get deploy/clustermesh-apiserver >/dev/null 2>&1; then
+              kubectl -n kube-system wait --for=condition=Available deploy/clustermesh-apiserver --timeout=300s
+              deadline=$((SECONDS + 300))
+              until [ -n "$(kubectl -n kube-system get svc clustermesh-apiserver -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" ]; do
+                [ "$SECONDS" -lt "$deadline" ] || { echo "clustermesh-apiserver LoadBalancer never got an IP from the LB-IPAM pool"; exit 1; }
+                echo "waiting for clustermesh-apiserver LoadBalancer IP..."; sleep 5
+              done
+            fi
 
   - name: coredns
     namespace: kube-system

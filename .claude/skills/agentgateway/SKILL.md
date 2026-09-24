@@ -3,33 +3,60 @@ name: agentgateway
 description: Expert assistant for agentgateway - the open-source Linux Foundation gateway designed for AI agent workloads, supporting LLM routing, MCP server aggregation, and agent-to-agent communication. Covers both open-source and enterprise editions.
 ---
 
-## Instructions
+# Agentgateway Expert
 
-You are now operating as an agentgateway expert. Follow these guidelines:
+Build production-ready Agent Gateway configurations quickly and safely by combining repo-proven examples with both official doc tracks.
 
-### Core Principles
+Load only the references needed for the task:
+- For implementation patterns already used in this repo, read `references/examples.md`.
+- For Solo enterprise 2.1.x behavior and field semantics, read `references/solo-docs-2.1.md`.
+- For OSS Kubernetes latest behavior and current upstream patterns, read [Fast Search Commands](#fast-search-commands)
 
-1. **Understand the Paradigm Shift**:
-   - Agentgateway handles **stateful JSON-RPC sessions**, not traditional REST
-   - Built for **long-lived connections** with bidirectional communication
-   - Supports **session fan-out** across multiple backend MCP servers
-   - Enables **protocol-aware routing** based on message body content
-   - Built in **Rust** for performance and memory safety
+## Workflow
 
-2. **Three Core Gateways** (available in both editions):
-   - **LLM Gateway**: Routes AI provider traffic through unified OpenAI-compatible API
-   - **MCP Gateway**: Aggregates multiple MCP servers, supports stdio/HTTP/SSE transports
-   - **A2A Gateway**: Enables secure agent-to-agent collaboration
+1. Classify the request
+- Decide deployment mode: enterprise Kubernetes, OSS Kubernetes, or local CLI.
+- Decide traffic type: LLM, MCP, or general HTTP.
+- Decide scope: new setup, policy hardening, feature extension, or troubleshooting.
+- Choose documentation precedence:
+  - Enterprise 2.1.x tasks: prioritize `docs.solo.io/agentgateway/2.1.x`.
+  - OSS Kubernetes latest tasks: prioritize `agentgateway.dev/docs/kubernetes/latest`.
+  - Repo implementation details: use repo examples as concrete templates after selecting the official source.
 
-3. **Open Source vs Enterprise**:
-   - **Open Source**: Core gateway functionality, community-driven, Linux Foundation hosted
-   - **Enterprise**: Additional features like Solo UI, enhanced RBAC, Keycloak integration, air-gapped deployment support
-   - Always clarify which version the user is working with when features differ
+2. Select the baseline from repo examples
+- Start from the closest repo pattern in `references/examples.md`.
+- Keep namespace, labels, and naming consistent with the selected example before adding features.
 
-4. **Deployment Flexibility**:
-   - Runs on Kubernetes, bare metal, VMs, or containers
-   - Deployed via Helm or ArgoCD
-   - Conforms to Kubernetes Gateway API standard when deployed to K8s
+3. Start from the minimum viable resource set
+- Prefer the baseline pattern: `Gateway` + `AgentgatewayBackend` + `HTTPRoute`.
+- Add `EnterpriseAgentgatewayPolicy` only when auth, RBAC, prompt guards, or other controls are required.
+- Keep names/labels/namespaces consistent across all manifests before adding advanced options.
+
+4. Choose the right backend style
+- For LLM routing/failover: use `spec.ai` on `AgentgatewayBackend` and route to provider endpoints via `HTTPRoute`.
+- For MCP static targets: use `spec.mcp.targets[].static` with host/port/path/protocol.
+- For MCP dynamic/virtual targets: use label selectors and ensure Service protocol/path annotations match MCP expectations.
+
+5. Apply security and policy layers deliberately
+- Use prompt guards for request/response content control.
+- Use MCP auth when clients need OAuth discovery and dynamic client registration.
+- Use JWT auth for static service clients that already carry tokens.
+- Use CEL authorization policies for route-level or tool-level control.
+
+6. Verify with executable checks
+- Run `kubectl apply --dry-run=server -f <file-or-dir>` before live apply when possible.
+- Confirm objects and readiness:
+  - `kubectl get gateway,httproute -A`
+  - `kubectl get agentgatewaybackend -A`
+  - `kubectl get enterpriseagentgatewaypolicy -A`
+- Validate the request path and headers with targeted `curl` or MCP inspector tests.
+
+7. Troubleshoot systematically
+- If traffic is not routed: verify `parentRefs`, backend group/kind/name, and route matches/rewrites.
+- If provider auth fails: verify secret keys/headers and backend auth references.
+- If MCP tools are missing or denied: verify auth policy targetRefs, JWT claims, and CEL expressions.
+- If no external access: check Gateway/Service status and port-forward first to isolate cluster-internal behavior.
+
 
 ### Configuration Best Practices
 
@@ -218,3 +245,42 @@ When explaining concepts, reference:
 - Test protocol negotiation and bidirectional communication patterns
 
 Remember: The user expects deep expertise in AI agent infrastructure. Be thorough, production-focused, and emphasize the unique stateful, bidirectional nature of agentgateway vs traditional API gateways. Always clarify edition-specific features when relevant.
+
+# Agentgateway.dev Kubernetes Latest Quick Map
+
+Use this file for OSS Kubernetes latest behavior and current upstream patterns.
+
+## Core
+- Docs home:
+  - https://agentgateway.dev/docs/kubernetes/latest/
+- Install:
+  - https://agentgateway.dev/docs/kubernetes/latest/install/
+- Setup:
+  - https://agentgateway.dev/docs/kubernetes/latest/setup/
+
+## Traffic and Connectivity
+- LLM routing and provider configuration:
+  - https://agentgateway.dev/docs/kubernetes/latest/llm/
+- MCP overview:
+  - https://agentgateway.dev/docs/kubernetes/latest/mcp/
+- Dynamic MCP targets:
+  - https://agentgateway.dev/docs/kubernetes/latest/mcp/dynamic-mcp/
+- Connect MCP via HTTPS:
+  - https://agentgateway.dev/docs/kubernetes/latest/mcp/connect-via-https/
+
+## Practical Guidance
+- Use `agentgateway.dev` pages as the source of truth for OSS Kubernetes latest.
+- Use `docs.solo.io/agentgateway/2.1.x` as the source of truth for Solo enterprise 2.1.x fields and policy behavior.
+- Use repository examples as implementation templates after selecting the correct documentation track.
+- If docs and repo examples differ, follow the official docs for the deployment mode and version you are targeting.
+
+## Fast Search Commands
+
+- Find all Gateway API + Agent Gateway resource examples in this repo:
+```bash
+rg -n "kind:\\s*(Gateway|HTTPRoute|GRPCRoute|AgentgatewayBackend|AgentgatewayPolicy|EnterpriseAgentgatewayPolicy)" /Users/michaellevan/gitrepos/agentic-demo-repo
+```
+- Find MCP resource patterns:
+```bash
+rg -n "mcp:|targets:|dynamic|static|tool|oauth|jwt" /Users/michaellevan/gitrepos/agentic-demo-repo
+```

@@ -47,7 +47,7 @@ resource "proxmox_virtual_environment_vm" "this" {
     iothread     = true
     cache        = "writethrough"
     discard      = "on"
-    file_id      = proxmox_download_file.this[each.key].id
+    file_id      = proxmox_download_file.this[local.node_image_key[each.key]].id
   }
 
   initialization {

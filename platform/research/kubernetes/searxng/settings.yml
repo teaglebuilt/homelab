@@ -1,4 +1,4 @@
----
+# https://docs.searxng.org/admin/settings/settings.html
 use_default_settings: true
 
 general:
@@ -12,14 +12,13 @@ search:
   safe_search: 0
   autocomplete: ""
   default_lang: "auto"
+  # json required for OpenWebUI / API clients
   formats:
     - html
     - json
 
 server:
-  port: 8080
-  bind_address: "0.0.0.0"
-  base_url: false
+  # secret_key / base_url / port / bind_address come from SEARXNG_* env vars
   limiter: false
   public_instance: false
   image_proxy: false
@@ -33,7 +32,10 @@ outgoing:
   pool_connections: 100
   pool_maxsize: 20
   enable_http2: true
+  using_tor_proxy: false
 
+# Private engines via Tor SOCKS5h (merged by name with defaults).
+# https://docs.searxng.org/admin/settings/settings_engines.html
 engines:
   - name: duckduckgo private
     engine: duckduckgo

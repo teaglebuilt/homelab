@@ -48,7 +48,7 @@ releases:
                 timeSlicing:
                   resources:
                     - name: nvidia.com/gpu
-                      replicas: 2
+                      replicas: 1
     hooks:
       - events: ["presync"]
         showlogs: true

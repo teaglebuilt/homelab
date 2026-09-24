@@ -7,6 +7,8 @@ variable "image" {
     arch = optional(string, "amd64")
     platform = optional(string, "nocloud")
     proxmox_datastore = optional(string, "local")
+    # ~750MB GPU-extension images exceed the provider's 600s default.
+    download_timeout = optional(number, 3600)
   })
 }
 
