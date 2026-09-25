@@ -11,6 +11,11 @@ variable "homelab_external_tunnel_id" {
 variable "mlops_external_gateway_ip" {
   description = "Pinned LB IP of the mlops homelab-external-gateway (Cilium LB-IPAM)."
   type        = string
+
+  validation {
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.mlops_external_gateway_ip))
+    error_message = "mlops_external_gateway_ip must be a non-empty IPv4 address (got an empty/invalid value that would produce service=https://)."
+  }
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab_external" {
