@@ -5,6 +5,5 @@ namespace: kube-system
 resources:
   - runtimeclass.yaml
   - priorityclass.yaml
-  - xid-alerts.yaml
 generatorOptions:
   disableNameSuffixHash: false
