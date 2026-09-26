@@ -3,6 +3,7 @@ locals {
     for k, v in var.nodes : k => v.machine_type == "worker" && lookup(v, "igpu", false)
   }
 
+  # see docs/adr/0001-gpu-node-stability-on-mlops.md (Decision 5)
   gpu_kernel_args = ["pcie_aspm=off"]
 
   node_schematic = {
