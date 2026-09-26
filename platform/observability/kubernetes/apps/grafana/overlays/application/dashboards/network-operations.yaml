@@ -29,12 +29,19 @@ spec:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
+      "id": null,
       "links": [],
       "panels": [
         {
-          "description": "Count of netops-agent scrape targets currently up. Should equal the number of mlops nodes (3) \u2014 the DaemonSet is released on mlops only, so the application cluster's nodes are deliberately absent. A smaller number means at least one DaemonSet pod is unhealthy or has lost its scrape endpoint.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "fieldConfig": {
             "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
@@ -45,20 +52,40 @@ spec:
                   },
                   {
                     "color": "red",
-                    "value": 80
+                    "value": 0
+                  },
+                  {
+                    "color": "semi-dark-green",
+                    "value": 1
                   }
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      "{__name__=\"netops_pci_device_present\", device=\"0x2783\", driver=\"vfio-pci\", instance=\"192.168.2.101:9101\", job=\"netops-host\", netops_role=\"host\", proxmox_host=\"pve2\", slot=\"0000:2e:00.0\", vendor=\"0x10de\"}"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": []
+              }
+            ]
           },
           "gridPos": {
-            "h": 2,
-            "w": 3,
+            "h": 3,
+            "w": 4,
             "x": 0,
             "y": 0
           },
-          "id": 1,
+          "id": 34,
           "options": {
             "colorMode": "background",
             "graphMode": "area",
@@ -74,101 +101,24 @@ spec:
             },
             "showPercentChange": false,
             "textMode": "auto",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "red"
-                },
-                {
-                  "color": "yellow",
-                  "value": 1
-                },
-                {
-                  "color": "green",
-                  "value": 3
-                }
-              ]
-            },
             "wideLayout": true
           },
           "pluginVersion": "11.1.0",
           "targets": [
             {
-              "expr": "count(up{job=\"netops-agent\"} == 1)",
-              "legendFormat": "up",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "max(netops_pci_device_present{driver=\"vfio-pci\"})",
+              "instant": false,
+              "legendFormat": "__auto",
+              "range": true,
               "refId": "A"
             }
           ],
-          "title": "Nodes Reporting",
-          "type": "stat"
-        },
-        {
-          "description": "up{job=\"netops-agent\"} broken out per node. A 0 here means Prometheus has lost a scrape target \u2014 investigate before trusting traffic graphs.",
-          "fieldConfig": {
-            "defaults": {
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 2,
-            "w": 4,
-            "x": 3,
-            "y": 0
-          },
-          "id": 3,
-          "options": {
-            "colorMode": "background",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "percentChangeColorMode": "standard",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showPercentChange": false,
-            "textMode": "value_and_name",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "red"
-                },
-                {
-                  "color": "green",
-                  "value": 1
-                }
-              ]
-            },
-            "wideLayout": true
-          },
-          "pluginVersion": "11.1.0",
-          "targets": [
-            {
-              "expr": "up{job=\"netops-agent\"}",
-              "legendFormat": "{{nodename}}",
-              "refId": "A"
-            }
-          ],
-          "title": "Per-Node Scrape Status",
+          "title": "GPU Passthrough Healthy",
           "type": "stat"
         },
         {
@@ -206,8 +156,8 @@ spec:
           },
           "gridPos": {
             "h": 3,
-            "w": 5,
-            "x": 7,
+            "w": 4,
+            "x": 4,
             "y": 0
           },
           "id": 33,
@@ -243,6 +193,91 @@ spec:
             }
           ],
           "title": "Thunderbolt Authorized",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      "{__name__=\"netops_pci_link_speed_gtps\", container=\"agent\", device=\"0x1111\", endpoint=\"metrics\", instance=\"192.168.2.7:9101\", job=\"netops-agent\", namespace=\"default\", nodename=\"application-work-00\", service=\"netops-agent\", slot=\"0000:00:01.0\", vendor=\"0x1234\"}"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": []
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 4,
+            "x": 8,
+            "y": 0
+          },
+          "id": 35,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.1.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "max(netops_pci_link_speed_gtps)",
+              "instant": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "PCIE Link Speed",
           "type": "stat"
         },
         {
@@ -335,7 +370,7 @@ spec:
           "type": "timeseries"
         },
         {
-          "description": "sum(rate(netops_rx_bytes_total[5m])) \u2014 total bytes/sec received at tcx ingress across every node's primary interface. Sanity check that all DaemonSet pods are publishing data.",
+          "description": "Count of netops-agent scrape targets currently up. Should equal the number of mlops nodes (3) \u2014 the DaemonSet is released on mlops only, so the application cluster's nodes are deliberately absent. A smaller number means at least one DaemonSet pod is unhealthy or has lost its scrape endpoint.",
           "fieldConfig": {
             "defaults": {
               "mappings": [],
@@ -351,20 +386,19 @@ spec:
                     "value": 80
                   }
                 ]
-              },
-              "unit": "Bps"
+              }
             },
             "overrides": []
           },
           "gridPos": {
-            "h": 5,
-            "w": 7,
+            "h": 2,
+            "w": 3,
             "x": 0,
-            "y": 2
+            "y": 3
           },
-          "id": 2,
+          "id": 1,
           "options": {
-            "colorMode": "value",
+            "colorMode": "background",
             "graphMode": "area",
             "justifyMode": "auto",
             "orientation": "auto",
@@ -378,17 +412,101 @@ spec:
             },
             "showPercentChange": false,
             "textMode": "auto",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red"
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "green",
+                  "value": 3
+                }
+              ]
+            },
             "wideLayout": true
           },
           "pluginVersion": "11.1.0",
           "targets": [
             {
-              "expr": "sum(rate(netops_rx_bytes_total{job=\"netops-agent\"}[5m]))",
-              "legendFormat": "cluster B/s",
+              "expr": "count(up{job=\"netops-agent\"} == 1)",
+              "legendFormat": "up",
               "refId": "A"
             }
           ],
-          "title": "Cluster Ingress Rate (B/s)",
+          "title": "Nodes Reporting",
+          "type": "stat"
+        },
+        {
+          "description": "up{job=\"netops-agent\"} broken out per node. A 0 here means Prometheus has lost a scrape target \u2014 investigate before trusting traffic graphs.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 2,
+            "w": 4,
+            "x": 3,
+            "y": 3
+          },
+          "id": 3,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value_and_name",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red"
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            },
+            "wideLayout": true
+          },
+          "pluginVersion": "11.1.0",
+          "targets": [
+            {
+              "expr": "up{job=\"netops-agent\"}",
+              "legendFormat": "{{nodename}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Per-Node Scrape Status",
           "type": "stat"
         },
         {
@@ -418,7 +536,7 @@ spec:
             "overrides": []
           },
           "gridPos": {
-            "h": 4,
+            "h": 7,
             "w": 5,
             "x": 7,
             "y": 3
@@ -450,6 +568,63 @@ spec:
             }
           ],
           "title": "Cluster Retransmits (24h)",
+          "type": "stat"
+        },
+        {
+          "description": "sum(rate(netops_rx_bytes_total[5m])) \u2014 total bytes/sec received at tcx ingress across every node's primary interface. Sanity check that all DaemonSet pods are publishing data.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 7,
+            "x": 0,
+            "y": 5
+          },
+          "id": 2,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.1.0",
+          "targets": [
+            {
+              "expr": "sum(rate(netops_rx_bytes_total{job=\"netops-agent\"}[5m]))",
+              "legendFormat": "cluster B/s",
+              "refId": "A"
+            }
+          ],
+          "title": "Cluster Ingress Rate (B/s)",
           "type": "stat"
         },
         {
@@ -599,7 +774,7 @@ spec:
             "h": 13,
             "w": 12,
             "x": 0,
-            "y": 7
+            "y": 10
           },
           "id": 22,
           "options": {
@@ -695,7 +870,7 @@ spec:
             "overrides": []
           },
           "gridPos": {
-            "h": 7,
+            "h": 12,
             "w": 12,
             "x": 12,
             "y": 11
@@ -748,7 +923,7 @@ spec:
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 20
+            "y": 23
           },
           "id": 23,
           "options": {
@@ -809,7 +984,7 @@ spec:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 33
           },
           "id": 29,
           "panels": [
@@ -873,7 +1048,7 @@ spec:
                 "h": 10,
                 "w": 24,
                 "x": 0,
-                "y": 37
+                "y": 53
               },
               "id": 30,
               "options": {
@@ -961,7 +1136,7 @@ spec:
                 "h": 10,
                 "w": 24,
                 "x": 0,
-                "y": 47
+                "y": 63
               },
               "id": 31,
               "options": {
@@ -1021,7 +1196,7 @@ spec:
                 "h": 12,
                 "w": 24,
                 "x": 0,
-                "y": 57
+                "y": 73
               },
               "id": 32,
               "options": {
@@ -1099,6 +1274,6 @@ spec:
       "timezone": "",
       "title": "netops (eBPF Network Traffic)",
       "uid": "netops-overview",
-      "version": 1,
+      "version": 2,
       "weekStart": ""
     }

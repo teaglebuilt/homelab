@@ -44,11 +44,6 @@ releases:
               version: v1
               flags:
                 migStrategy: none
-              sharing:
-                timeSlicing:
-                  resources:
-                    - name: nvidia.com/gpu
-                      replicas: 1
     hooks:
       - events: ["presync"]
         showlogs: true

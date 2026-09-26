@@ -1,11 +1,15 @@
 ---
+{{- $self := readFile "cluster.yaml" | fromYaml }}
+{{- $peer := readFile "../mlops/cluster.yaml" | fromYaml }}
+{{- $selfLB := required "clusters/application/cluster.yaml is missing clustermeshApiserverLB" $self.clustermeshApiserverLB }}
+{{- $peerLB := required "clusters/mlops/cluster.yaml is missing clustermeshApiserverLB" $peer.clustermeshApiserverLB }}
 clustermesh:
   useAPIServer: true
   apiserver:
     service:
       type: LoadBalancer
       annotations:
-        io.cilium/lb-ipam-ips: {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
+        io.cilium/lb-ipam-ips: {{ $selfLB | quote }}
     tls:
       authMode: cluster
       server:
@@ -16,12 +20,12 @@ clustermesh:
         # cross-cluster handshake fails with "hostname mismatch" and KVStoreMesh can
         # never cache the remote cluster-config (mesh stays NOT READY on both sides).
         extraIpAddresses:
-          - {{ requiredEnv "APP_CLUSTERMESH_APISERVER_IP" | quote }}
+          - {{ $selfLB | quote }}
         extraDnsNames:
           - clustermesh-application.homelab
   config:
     enabled: true
     clusters:
       - name: mlops
-        address: {{ requiredEnv "MLOPS_CLUSTERMESH_APISERVER_IP" | quote }}
+        address: {{ $peerLB | quote }}
         port: 2379

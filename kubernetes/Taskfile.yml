@@ -63,7 +63,7 @@ tasks:
           -var graylog_ip=${GRAYLOG_IP}
 
   bootstrap-cluster:
-    summary: Phase 1 — base bootstrap for a cluster (plain Cilium + identity, no mesh) and its LB-IPAM pool
+    summary: Full per-cluster helmfile sync (stages 00-05) and its LB-IPAM pool; includes the ClusterMesh overlay when enable.clusterMesh is true
     dir: kubernetes
     requires:
       vars: [CLUSTER]

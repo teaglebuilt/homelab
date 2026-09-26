@@ -57,13 +57,7 @@ spec:
                     "value": null
                   }
                 ]
-              },
-              "links": [
-                {
-                  "title": "View Trace",
-                  "url": "/explore?left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceql%22,%22query%22:%22${__data.fields.traceID}%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D"
-                }
-              ]
+              }
             },
             "overrides": [
               {
@@ -81,21 +75,9 @@ spec:
                     "value": [
                       {
                         "title": "View in Explore",
-                        "url": "/explore?left={%22datasource%22:%22tempo%22,%22queries%22:[{%22queryType%22:%22traceqlSearch%22,%22query%22:%22${__data.fields[%22Trace%20ID%22]}%22}],%22range%22:{%22from%22:%22now-6h%22,%22to%22:%22now%22}}"
+                        "url": "/explore?left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceql%22,%22query%22:%22${__data.fields.traceID}%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D"
                       }
                     ]
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Duration"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "ms"
                   }
                 ]
               }
@@ -122,7 +104,7 @@ spec:
             "sortBy": [
               {
                 "desc": true,
-                "displayName": "Start Time"
+                "displayName": "Start time"
               }
             ]
           },
@@ -141,23 +123,7 @@ spec:
             }
           ],
           "title": "Recent LLM Calls (Click Trace ID to Explore)",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {},
-                "includeByName": {},
-                "indexByName": {},
-                "renameByName": {
-                  "durationMs": "Duration",
-                  "rootServiceName": "Service",
-                  "rootTraceName": "Operation",
-                  "startTimeUnixNano": "Start Time",
-                  "traceID": "Trace ID"
-                }
-              }
-            }
-          ],
+          "transformations": [],
           "type": "table"
         }
       ],

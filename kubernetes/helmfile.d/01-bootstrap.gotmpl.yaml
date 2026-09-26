@@ -1,7 +1,8 @@
 ---
 {{- /* Cluster identity for per-cluster kustomize overlays (apps/<app>/<cluster>).
-       Injected by clusters/<name>/helmfile.yaml. Defaults to mlops so a direct
-       `helmfile sync .` from helmfile.d/ keeps single-cluster behaviour. */ -}}
+       Injected by clusters/<name>/helmfile.yaml. Syncing helmfile.d/ directly is
+       unsupported: the meshOverlay guard below fails when enable.clusterMesh is
+       true, as it is on both clusters. */ -}}
 {{- $cluster := .Values | get "cluster" "mlops" }}
 {{- /* kube-dns clusterIP is derived from the cluster's own SSOT
        (cluster.yaml dnsIP = 10th IP of serviceSubnet = Talos kubelet clusterDNS).
@@ -61,7 +62,10 @@ releases:
       - {{ $identity }}
       {{- end }}
       {{- $mesh := .Values | get "meshOverlay" "" }}
-      {{- if and $mesh ($enable | get "clusterMesh" true) }}
+      {{- if ($enable | get "clusterMesh" true) }}
+      {{- if not $mesh }}
+      {{- fail (printf "cluster %q has enable.clusterMesh=true but no meshOverlay was passed. Sync via clusters/%s/helmfile.yaml or clusters/%s/mesh.yaml, not helmfile.d/01-bootstrap directly -- a direct sync renders cilium without the mesh overlay and tears ClusterMesh down." $cluster $cluster $cluster) }}
+      {{- end }}
       # ClusterMesh overlay (apiserver + peering). Included in normal syncs when
       # enable.clusterMesh=true (environment.yaml SSOT) so bootstrap-cluster and
       # sync-cluster preserve the mesh config without a separate mesh-upgrade call.
