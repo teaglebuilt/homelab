@@ -25,8 +25,8 @@ resource "proxmox_virtual_environment_vm" "this" {
   }
 
   memory {
-    dedicated   = each.value.ram_dedicated
-    floating    = each.value.ram_dedicated / 2
+    # No `floating`: disables ballooning so kubelet's reported capacity can't drift from live guest RAM.
+    dedicated = each.value.ram_dedicated
   }
 
   network_device {
