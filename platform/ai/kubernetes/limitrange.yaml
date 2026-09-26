@@ -1,0 +1,17 @@
+---
+# Every container in `ai` gets a request and a limit even if its chart omits them.
+# Rationale: kubernetes/apps/hardware/nvidia/README.md
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-limits
+  namespace: ai
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 50m
+        memory: 128Mi
+      default:
+        cpu: "1"
+        memory: 1Gi

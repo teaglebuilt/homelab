@@ -1,0 +1,20 @@
+---
+machine:
+  kubelet:
+    nodeIP:
+      validSubnets:
+        - 192.168.1.0/24
+        - 192.168.2.0/24
+    extraConfig:
+      systemReserved:
+        cpu: ${system_cpu}
+        memory: ${system_memory}
+        ephemeral-storage: ${system_ephemeral}
+      kubeReserved:
+        cpu: ${kube_cpu}
+        memory: ${kube_memory}
+        ephemeral-storage: ${kube_ephemeral}
+      evictionHard:
+        memory.available: "${eviction_memory}"
+        nodefs.available: "${eviction_nodefs}"
+        imagefs.available: "${eviction_imagefs}"

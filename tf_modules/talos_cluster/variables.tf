@@ -46,6 +46,17 @@ variable "nodes" {
     ram_dedicated = number
     update = optional(bool, false)
     igpu = optional(bool, false)
+    kubelet_reserved = optional(object({
+      system_cpu       = optional(string, "200m")
+      system_memory    = optional(string, "512Mi")
+      system_ephemeral = optional(string, "1Gi")
+      kube_cpu         = optional(string, "200m")
+      kube_memory      = optional(string, "512Mi")
+      kube_ephemeral   = optional(string, "1Gi")
+      eviction_memory  = optional(string, "5%")
+      eviction_nodefs  = optional(string, "10%")
+      eviction_imagefs = optional(string, "10%")
+    }), {})
     pci = optional(object({
       name         = string
       id           = string

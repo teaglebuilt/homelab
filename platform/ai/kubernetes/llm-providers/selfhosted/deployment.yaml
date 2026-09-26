@@ -68,9 +68,8 @@ spec:
               memory: 6Gi
               nvidia.com/gpu: "1"
             limits:
-              # Node has ~15.5Gi allocatable; leave headroom for kubelet/system (same ceiling as NIM).
               cpu: "4"
-              memory: 12Gi
+              memory: 8Gi
               nvidia.com/gpu: "1"
           startupProbe:
             httpGet:

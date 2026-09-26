@@ -70,6 +70,9 @@ releases:
           enabled: true
           interval: 10s
           honorLabels: true
+          # REQUIRED for the mlops PrometheusAgent selector; see docs/adr/0001-gpu-node-stability-on-mlops.md
+          additionalLabels:
+            release: prometheus-community
 
   - name: node-problem-detector
     namespace: kube-system

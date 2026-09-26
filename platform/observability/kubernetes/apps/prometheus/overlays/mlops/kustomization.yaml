@@ -16,11 +16,11 @@ helmCharts:
       defaultRules:
         create: false
       nodeExporter:
-        enabled: false
+        enabled: true
       kubeApiServer:
         enabled: false
       kubernetesServiceMonitors:
-        enabled: false
+        enabled: true
       coreDns:
         enabled: false
       kubeDns:
@@ -38,8 +38,8 @@ helmCharts:
       kubeScheduler:
         enabled: false
       kubeStateMetrics:
-        enabled: false
+        enabled: true
       kubeProxy:
         enabled: false
       kubelet:
-        enabled: false
+        enabled: true

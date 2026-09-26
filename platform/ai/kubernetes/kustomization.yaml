@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: ai
 resources:
   - namespace.yaml
+  - limitrange.yaml
   - aigateway
   - llm-providers
   - integrations
