@@ -17,6 +17,14 @@ persistence:
 service:
   port: 80
 
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
 extraEnvVars:
   - name: WEBUI_URL
     value: https://openwebui.homelab.internal

@@ -30,7 +30,7 @@ data "talos_machine_configuration" "this" {
     file("${path.module}/patches/controlplane/api-server-access.yaml"),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
-    file("${path.module}/patches/kubelet.yaml"),
+    templatefile("${path.module}/patches/kubelet.yaml.tftpl", each.value.kubelet_reserved),
     templatefile("${path.module}/patches/logging.yaml", {
       log_destination: var.cluster.logging_server
     }),
@@ -49,7 +49,7 @@ data "talos_machine_configuration" "this" {
     }),
     file("${path.module}/patches/local-path-storage.yaml"),
     file("${path.module}/patches/containerd.yaml"),
-    file("${path.module}/patches/kubelet.yaml"),
+    templatefile("${path.module}/patches/kubelet.yaml.tftpl", each.value.kubelet_reserved),
     templatefile("${path.module}/patches/logging.yaml", {
       log_destination: var.cluster.logging_server
     }),

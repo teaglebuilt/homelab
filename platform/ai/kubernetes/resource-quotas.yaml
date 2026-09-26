@@ -1,7 +1,7 @@
 ---
-# Namespace-wide defaults for the ai namespace. Sized to fit a single GPU
-# LLM provider (vLLM / NIM / Ollama) plus gateway/controller headroom on
-# mlops-work-00 (~15.5Gi allocatable memory, 1x nvidia.com/gpu).
+# NOT currently applied - not referenced by any kustomization. See
+# kubernetes/apps/hardware/nvidia/README.md before activating; a namespace quota
+# rejects pods once the declared totals are exceeded.
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -9,11 +9,11 @@ metadata:
   namespace: ai
 spec:
   hard:
-    limits.cpu: "16"
-    limits.memory: 24Gi
+    limits.cpu: "32"
+    limits.memory: 26Gi
     limits.ephemeral-storage: 20Gi
     requests.cpu: "8"
-    requests.memory: 16Gi
+    requests.memory: 14Gi
     requests.ephemeral-storage: 10Gi
     requests.nvidia.com/gpu: "1"
     limits.nvidia.com/gpu: "1"

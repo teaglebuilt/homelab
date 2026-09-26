@@ -29,6 +29,14 @@ spec:
             summary: "Uncorrectable ECC error on GPU {{ $labels.gpu }}"
             description: "Double-bit ECC. Results computed on this GPU are suspect. Drain the node."
 
+        - alert: GPUFanHigh
+          expr: DCGM_FI_DEV_FAN_SPEED > 95
+          for: 2m
+          labels: { severity: warning }
+          annotations:
+            summary: "GPU fan at {{ $value }}% on {{ $labels.Hostname }}"
+            description: "Informational. Under real inference load a pegged fan is correct behaviour, not a fault. It is worth seeing because on the Thunderbolt enclosure a pegged fan has also preceded Xid 119 (GSP RPC timeout). Correlate with GPUXidError and with whether vLLM is actually serving."
+
     - name: gpu.throttling
       rules:
         - alert: GPUThermalThrottling

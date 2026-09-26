@@ -1,0 +1,70 @@
+---
+# Node memory and OOM detection. mlops series arrive here with cluster="mlops"
+# via remote_write externalLabels; the hub's own scrapes carry no cluster label.
+# Rationale: docs/adr/0001-gpu-node-stability-on-mlops.md
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-memory.rules
+spec:
+  groups:
+    - name: node.memory
+      rules:
+        - alert: NodeOOMKill
+          expr: increase(node_vmstat_oom_kill[15m]) > 0
+          for: 0m
+          labels: { severity: critical }
+          annotations:
+            summary: "Global OOM killer fired on {{ $labels.instance }}"
+            description: "The kernel OOM killer selected a victim by oom_score across all tasks, which can include kubelet, etcd or containerd. This is node-level memory exhaustion, not a container hitting its own cgroup limit."
+
+        - alert: NodeMemoryAvailableLow
+          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.10
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "Under 10% memory available on {{ $labels.instance }}"
+
+        - alert: NodeMemoryAvailableCritical
+          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.05
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            summary: "Under 5% memory available on {{ $labels.instance }}"
+            description: "Eviction and global OOM are both imminent. Check for a pod whose memory limit exceeds this node's allocatable."
+
+    - name: node.readiness
+      rules:
+        - alert: NodeNotReady
+          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations:
+            summary: "Node {{ $labels.node }} is not Ready"
+            description: "A kubelet that stops posting status looks identical to a healthy quiet node without this alert."
+
+        - alert: MlopsMetricsStale
+          expr: absent_over_time(up{cluster="mlops"}[10m])
+          for: 0m
+          labels: { severity: critical }
+          annotations:
+            summary: "No metrics from the mlops cluster for 10m"
+            description: "Dead-man's switch. The mlops Prometheus agent has stopped remote-writing. Without this, a dead agent is indistinguishable from a quiet cluster."
+
+    - name: workload.oom
+      rules:
+        - alert: ContainerOOMKilled
+          expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+          for: 0m
+          labels: { severity: warning }
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} was OOMKilled"
+            description: "A cgroup-level kill. Either the container's limit is too low or it leaks. Contrast with NodeOOMKill, which is node-wide exhaustion."
+
+        - alert: AiWorkloadCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="ai"}[30m]) > 3
+          for: 0m
+          labels: { severity: warning }
+          annotations:
+            summary: "{{ $labels.pod }}/{{ $labels.container }} restarted more than 3 times in 30m"
+            description: "A crash-looping agent that retries inference generates sustained GPU load, which is what a loud fan reflects."
