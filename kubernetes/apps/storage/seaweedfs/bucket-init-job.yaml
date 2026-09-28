@@ -48,7 +48,7 @@ spec:
                 echo "  attempt ${i}: not ready yet, sleeping 5s"
                 sleep 5
               done
-              for bucket in loki-chunks loki-ruler loki-admin; do
+              for bucket in loki-chunks loki-ruler loki-admin tempo-traces; do
                 echo "Ensuring bucket s3://${bucket}"
                 aws --endpoint-url "${S3_ENDPOINT}" s3 mb "s3://${bucket}" || true
               done
