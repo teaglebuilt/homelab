@@ -44,6 +44,18 @@ locals {
       hash      = local.node_image_hash[nodes[0]]
     }
   }
+
+  image_asset = "${var.image.platform}-${var.image.arch}"
+
+  image_file_name = {
+    for key, image in local.images :
+    key => "talos-${var.image.version}-${image.hash}-${local.image_asset}.img"
+  }
+
+  image_file_id = {
+    for key, image in local.images :
+    key => "${var.image.proxmox_datastore}:iso/${local.image_file_name[key]}"
+  }
 }
 
 resource "talos_image_factory_schematic" "this" {
@@ -57,10 +69,10 @@ resource "proxmox_download_file" "this" {
 
   node_name    = each.value.host_node
   content_type = "iso"
-  datastore_id = "local"
+  datastore_id = var.image.proxmox_datastore
 
-  file_name               = "talos-${var.image.version}-${each.value.hash}-nocloud-amd64.img"
-  url                     = "https://factory.talos.dev/image/${talos_image_factory_schematic.this[each.value.node].id}/${var.image.version}/nocloud-amd64.raw.gz"
+  file_name               = local.image_file_name[each.key]
+  url                     = "${var.image.factory_url}/image/${talos_image_factory_schematic.this[each.value.node].id}/${var.image.version}/${local.image_asset}.raw.gz"
   decompression_algorithm = "gz"
   verify                  = var.cluster.verify_image_download
   overwrite               = false

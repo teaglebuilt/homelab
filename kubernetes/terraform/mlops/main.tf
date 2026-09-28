@@ -31,7 +31,7 @@ module "talos_cluster" {
       vm_id         = 100
       cpu           = 8
       disk_size     = 20
-      ram_dedicated = 8096
+      ram_dedicated = 6144
     }
     "mlops-work-00" = {
       host_node     = "pve2"
@@ -58,7 +58,7 @@ module "talos_cluster" {
       vm_id         = 103
       cpu           = 6
       disk_size     = 40
-      ram_dedicated = 8120
+      ram_dedicated = 6144
     }
   }
 }
