@@ -9,6 +9,10 @@ variable "image" {
     proxmox_datastore = optional(string, "local")
     # ~750MB GPU-extension images exceed the provider's 600s default.
     download_timeout = optional(number, 3600)
+    # When false the module does not create (or destroy) the Proxmox image
+    # files and instead references them by their deterministic volume id.
+    # See tf_modules/talos_cluster/README.md.
+    manage_download = optional(bool, true)
   })
 }
 

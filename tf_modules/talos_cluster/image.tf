@@ -65,7 +65,7 @@ resource "talos_image_factory_schematic" "this" {
 }
 
 resource "proxmox_download_file" "this" {
-  for_each = local.images
+  for_each = var.image.manage_download ? local.images : {}
 
   node_name    = each.value.host_node
   content_type = "iso"

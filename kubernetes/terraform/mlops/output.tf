@@ -11,3 +11,7 @@ resource "local_file" "kube_config" {
   filename        = "../../generated/mlops/kubeconfig"
   file_permission = "0600"
 }
+
+output "required_images" {
+  value = module.talos_cluster.required_images
+}

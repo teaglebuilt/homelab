@@ -1,6 +1,10 @@
 resource "proxmox_virtual_environment_vm" "this" {
   for_each          = var.nodes
 
+  # disk.file_id is now a computed string, so the download is no longer an
+  # implicit dependency. Empty when image.manage_download is false.
+  depends_on = [proxmox_download_file.this]
+
   node_name         = each.value.host_node
 
   name              = each.key
@@ -47,7 +51,7 @@ resource "proxmox_virtual_environment_vm" "this" {
     iothread     = true
     cache        = "writethrough"
     discard      = "on"
-    file_id      = proxmox_download_file.this[local.node_image_key[each.key]].id
+    file_id      = local.image_file_id[local.node_image_key[each.key]]
   }
 
   initialization {
