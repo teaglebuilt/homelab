@@ -82,3 +82,16 @@ helmCharts:
               endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
               timeout: 15
               insecure: true
+      kagent-tools:
+        otel:
+          tracing:
+            enabled: true
+            exporter:
+              otlp:
+                endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+                timeout: 15
+                insecure: true
+        tools:
+          env:
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc

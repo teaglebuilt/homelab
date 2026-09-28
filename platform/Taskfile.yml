@@ -34,9 +34,9 @@ tasks:
         vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: observability:deploy
         vars: { CLUSTER: '{{.CLUSTER}}' }
-      - task: research:deploy
-        vars: { CLUSTER: '{{.CLUSTER}}' }
-      # - kubectl rollout restart deployment reflector -n kube-system
+      # - task: research:deploy
+      #   vars: { CLUSTER: '{{.CLUSTER}}' }
+      - kubectl rollout restart deployment reflector -n kube-system
 
   destroy:
     dir: platform
