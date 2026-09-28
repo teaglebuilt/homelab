@@ -36,11 +36,25 @@ helmCharts:
         per_tenant_overrides: {}
         server:
           http_listen_port: 3200
+        extraArgs:
+          config.expand-env: "true"
+        extraEnvFrom:
+          - secretRef:
+              name: s3-credentials
+        extraVolumeMounts:
+          - name: data
+            mountPath: /var/tempo
         storage:
           trace:
-            backend: local
-            local:
-              path: /var/tempo/traces
+            backend: s3
+            s3:
+              bucket: tempo-traces
+              endpoint: seaweedfs-s3.storage.svc.cluster.local:8333
+              region: us-east-1
+              access_key: ${AWS_ACCESS_KEY_ID}
+              secret_key: ${AWS_SECRET_ACCESS_KEY}
+              insecure: true
+              forcepathstyle: true
             wal:
               path: /var/tempo/wal
         # OTLP is how the otel-collector ships traces here (grpc 4317 / http 4318).
@@ -51,5 +65,13 @@ helmCharts:
                 endpoint: "0.0.0.0:4317"
               http:
                 endpoint: "0.0.0.0:4318"
+      # Blocks are durable in SeaweedFS; /var/tempo is WAL scratch only. Same
+      # reasoning as Loki: persistence.enabled would add an immutable
+      # volumeClaimTemplate to the StatefulSet.
+      persistence:
+        enabled: false
+      extraVolumes:
+        - name: data
+          emptyDir: {}
       tempoQuery:
         enabled: false
