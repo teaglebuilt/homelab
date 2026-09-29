@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
   - backend.yaml
   - anthropic-httproute.yaml
+  - openai-compat-backend.yaml
+  - openai-compat-httproute.yaml
   - models/claude-3-5-sonnet.yaml
   - models/claude-4-sonnet.yaml
   - models/claude-opus-4-5.yaml

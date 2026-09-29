@@ -1,13 +1,14 @@
 ---
 ollama:
   enabled: false
-ollamaUrls: ["http://ollama.ai.svc.cluster.local:11434"]
+ollamaUrls: []
 
 enableOpenaiApi: true
-openaiApiKeyExistingSecret: openwebui-agentgateway
-openaiApiKeyExistingSecretKey: api-key
-openaiBaseApiUrl: >-
-  http://agentgateway-proxy.agentgateway-system.svc.cluster.local
+# Must stay blank. In chart 8.19.0 every workload-manager branch that honors
+# openaiBaseApiUrls also requires pipelines.enabled, so with pipelines off the
+# plural form emits nothing and OpenWebUI silently falls back to api.openai.com.
+# OPENAI_API_BASE_URLS/_KEYS are set in extraEnvVars instead.
+openaiBaseApiUrl: ""
 
 persistence:
   enabled: true
@@ -26,6 +27,11 @@ resources:
     memory: 2Gi
 
 extraEnvVars:
+  - name: OPENAI_API_BASE_URLS
+    value: >-
+      http://ai-gateway.ai.svc.cluster.local/vllm/v1;http://ai-gateway.ai.svc.cluster.local/openai/v1;http://ai-gateway.ai.svc.cluster.local/claude/v1
+  - name: OPENAI_API_KEYS
+    value: "not-required;not-required;not-required"
   - name: WEBUI_URL
     value: https://openwebui.homelab.internal
   - name: K8S_FLAG

@@ -43,7 +43,7 @@ spec:
             - "--port"
             - "8000"
             - "--max-model-len"
-            - "4096"
+            - "32768"
             - "--gpu-memory-utilization"
             - "0.85"
             - "--enable-auto-tool-choice"

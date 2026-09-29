@@ -1,0 +1,21 @@
+---
+# OpenAI-compatible view of Anthropic, for clients that speak /v1/chat/completions
+# (OpenWebUI). Separate from backend.yaml, which is a raw TLS passthrough in
+# Anthropic wire format for Claude Code.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: anthropic-openai
+  namespace: ai
+spec:
+  ai:
+    provider:
+      anthropic: {}
+  policies:
+    auth:
+      secretRef:
+        name: anthropic-api-key
+    ai:
+      routes:
+        "/v1/chat/completions": Completions
+        "/v1/models": Passthrough

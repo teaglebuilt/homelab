@@ -12,3 +12,12 @@ spec:
         model: vllm-selfhosted
       host: vllm-selfhosted.ai.svc.cluster.local
       port: 8000
+  policies:
+    ai:
+      # Route type = inbound wire format. Messages lets Claude Code's Anthropic
+      # /v1/messages payloads reach the OpenAI-shaped vLLM backend.
+      routes:
+        "/v1/messages": Messages
+        "/v1/messages/count_tokens": AnthropicTokenCount
+        "/v1/chat/completions": Completions
+        "/v1/models": Passthrough

@@ -8,9 +8,13 @@ metadata:
 spec:
   ai:
     provider:
-      openai:
-        model: gpt-4o-mini
+      openai: {}
   policies:
     auth:
       secretRef:
         name: openai-api-key-secret
+    ai:
+      routes:
+        "/v1/chat/completions": Completions
+        "/v1/embeddings": Embeddings
+        "/v1/models": Passthrough

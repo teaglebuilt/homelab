@@ -19,10 +19,12 @@ spec:
     isDefault: false
     editable: true
     jsonData:
+      # logs -> traces: Vector/OTLP land trace_id as Loki structured metadata.
+      # With matcherType=label, matcherRegex is the field name (not a line regex).
       derivedFields:
         - name: TraceID
           matcherType: label
-          matcherRegex: '^trace_id$'
+          matcherRegex: trace_id
           datasourceUid: tempo
           url: "${__value.raw}"
           urlDisplayLabel: View Trace
