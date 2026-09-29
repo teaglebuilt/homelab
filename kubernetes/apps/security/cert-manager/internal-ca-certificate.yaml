@@ -8,6 +8,10 @@ spec:
   secretName: homelab-ca-secret
   commonName: homelab-ca
   isCA: true
+  duration: 87600h
+  renewBefore: 8760h
+  privateKey:
+    rotationPolicy: Never
   issuerRef:
     name: selfsigned-cluster-issuer
     kind: ClusterIssuer
