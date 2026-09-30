@@ -5,7 +5,7 @@
 
 # Transient plaintext CA material from `task kubernetes:cilium:ensure-shared-ca` (only the encrypted output is committed)
 **/clusters/_shared/.cilium-ca.plain.yaml
-
+.ai/context/private
 *.crt
 *.key
 *.pem

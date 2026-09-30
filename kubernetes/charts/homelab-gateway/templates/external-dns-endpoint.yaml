@@ -1,4 +1,5 @@
 ---
+{{- if .Values.external.tunnelHostnames }}
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
@@ -6,11 +7,10 @@ metadata:
   namespace: kube-system
 spec:
   endpoints:
-    - dnsName: "{{ .Values.external.domain }}"
+    {{- range .Values.external.tunnelHostnames }}
+    - dnsName: "{{ . }}.{{ $.Values.external.domain }}"
       recordType: CNAME
       targets:
-        - {{ .Values.external.tunnel_id }}.cfargotunnel.com
-    - dnsName: "*.{{ .Values.external.domain }}"
-      recordType: CNAME
-      targets:
-        - {{ .Values.external.tunnel_id }}.cfargotunnel.com
+        - {{ $.Values.external.tunnel_id }}.cfargotunnel.com
+    {{- end }}
+{{- end }}
