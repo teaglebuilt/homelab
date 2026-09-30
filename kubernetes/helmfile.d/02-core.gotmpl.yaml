@@ -15,6 +15,9 @@
 {{- $nsCnpg := $ns | get "cnpg" dict }}
 {{- /* Optional per-cluster external-gateway LB IP pin (empty = dynamic pool). */ -}}
 {{- $extLbIp := ($env | get "externalGateway" dict) | get "loadBalancerIP" "" }}
+{{- /* Cloudflare zone for public-trust certs. Sourced from clusters/<cluster>/environment.yaml
+       so a stale shell cannot reshape public exposure; fails the render if absent. */ -}}
+{{- $extDomain := $env | get "externalDomain" "" | required (printf "externalDomain missing from clusters/%s/environment.yaml" $cluster) }}
 bases:
   - ../defaults.yaml
 
@@ -58,6 +61,7 @@ releases:
     installed: {{ $enable | get "frontDoor" true }}
     values:
       - ../apps/networking/externaldns/external-values.yaml.gotmpl
+      - domainFilters: [{{ $extDomain | quote }}]
 
   - name: cert-manager
     namespace: cert-manager
@@ -92,6 +96,7 @@ releases:
         args:
           - -c
           - |
+            export CLOUDFLARE_DOMAIN={{ $extDomain | quote }}
             kustomize build ../apps/security/cert-manager \
               --enable-helm --enable-exec --enable-alpha-plugins | envsubst | kubectl apply -f -
 
@@ -108,7 +113,9 @@ releases:
       - cert-manager/cert-manager
     values:
       - external:
-          domain: {{ requiredEnv "CLOUDFLARE_DOMAIN" }}
+          domain: {{ $extDomain }}
+          publicGateway: {{ $enable | get "publicGateway" false }}
+          frontDoor: {{ $enable | get "frontDoor" true }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
           {{- if $extLbIp }}
           loadBalancerIP: {{ $extLbIp | quote }}

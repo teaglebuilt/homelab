@@ -1,4 +1,5 @@
 ---
+{{- if .Values.external.domain }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -9,8 +10,8 @@ spec:
   duration: 2160h
   renewBefore: 360h
   dnsNames:
-    - "{{ .Values.external.domain }}"
     - "*.{{ .Values.external.domain }}"
   issuerRef:
     name: cloudflare-dns-issuer
     kind: ClusterIssuer
+{{- end }}

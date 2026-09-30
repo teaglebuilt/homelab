@@ -6,18 +6,17 @@ enable:
   certManager: true       # cert-manager (independent per-cluster CA)
   cnpg: true              # CloudNativePG operator
   frontDoor: true         # cloudflare-tunnel + public external-dns live HERE
+  publicGateway: false    # no public gateway here; only mlops serves public traffic
   gitops: false           # argocd (Phase 2 seam)
   grafanaOperator: true   # grafana-operator: manages Grafana datasources/dashboards via CRDs (Grafana itself ships with kube-prometheus-stack)
   hubbleRoute: true       # application owns hubble.homelab.internal
   clusterMesh: true       # include clustermesh overlay in normal helmfile syncs (not only mesh-upgrade path)
 
-# Empty selectors → no hostname pin (application schedules cert-manager/cnpg on
-# any eligible node). Populate if you want to pin to a specific application node.
 nodeSelector:
   certManager: {}
   cnpg: {}
 
-# No external-gateway LB IP pin here: the front-door tunnel reaches the
-# application gateway via in-cluster DNS, so its IP is free to float in the pool.
 externalGateway:
   loadBalancerIP: ""
+
+externalDomain: teaglebuilt.tech

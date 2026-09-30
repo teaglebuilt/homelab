@@ -6,6 +6,7 @@ enable:
   certManager: true       # cert-manager (+ internal CA issuer)
   cnpg: true              # CloudNativePG operator
   frontDoor: false        # cloudflare-tunnel + public external-dns — lives on `application`
+  publicGateway: true     # homelab-external-gateway + tunnel DNSEndpoint — ONLY cluster with a public gateway
   gitops: false           # argocd (Phase 2 seam)
   grafanaOperator: false  # no Grafana on mlops
   hubbleRoute: false      # application owns hubble.homelab.internal; its Hubble UI observes both clusters via ClusterMesh
@@ -22,3 +23,7 @@ nodeSelector:
 # across the ClusterMesh, so it must not drift out of the dynamic LB pool.
 externalGateway:
   loadBalancerIP: "192.168.2.201"
+
+# Cloudflare zone this cluster issues public-trust certificates for. Sourced here,
+# not from the shell, so a stale environment cannot reshape public exposure.
+externalDomain: teaglebuilt.tech
