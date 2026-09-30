@@ -34,6 +34,16 @@ bandwidthManager:
 ipam:
   mode: kubernetes
 
+# Agent ClusterMesh metrics (cilium_clustermesh_remote_cluster_*) come from the
+# cilium-agent process. Enable scrape + ServiceMonitor once here; helmfile applies
+# this base to BOTH clusters (identity/mesh overlays only add peering/IDs).
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: prometheus-community
+
 operator:
   rollOutPods: true
   resources:
@@ -43,6 +53,12 @@ operator:
     requests:
       cpu: 50m
       memory: 128Mi
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      labels:
+        release: prometheus-community
 
 # Roll out cilium agent pods automatically when ConfigMap is updated.
 rollOutCiliumPods: true
@@ -82,6 +98,8 @@ envoy:
   prometheus:
     serviceMonitor:
       enabled: true
+      labels:
+        release: prometheus-community
   securityContext:
     capabilities:
       keepCapNetBindService: true
@@ -107,6 +125,8 @@ hubble:
       - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
     serviceMonitor:
       enabled: true
+      labels:
+        release: prometheus-community
   relay:
     enabled: true
     rollOutPods: true
