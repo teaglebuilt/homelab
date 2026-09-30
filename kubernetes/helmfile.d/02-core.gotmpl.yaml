@@ -115,6 +115,7 @@ releases:
       - external:
           domain: {{ $extDomain }}
           publicGateway: {{ $enable | get "publicGateway" false }}
+          frontDoor: {{ $enable | get "frontDoor" true }}
           tunnel_id: {{ requiredEnv "CLOUDFLARE_TUNNEL_ID" }}
           {{- if $extLbIp }}
           loadBalancerIP: {{ $extLbIp | quote }}
