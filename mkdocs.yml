@@ -94,3 +94,6 @@ nav:
     - Observability: platform/observability.md
     - Workflows: platform/workflows.md
     - Research: platform/research.md
+  - Decisions:
+    - ADR-0001 GPU Node Stability: adr/0001-gpu-node-stability-on-mlops.md
+    - ADR-0002 Public Exposure Boundary: adr/0002-public-exposure-boundary.md
