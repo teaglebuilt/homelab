@@ -1,5 +1,6 @@
 ---
 external:
+  publicGateway: false
   tunnelHostnames:
     - n8n
 

@@ -9,14 +9,12 @@ env:
 extraArgs:
   - --cloudflare-dns-records-per-page=1000
   - --cloudflare-proxied
-  - --gateway-name=homelab-external-gateway
   - --zone-id-filter={{ requiredEnv "CLOUDFLARE_ZONE_ID" }}
 triggerLoopOnEvent: true
 policy: sync
-sources: ["gateway-httproute", "crd"]
+sources: ["crd"]
 txtOwnerId: default
 txtPrefix: k8s.
-domainFilters: [{{ requiredEnv "CLOUDFLARE_DOMAIN" | quote }}]
 # serviceMonitor:
 #   enabled: true
 {{- if eq (.Values | get "cluster" "mlops") "mlops" }}
