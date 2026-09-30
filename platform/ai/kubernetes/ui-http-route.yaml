@@ -5,13 +5,14 @@ metadata:
   name: kgateway-http-route
   namespace: ai
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal
+    external-dns.alpha.kubernetes.io/hostname: ai.homelab.internal,ai.teaglebuilt.tech
 spec:
   parentRefs:
   - name: homelab-internal-gateway
     namespace: kube-system
   hostnames:
   - "ai.homelab.internal"
+  - "ai.teaglebuilt.tech"
   rules:
   - matches:
     - path:

@@ -5,13 +5,14 @@ metadata:
   name: grafana
   namespace: observability
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: grafana.homelab.internal
+    external-dns.alpha.kubernetes.io/hostname: grafana.homelab.internal,grafana.teaglebuilt.tech
 spec:
   parentRefs:
   - name: homelab-internal-gateway
     namespace: kube-system
   hostnames:
     - grafana.homelab.internal
+    - grafana.teaglebuilt.tech
   rules:
   - matches:
     - path:

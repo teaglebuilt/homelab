@@ -5,13 +5,14 @@ metadata:
   name: firecrawl-http-route
   namespace: automation
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: firecrawl.homelab.internal
+    external-dns.alpha.kubernetes.io/hostname: firecrawl.homelab.internal,firecrawl.teaglebuilt.tech
 spec:
   parentRefs:
     - name: homelab-internal-gateway
       namespace: kube-system
   hostnames:
     - firecrawl.homelab.internal
+    - firecrawl.teaglebuilt.tech
   rules:
     - matches:
         - path:

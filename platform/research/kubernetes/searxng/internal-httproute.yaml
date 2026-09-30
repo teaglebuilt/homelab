@@ -5,13 +5,14 @@ metadata:
   name: searxng-http-route
   namespace: research
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: searxng.homelab.internal
+    external-dns.alpha.kubernetes.io/hostname: searxng.homelab.internal,searxng.teaglebuilt.tech
 spec:
   parentRefs:
     - name: homelab-internal-gateway
       namespace: kube-system
   hostnames:
     - searxng.homelab.internal
+    - searxng.teaglebuilt.tech
   rules:
     - matches:
         - path:
