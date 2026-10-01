@@ -1,9 +1,26 @@
 # AI Platform
 
-1. [Platform AI Clients](#clients)
+1. [Platform AI Clients](#platform-clients)
   1. Claude Code / Cursor
   2. OpenWebUI
 2. [Platform AI Infrastructure](#platform-infrastructure)
+
+## Where it runs
+
+Everything below runs on the `mlops` cluster in namespace `ai`. It is deployed by
+`task platform:ai:deploy` (`platform/ai/Taskfile.yml`), which runs only when `CLUSTER=mlops` and applies
+`kustomize build platform/ai/kubernetes`. The CRDs come first through the task's `install-crds` step.
+
+| Component | Cluster | Namespace | Deployed from |
+|-----------|---------|-----------|---------------|
+| agentgateway controller (chart v2.2.1) | `mlops` | `ai` | `platform/ai/kubernetes/kustomization.yaml` |
+| `ai-gateway` Gateway (`agentgateway` class, LB `192.168.2.203`) | `mlops` | `ai` | `platform/ai/kubernetes/aigateway/` |
+| kagent (chart 0.9.11), agents, kmcp | `mlops` | `ai` | `platform/ai/kubernetes/kustomization.yaml` |
+| LLM providers: OpenAI, Anthropic, self-hosted vLLM | `mlops` | `ai` | `platform/ai/kubernetes/llm-providers/` |
+| MCP servers (GitHub, Firecrawl, Context7, memory) and `/mcp` route | `mlops` | `ai` | `platform/ai/kubernetes/mcp/`, `mcp-backend.yaml`, `mcp-route.yaml` |
+| Open WebUI, openedai-speech | `mlops` | `ai` | `platform/ai/kubernetes/integrations/` |
+| kagent UI route (`ai.homelab.internal`) | `mlops` | `ai` | `platform/ai/kubernetes/ui-http-route.yaml`, attached to `homelab-internal-gateway` |
+| vLLM GPU workload | `mlops-work-00` | `ai` | `platform/ai/kubernetes/llm-providers/selfhosted/` |
 
 ```
                                    ┌─────────────────────── FRONT DOORS ───────────────────────┐
@@ -42,7 +59,6 @@
 
 1. Claude Code
 2. OpenWebUI
-3. ComfyUI
 
 ## Platform Infrastructure
 
@@ -56,13 +72,13 @@ The AI Gateway provides a unified interface for multiple LLM providers, enabling
 
 ### Platform Providers
 
-| Provider | Description |
-|----------|-------------|
-| `Anthropic` | Claude models for advanced reasoning |
-| `OpenAI` | GPT models for general-purpose AI |
-| `Amazon Bedrock` | AWS-managed foundation models |
-| `Ollama` | Self-hosted open-source LLMs |
-| `vLLM` | Self-hosted open-source LLMs |
+| Provider | Description | Source |
+|----------|-------------|--------|
+| `Anthropic` | Claude models for advanced reasoning | `llm-providers/anthropic` |
+| `OpenAI` | GPT models for general-purpose AI | `llm-providers/openai` |
+| `vLLM` | Self-hosted open-source LLM on the RTX 4070 Super | `llm-providers/selfhosted` |
+
+Only the providers listed in `platform/ai/kubernetes/llm-providers/kustomization.yaml` are deployed.
 
 2. **Agents**
 
@@ -70,6 +86,5 @@ The AI Gateway provides a unified interface for multiple LLM providers, enabling
 
 ## Use Cases
 
-1. [AI Software Factory](./software-factory.md)
-2. [RAG (Retrievel Augmented Generation)](./rag.md)
-3. [Agentic Engineering](./agentic-engineering.md)
+1. [RAG (Retrieval Augmented Generation)](./rag.md)
+2. AI Software Factory: **planned**, see "Build Software Factory" in `.ai/ROADMAP.md`

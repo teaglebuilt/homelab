@@ -1,5 +1,15 @@
 # RAG
 
+## Where it runs
+
+| Component | Cluster | Namespace | Deployed from |
+|-----------|---------|-----------|---------------|
+| Qdrant (chart 1.14.1, LB `192.168.2.202`) | `mlops` | `data` as declared. It currently runs in `default` | `platform/data/kubernetes/apps/qdrant/`, applied by `task platform:data:deploy` via `overlays/mlops` |
+| Write plane (`kb ingest` / `kb sync`) | off-cluster (laptop) | — | `github.com/teaglebuilt/knowledge` |
+
+Knowledge retrieval is still open in `.ai/ROADMAP.md` (RAG → Knowledge Retrieval). Knowledge vector
+storage is checked off there.
+
 ## Storage
 
 1. Qdrant

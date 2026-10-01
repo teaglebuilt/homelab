@@ -2,6 +2,85 @@
 
 [Talos Linux](https://www.talos.dev/v1.9/) is a Linux operating system that runs and manages Kubernetes.
 
+## Architecture
+
+Two Talos clusters on separate Proxmox hosts, joined by Cilium ClusterMesh. `application` is the
+front door and the observability hub. `mlops` runs the GPU, AI, automation and data workloads, and
+it is the only cluster that serves public traffic.
+
+```mermaid
+flowchart TB
+    inet([Internet clients])
+    lan([LAN clients])
+
+    subgraph edge["Edge"]
+        cf["Cloudflare edge<br/>teaglebuilt.tech"]
+        udm["UDM Pro<br/>UniFi DNS · *.homelab.internal"]
+    end
+
+    subgraph app["application · pve · clusterId 2 · pods 10.245.0.0/16 · LB 192.168.2.241-254"]
+        cfd["cloudflared<br/>tunnel homelab_external"]
+        dns_a["external-dns (Cloudflare)<br/>internal-dns (UniFi webhook)"]
+        igw_a["homelab-internal-gateway<br/>GatewayClass cilium"]
+        obs["Observability hub<br/>Prometheus · Grafana · Loki · Tempo · OTel gateway"]
+        hub["Hubble UI / Relay<br/>sees flows from both clusters"]
+    end
+
+    subgraph ml["mlops · pve2 · clusterId 1 · pods 10.244.0.0/16 · LB 192.168.2.200-240"]
+        xgw["homelab-external-gateway<br/>GatewayClass cilium · 192.168.2.201<br/>n8n.teaglebuilt.tech"]
+        igw_m["homelab-internal-gateway<br/>GatewayClass cilium"]
+        aigw["ai-gateway<br/>GatewayClass agentgateway · ns ai"]
+        auto["automation<br/>n8n · firecrawl"]
+        ai["ai<br/>kagent · LLM providers · MCP"]
+        data["data<br/>Postgres (CNPG) · Qdrant · Redis"]
+        gpu["mlops-work-00<br/>RTX 4070 Super (vfio passthrough)"]
+        agents["Prometheus agent · OTel agent · Vector"]
+    end
+
+    inet --> cf
+    lan --> udm
+    cf ==>|outbound tunnel| cfd
+    cfd ==>|"https://192.168.2.201 (L2 LB-IP)"| xgw
+    xgw -->|OAuth callback routes only| auto
+    udm -->|"*.homelab.internal"| igw_a
+    udm -->|"*.homelab.internal"| igw_m
+    igw_a --> obs
+    igw_a --> hub
+    igw_m --> auto
+    igw_m --> ai
+    auto -->|MCP| aigw
+    aigw --> ai
+    ai --> gpu
+    ai --> data
+    auto --> data
+    dns_a -. records .-> cf
+    dns_a -. records .-> udm
+    agents -. "remote_write via prometheus.homelab.internal" .-> obs
+    agents -. "OTLP / logs via global mesh Services" .-> obs
+    app <-. "ClusterMesh (shared CA, mTLS)" .-> ml
+```
+
+How to read it:
+
+* **Public path (thick arrows).** Cloudflare reaches the homelab only through the outbound tunnel
+  that `cloudflared` holds open from `application`. Tunnel routing is managed remotely in
+  `terraform/cloudflare_tunnel.tf` and points `n8n.teaglebuilt.tech` at the pinned LoadBalancer IP of
+  `mlops`'s external gateway. That hop runs over the LAN (an L2-announced IP), not over ClusterMesh. The
+  external gateway admits routes only from namespaces labelled `homelab.io/public-ingress: "true"`.
+* **Internal path.** UniFi resolves `*.homelab.internal` to each cluster's internal gateway, using
+  records written by `internal-dns` through the UniFi webhook. Both clusters run an internal gateway,
+  and each HTTPRoute attaches to the gateway in its own cluster.
+* **AI traffic.** Anything in the `ai` namespace goes through `ai-gateway`, which uses the
+  `agentgateway` GatewayClass. The agentgateway controller is installed by
+  `platform/ai/kubernetes/kustomization.yaml`. Other workloads use the Cilium GatewayClass.
+* **Telemetry (dotted).** `mlops` keeps no long-term telemetry of its own. Its Prometheus runs in
+  agent mode and remote-writes to the hub through the internal gateway. OTLP traces and Vector logs
+  reach the hub through Cilium global Services (`otel-collector-mesh`, `loki-gateway-mesh`) across
+  ClusterMesh.
+* **Mesh.** ClusterMesh peering is declarative on both sides and depends on the shared CA (see
+  [Shared mesh CA](#shared-mesh-ca)). The shared CA is also what lets the single Hubble UI on
+  `application` observe both clusters.
+
 ## Core
 
 ### Networking
@@ -18,123 +97,90 @@
 * **Certificate Management**
     - [CertManager](https://github.com/cert-manager/cert-manager)
 
-### Layer 4 Proxy
+### Gateway API
 
-- [Gateway API](https://gateway-api.sigs.k8s.io/)
-    - [Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/)
-- [Kgateway](https://kgateway.dev/docs/main) - AI Gateway for all traffic in `ai` namespace. View docs in [Platform AI](../platform/ai.md) for further information on all AI related resources.
+All north-south HTTP routing uses [Gateway API](https://gateway-api.sigs.k8s.io/) v1 resources.
+Two GatewayClasses are in use:
+
+* `cilium` — Cilium's built-in Gateway API implementation, used for all non-AI traffic.
+* `agentgateway` — the [agentgateway](https://agentgateway.dev/) data plane (kgateway project), used
+  for AI and MCP traffic in the `ai` namespace. See [AI Platform](platform/ai/index.md).
+
+The [Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) CRDs are installed in
+stage `00-prepare`.
 
 ### Gateways
 
-Cilium and Kgateway both utilize GatewayAPI for creating gateway & route declarations. For that reason, we have several different base `GatewayClasses`. All AI traffic should use `GatewayClass` with a target from Kgateway and non-AI workloads will use Cilium.
+| Gateway | Namespace | Class | Cluster | Purpose | Defined in |
+|---------|-----------|-------|---------|---------|------------|
+| `homelab-internal-gateway` | `kube-system` | `cilium` | both | LAN ingress for `*.homelab.internal` (HTTP 80, HTTPS 443) | `kubernetes/charts/homelab-gateway/templates/internal-gateway.yaml` |
+| `homelab-external-gateway` | `kube-system` | `cilium` | `mlops` only (`enable.publicGateway`) | Public origin behind the Cloudflare tunnel; one HTTPS listener per `tunnelHostnames` entry (currently `n8n`). Pinned to `192.168.2.201` | `kubernetes/charts/homelab-gateway/templates/external-gateway.yaml` |
+| `ai-gateway` | `ai` | `agentgateway` | `mlops` | AI, MCP and kagent UI traffic | `platform/ai/kubernetes/aigateway/gateway.yaml` |
 
-| Gateway | Purpose |
-|---------|---------|
-| Internal Gateway | All standard ingress traffic |
-| Egress Gateway | All standard egress traffic |
-| External Gateway | Cloudflare tunnel for OAuth callbacks from external providers |
-| AI Gateway | All AI traffic in `ai` namespace (HTTP/TCP) |
-| VPN Gateway | Site-to-site VPN traffic from homelab to AWS VPC |
+The external gateway only accepts HTTPRoutes from namespaces labelled
+`homelab.io/public-ingress: "true"`. The Cloudflare tunnel and its public DNS record
+(`external-dns-endpoint.yaml`) live on `application` (`enable.frontDoor`). The tunnel's routing rules
+are managed remotely in `terraform/cloudflare_tunnel.tf`, not in the Helm values.
 
-#### VPN Gateway
-
-Routes exchanged:
-
-- **From Homelab → AWS**: Pod CIDRs (per cluster), Service LB CIDR, on-prem subnets
-- **From AWS → Homelab**: VPC CIDRs, AWS service subnets
-
-```text
-      Homelab (Unifi / Proxmox)                      AWS VPC (10.XX.0.0/16)
-                |                                               |
-         Talos Cluster(s)
-           VPN Gateway                                EC2 (FRR+WG)
-            Cilium                                         wg0 + BGP
-                |                                               |
-        +-------+----------------+                      +--------+------+
-        | WireGuard tunnel (wg0) |======================| WireGuard wg0 |
-        +------------------------+                      +---------------+
-                 |   BGP (64512 <-> 64513) over WireGuard   |
-                 |-------------------------------------------|
-```
-
-```text
-                       Internet
-                           |
-                 +---------+---------+
-                 |                   |
-        Cloudflare (Public DNS)   Unifi (Internal DNS)
-                 |                   |
-                 +---------+---------+
-                           |
-                  Unifi Gateway / Edge
-                           |
-                   LAN XXX.XX.X.0/24
-                           |
-         +-----------------+-----------------+
-         |                                   |
-   Proxmox Host(s)                       Proxmox Host(s)
-         |                                   |
-   Talos Cluster: mlops               Talos Cluster: application
-   (AI workloads)                     (platform/ops)
-         |                                   |
-   +-----+-------------------+         +-----+-------------------+
-   | Cilium (BGP, LB/IPAM)   |         | Cilium (BGP, LB/IPAM)   |
-   | ClusterMesh (peer)      |<------->| ClusterMesh (peer)      |
-   +-----------+-------------+         +-----------+-------------+
-               |                                   |
-     Gateway API / KGateway                Gateway API
-     ai-gateway (TLS)                      admin-gateway (TLS)
-               |                                   |
-        HTTPRoutes (/ollama, ...)          HTTPRoutes (admin apps)
-               |                                   |
-        Services / Backends                Services (Argocd, Observability, etc.)
-```
+There is no cluster egress gateway or site-to-site VPN gateway. The only VPN code in the repo is
+`tf_modules/algo_vpn`, a Terraform module that provisions an [Algo](https://github.com/trailofbits/algo)
+WireGuard server over SSH. No root module currently references it.
 
 ## Security
 
 * **Certificates** - CertManager is used to automate certificate management and rotation for all services, both internal and external routes.
-    - `internal` certificates use internal DNS resolution with [ExternalDNS webhook](https://github.com/kashalls/external-dns-unifi-webhook). A cluster issuer exists for issuing all internal certificates.
-    - `external` certificates are managed with Cloudflare and an issuer exists using Cloudflare for issuing these certificates. These services are only exposed over Cloudflare tunnels.
-    - `shared` A shared certificate is provisioned between clusters for joining the the clustermesh in `kubernetes/clusteres/shared/cilium-ca.sops.yaml`
+    - `internal` — `*.homelab.internal` certificates are issued by `internal-ca-cluster-issuer`, a private CA (`kubernetes/apps/security/cert-manager/internal-ca-issuer.yaml`). Their DNS records are written to UniFi by `internal-dns` through the [ExternalDNS UniFi webhook](https://github.com/kashalls/external-dns-unifi-webhook).
+    - `external` — `*.teaglebuilt.tech` certificates are issued by `cloudflare-dns-issuer` using a Cloudflare DNS-01 challenge (`kubernetes/apps/security/cert-manager/cloudflare-issuer.yaml`).
+    - `shared` — the ClusterMesh CA shared by both clusters, stored at `kubernetes/clusters/_shared/cilium-ca.sops.yaml` (see [Shared mesh CA](#shared-mesh-ca)).
 
 ## Clusters
 
-Cilium ClusterMesh is used for multi-cluster networking. The `application cluster` is responsible for GitOps operations and cluster management using ApplicationSets in Argo CD.
+Two clusters are deployed: `application` and `mlops`, joined by Cilium ClusterMesh. Each is defined in
+`kubernetes/clusters/<cluster>/` and its VMs in `kubernetes/terraform/<cluster>/main.tf`. Neither
+cluster runs Argo CD today. `enable.gitops` is `false` in both `environment.yaml` files.
 
-### Admin Cluster
+### Admin Cluster (planned)
 
-Gitops administration and declaration for cluster fleet management and control.
+!!! info "Planned — not deployed"
+    An administration cluster for GitOps (Argo CD) is an open item in `.ai/ROADMAP.md`. There is no
+    `kubernetes/clusters/admin/` directory and no Terraform for it yet.
 
-| Node | Role |
-|------|------|
-| `admin-ctrl-00` | Control Plane |
-| `admin-work-00` | Worker |
+The seam for it already exists. Stage `05-gitops` (`kubernetes/helmfile.d/05-gitops.gotmpl.yaml`) is
+included from both clusters' `helmfile.yaml` and holds an `argocd` release guarded by
+`enable.gitops`. While the flag is `false` the stage renders nothing. According to the stage's own
+notes, the intent is to run Argo CD on the administration cluster and hand app delivery to an
+ApplicationSet (`kubernetes/apps/gitops/argocd/`) that manages the other clusters.
 
 ### Application Cluster
 
-General application related workloads and services
+Front door (Cloudflare tunnel, public ExternalDNS), observability hub, Hubble UI, and SeaweedFS
+object storage (`storage` namespace, applied by a stage `01-bootstrap` hook on this cluster only).
+Runs on Proxmox host `pve`.
 
 | Node | Role |
 |------|------|
-| `app-ctrl-00` | Control Plane |
-| `app-work-00` | Worker |
-| `app-work-01` | Worker |
+| `application-ctrl-00` | Control Plane |
+| `application-work-00` | Worker |
+
+A second worker, `application-work-01`, is commented out in `kubernetes/terraform/application/main.tf`.
+`.ai/ROADMAP.md` also plans to move non-ML workloads, such as the `data` namespace, to this cluster.
 
 ### MLOps Cluster
 
-Generative AI and Machine Learning Operations
+Generative AI and machine learning: GPU and WASM runtimes, the AI platform, automation (n8n), and the
+data services. It also hosts the only public gateway. Runs on Proxmox host `pve2`.
 
 | Node | Role |
 |------|------|
 | `mlops-ctrl-00` | Control Plane |
-| `mlops-work-00` | Worker |
-| `mlops-work-01` | Worker (GPU) |
+| `mlops-work-00` | Worker (GPU, RTX 4070 Super passthrough) |
+| `mlops-work-01` | Worker. Pinned target for cert-manager and CNPG (`nodeSelector` in `environment.yaml`) |
 
 #### GPU Passthrough
 
-**vfio-pci** is set as the kernel driver on the GeForce RTX 4070 Super. This is needed for GPU passthrough to work so the virtualized Kubernetes node can utilize it. It is registered in Proxmox as a PCIe device which is defined in Terraform [here](https://github.com/teaglebuilt/homelab/blob/main/tf_modules/talos_cluster/pci_mapping.tf).
+**vfio-pci** is set as the kernel driver on the GeForce RTX 4070 Super. This is needed for GPU passthrough to work so the virtualized Kubernetes node can utilize it. It is registered in Proxmox as a PCIe device which is defined in Terraform [here](https://github.com/teaglebuilt/homelab/blob/main/tf_modules/talos_cluster/pci_mapping.tf). The device is attached to `mlops-work-00` through its `pci` block in `kubernetes/terraform/mlops/main.tf`.
 
-![GPU Node](../assets/gpu-node.png)
+![GPU Node](assets/gpu-node.png)
 
 ## Bootstrapping
 
@@ -166,10 +212,10 @@ Stages run in order. Dependencies within a stage use Helmfile `needs:`.
 |-------|------|----------|
 | Prepare | `00-prepare` | Hooks only, no releases. Labels the `default` namespace privileged for BPF/hostNetwork workloads, applies local storage, decrypts SOPS secrets (AWS, GHCR, shared Cilium CA), and installs Gateway API v1.2.0, Prometheus Operator, and Inference Extension CRDs |
 | Bootstrap Network | `01-bootstrap` | Establish what is needed for networking to work - `reflector`, `reloader`, `cilium`, `coredns`, `spegel`, `csi-driver-nfs`, `metrics-server` |
-| Bootstrap Core | `02-core` | Setup all networking depdendencies - `cloudflare-tunnel`, `internal-dns`, `external-dns`, `cert-manager`, `homelab-gateway`, `cnpg` |
+| Bootstrap Core | `02-core` | Setup all networking dependencies - `cloudflare-tunnel`, `internal-dns`, `external-dns`, `cert-manager`, `homelab-gateway`, `cnpg` |
 | Bootstrap Hardware | `03-hardware` | Deploy resources for hardware support - `nvidia-device-plugin`, `dcgm-exporter`, `node-problem-detector`, `kwasm-operator`, `spin-operator`, `netops-agent` |
 | Bootstrap Monitoring |  `04-monitoring` | `vector`, `grafana-operator` — the Prometheus/Grafana stack itself ships via `platform:deploy` |
-| Bootstrap Gitops | `05-gitops` | not yet implemented - `argocd` |
+| Bootstrap Gitops | `05-gitops` | `argocd`, guarded by `enable.gitops`. The stage is included from both clusters but renders nothing while the flag is `false` (currently both). Planned, see [Admin Cluster](#admin-cluster-planned) |
 
 Most releases are gated on an `enable.*` toggle, so a stage renders differently per cluster. For
 example `frontDoor` is true only on `application`, which is why the Cloudflare tunnel and the public

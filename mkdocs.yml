@@ -81,16 +81,28 @@ markdown_extensions:
       emoji_index: !!python/name:pymdownx.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
+exclude_docs: |
+  env/
+
+not_in_nav: |
+  platform/ai/agentic-engineering.md
+  platform/ai/software-factory.md
+  platform/automation/scraping-platform.md
+  platform/downloads/README-GLUETUN-SETUP.md
+
 nav:
   - Home: index.md
   - Overview: overview.md
   - Hardware: hardware.md
   - Network: network.md
-  - Infrastructure:
-    - Kubernetes: infra/kubernetes.md
-    - Portainer: infra/portainer.md
+  - Kubernetes: kubernetes.md
   - Platform:
-    - AI: platform/ai.md
+    - AI:
+      - platform/ai/index.md
+      - RAG: platform/ai/rag.md
+    - Automation:
+      - platform/automation/index.md
+      - Workflows: platform/workflows.md
     - Observability: platform/observability.md
-    - Workflows: platform/workflows.md
+    - Media: platform/media.md
     - Research: platform/research.md
