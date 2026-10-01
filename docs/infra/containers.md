@@ -1,9 +1,0 @@
-# Gitops
-
-## ArgoCD
-
-...
-
-## Portainer
-
-...

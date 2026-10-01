@@ -123,6 +123,11 @@ Read only the relevant files:
 - [troubleshooting.md](references/troubleshooting.md) — read-only diagnostic
   ladder, symptom mapping, support bundles, and etcd recovery safety.
 
+Upstream Talos and Omni documentation is served by the `siderolabs-docs` MCP
+server (`search_sidero_documentation`, `query_docs_filesystem_sidero_documentation`).
+Use it instead of fetching docs.siderolabs.com, and still verify the result against
+the installed version — the server serves current docs, not version-pinned ones.
+
 ## Source Precedence
 
 When sources disagree, use this order:

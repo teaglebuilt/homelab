@@ -2,7 +2,6 @@
 
 [Talos Linux](https://www.talos.dev/v1.9/) is a Linux operating system that runs and manages Kubernetes.
 
-
 ## Core
 
 ### Networking
