@@ -8,11 +8,7 @@ background: false
 disable-model-invocation: true
 ---
 
-# Homelab Development Task
-
-Implement this homelab change:
-
-$ARGUMENTS
+# Homelab Developer
 
 If no task was supplied, report that `/homelab-developer` requires an implementation
 request and stop. If the argument is a path under `.ai/plans/`, read that plan first

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Monorepo managing a self-hosted homelab: bare-metal Kubernetes clusters on Proxmox VMs (Talos Linux), platform services via Docker Compose, and infrastructure automation via Terraform and Ansible.
+homelab and developer platform built on kubernetes.
 
 ## Repository Layout
 

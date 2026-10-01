@@ -1,7 +1,6 @@
 ---
 name: homelab-architect
 description: Plan, evaluate, review, or design infrastructure changes in the teaglebuilt homelab repository.
-argument-hint: "<architecture task>"
 context: fork
 agent: architect
 disable-model-invocation: true
@@ -10,8 +9,6 @@ disable-model-invocation: true
 # Homelab Architecture Task
 
 Analyze this architecture request:
-
-$ARGUMENTS
 
 If no task was supplied, report that `/homelab-architect` requires an architecture request and stop.
 
@@ -41,7 +38,6 @@ Load only the skills required for the task.
 | kagent agents, AgentHarness, Substrate, agent memory, HITL or kagent CRDs                         | `kagent`                                                                  |
 | General architecture methods, ADRs or capacity planning                                           | `infrastructure-architect`, only when its broader methods materially help |
 | NVIDIA NIM deployment and model serving                                                           | `nvidia-nim`                                                              |
-| cloudflare tunnels, cloudflare_tunnel.tf, cloudflare/                                                                               | `cloudflare-one`                                                          |
 
 Use `.ai/context/docs.md` only when:
 
