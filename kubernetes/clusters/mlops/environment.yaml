@@ -13,10 +13,8 @@ enable:
   clusterMesh: true       # include clustermesh overlay in normal helmfile syncs (not only mesh-upgrade path)
 
 nodeSelector:
-  certManager:
-    kubernetes.io/hostname: mlops-work-01
-  cnpg:
-    kubernetes.io/hostname: mlops-work-01
+  certManager: {}
+  cnpg: {}
 
 # Pin the external gateway's LoadBalancer IP. The front-door tunnel (on
 # `application`) routes n8n.teaglebuilt.tech straight to this IP to reach n8n

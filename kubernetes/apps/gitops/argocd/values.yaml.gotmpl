@@ -26,10 +26,6 @@ server:
     hosts:
       - gitops.homelab.internal
 
-repoServer:
-  nodeSelector:
-    kubernetes.io/hostname: mlops-work-01
+repoServer: {}
 
-dex:
-  nodeSelector:
-    kubernetes.io/hostname: mlops-work-01
+dex: {}
