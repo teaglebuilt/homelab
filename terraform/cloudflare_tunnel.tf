@@ -8,13 +8,13 @@ variable "homelab_external_tunnel_id" {
   type        = string
 }
 
-variable "mlops_external_gateway_ip" {
-  description = "Pinned LB IP of the mlops homelab-external-gateway (Cilium LB-IPAM)."
+variable "external_gateway_ip" {
+  description = "Pinned LB IP of the homelab-external-gateway on application (Cilium LB-IPAM)."
   type        = string
 
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.mlops_external_gateway_ip))
-    error_message = "mlops_external_gateway_ip must be a non-empty IPv4 address (got an empty/invalid value that would produce service=https://)."
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.external_gateway_ip))
+    error_message = "external_gateway_ip must be a non-empty IPv4 address (got an empty/invalid value that would produce service=https://)."
   }
 }
 
@@ -24,10 +24,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab_external" {
 
   config = {
     ingress = [
-      # n8n on mlops — public OAuth callback host. First match wins.
+      # n8n on application — public OAuth callback host. First match wins.
       {
         hostname = "n8n.teaglebuilt.tech"
-        service  = "https://${var.mlops_external_gateway_ip}"
+        service  = "https://${var.external_gateway_ip}"
         origin_request = {
           no_tls_verify      = true
           origin_server_name = "n8n.teaglebuilt.tech"

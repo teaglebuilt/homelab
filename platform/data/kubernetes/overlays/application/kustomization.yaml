@@ -4,3 +4,6 @@ kind: Kustomization
 namespace: data
 resources:
   - ../../base
+  - ../../apps/postgres
+  - ../../apps/qdrant
+  - ../../apps/redis

@@ -34,8 +34,6 @@ helmCharts:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: qdrant.homelab.internal
         type: LoadBalancer
-      nodeSelector:
-        kubernetes.io/hostname: mlops-work-01
 
 generators:
   - secrets-generator.yaml

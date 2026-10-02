@@ -1,4 +1,4 @@
-# Loki
+# Loki Storage Configuration Reference
 
 ## Storage Architecture
 

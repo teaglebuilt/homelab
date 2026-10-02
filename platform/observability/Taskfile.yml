@@ -10,7 +10,7 @@ tasks:
     dir: observability
     summary: Deploy the per-cluster observability stack (CLUSTER=mlops|application)
     vars:
-      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     preconditions:
       - sh: test -d kubernetes/overlays/{{.CLUSTER}}
@@ -19,29 +19,19 @@ tasks:
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."
     cmds:
       - |-
-        # Belt-and-suspenders: flags are also inlined here so they are never
-        # dropped when this task is called from the parent platform:deploy chain
-        # via `task: observability:deploy vars: { CLUSTER: ... }`.
-        MANIFEST="$(kustomize build \
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build \
           --enable-helm \
           --enable-exec \
           --enable-alpha-plugins \
           --load-restrictor LoadRestrictionsNone \
-          kubernetes/overlays/{{.CLUSTER}})"
-        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        # Two-pass apply: a fresh overlay can introduce CRDs (e.g. the OTel
-        # operator) in the same stream as the CRs that use them (OpenTelemetryCollector).
-        # Pass 1 lands the CRDs (dependent CRs may fail on a brand-new cluster);
-        # wait for CRD establishment; pass 2 converges everything.
-        printf '%s\n' "$MANIFEST" | kubectl apply -f - || true
-        kubectl wait --for=condition=established crd --all --timeout=120s >/dev/null 2>&1 || true
-        printf '%s\n' "$MANIFEST" | kubectl apply -f -
+          kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+
 
   destroy:
     dir: observability
     cmds:
       - |-
-        kustomize build \
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build \
           --enable-helm \
           --enable-exec \
           --enable-alpha-plugins \

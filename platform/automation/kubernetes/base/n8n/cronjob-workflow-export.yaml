@@ -22,8 +22,6 @@ spec:
           restartPolicy: OnFailure
           securityContext:
             fsGroup: 1000
-          nodeSelector:
-            kubernetes.io/hostname: mlops-work-01
           initContainers:
             - name: export
               image: ghcr.io/n8n-io/n8n:latest

@@ -4,7 +4,3 @@ kind: Kustomization
 namespace: data
 resources:
   - ../../base
-  - pv.yaml
-  - ../../apps/postgres
-  - ../../apps/qdrant
-  - ../../apps/redis

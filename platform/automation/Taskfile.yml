@@ -9,15 +9,13 @@ vars:
 
 tasks:
   deploy:
-    desc: Deploy automation stack (mlops-only; skipped on other clusters)
+    desc: Deploy automation stack
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
-    status:
-      - test "{{.CLUSTER}}" != "mlops"
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   destroy:
     vars:

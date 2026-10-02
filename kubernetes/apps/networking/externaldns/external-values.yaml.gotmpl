@@ -17,9 +17,3 @@ txtOwnerId: default
 txtPrefix: k8s.
 # serviceMonitor:
 #   enabled: true
-{{- if eq (.Values | get "cluster" "mlops") "mlops" }}
-# Pin to the capable node on mlops. On application (where the front door lives)
-# schedule on any node — mlops-work-01 does not exist there.
-nodeSelector:
-  kubernetes.io/hostname: mlops-work-01
-{{- end }}

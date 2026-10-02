@@ -31,6 +31,9 @@ tasks:
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    # GPU/agent stack only — application overlay is integrations-only.
+    status:
+      - '[ "{{.CLUSTER}}" != "mlops" ]'
     cmds:
       - task: adopt-crds
         vars: { CLUSTER: '{{.CLUSTER}}' }
@@ -51,25 +54,26 @@ tasks:
 
   deploy:
     dir: ai
-    desc: Deploy AI platform (GPU/mlops-only; skipped on other clusters)
+    desc: Deploy AI platform (per-cluster overlay)
+    requires:
+      vars: [CLUSTER]
     vars:
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/mlops/kubeconfig'
-    status:
-      - test "{{.CLUSTER}}" != "mlops"
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - task: install-crds
-        vars: { CLUSTER: 'mlops' }
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -n {{.AI_NAMESPACE}} -f -
 
   destroy:
     dir: ai
+    requires:
+      vars: [CLUSTER]
     vars:
-      CLUSTER: '{{.CLUSTER | default "mlops"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -n {{.AI_NAMESPACE}} -f -
 
   test:
     cmds:

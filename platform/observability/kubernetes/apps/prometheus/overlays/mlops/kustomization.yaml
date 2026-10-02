@@ -10,36 +10,38 @@ helmCharts:
     namespace: observability
     releaseName: prometheus-community
     additionalValuesFiles:
-      - values.yaml               # mlops-specific: nodeSelector, LB service, scrape configs
-      - prometheus-operator.yaml  # shared lean operator config
+      - values.yaml               # agentMode + remoteWrite + scrape configs
+      - prometheus-operator.yaml  # lean operator (required to manage PrometheusAgent)
     valuesInline:
+      # Spoke cluster: PrometheusAgent only. Scrape local GPU/vLLM targets and
+      # remote_write to the application hub. No local TSDB, rules, or exporters.
       defaultRules:
         create: false
-      nodeExporter:
-        enabled: true
-      kubeApiServer:
-        enabled: false
-      kubernetesServiceMonitors:
-        enabled: true
-      coreDns:
-        enabled: false
-      kubeDns:
-        enabled: false
-      crds:
-        enabled: true
       alertmanager:
         enabled: false
       grafana:
         enabled: false
-      kubeEtcd:
+      nodeExporter:
+        enabled: false
+      kubeStateMetrics:
+        enabled: false
+      kubeApiServer:
+        enabled: false
+      kubelet:
         enabled: false
       kubeControllerManager:
         enabled: false
       kubeScheduler:
         enabled: false
-      kubeStateMetrics:
-        enabled: true
       kubeProxy:
         enabled: false
-      kubelet:
+      kubeEtcd:
+        enabled: false
+      coreDns:
+        enabled: false
+      kubeDns:
+        enabled: false
+      kubernetesServiceMonitors:
+        enabled: false
+      crds:
         enabled: true

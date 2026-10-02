@@ -38,6 +38,10 @@ Load only the skills required for the task.
 | kagent agents, AgentHarness, Substrate, agent memory, HITL or kagent CRDs                         | `kagent`                                                                  |
 | General architecture methods, ADRs or capacity planning                                           | `infrastructure-architect`, only when its broader methods materially help |
 | NVIDIA NIM deployment and model serving                                                           | `nvidia-nim`                                                              |
+| Observability topology, signal routing, retention, sampling, cardinality, alerting strategy       | `observability-engineering`, then `prometheus`, `loki`, `tempo`, `opentelemetry` or `grafana` as it routes |
+| GitOps ownership model, drift, reconciliation, Helmfile vs ArgoCD boundaries                      | `gitops-principles`                                                       |
+| ApplicationSet generators, Image Updater, multi-cluster onboarding                                | `argocd-advanced`                                                         |
+| DNS record ownership, split-horizon, ExternalDNS or Cloudflare zones                              | `external-dns`, `cloudflare-dns`                                          |
 
 Use `.ai/context/docs.md` only when:
 
