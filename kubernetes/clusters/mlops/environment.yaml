@@ -4,7 +4,7 @@ enable:
   wasm: true              # kwasm-operator, spin-operator
   gateway: true           # homelab-gateway (kgateway)
   certManager: true       # cert-manager (+ internal CA issuer)
-  cnpg: true              # CloudNativePG operator
+  cnpg: false             # postgres moved to application; operator not needed here
   frontDoor: false        # cloudflare-tunnel + public external-dns — lives on `application`
   publicGateway: false    # moved to application
   gitops: false           # argocd (Phase 2 seam)
