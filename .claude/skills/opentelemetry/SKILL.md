@@ -3,6 +3,9 @@ name: opentelemetry
 description: Implement OpenTelemetry (OTEL) observability - Collector configuration, Kubernetes deployment, traces/metrics/logs pipelines, instrumentation, and troubleshooting. Use when working with OTEL Collector, telemetry pipelines, observability infrastructure, or Kubernetes monitoring.
 ---
 
+> **Homelab:** this is an upstream, generic skill. Read the `observability-engineering`
+> skill first for this repo's topology, pinned versions, endpoints and storage overrides.
+
 # OpenTelemetry Implementation Guide
 
 ## Overview

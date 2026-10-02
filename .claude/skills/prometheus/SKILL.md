@@ -3,6 +3,9 @@ name: prometheus
 description: Query and interact with Prometheus HTTP API for monitoring data. Use when Claude needs to query Prometheus metrics, execute PromQL queries, retrieve targets/alerts/rules status, access metadata about series/labels, manage TSDB operations, or troubleshoot monitoring infrastructure. Supports instant queries, range queries, metadata endpoints, admin APIs, and alerting information.
 ---
 
+> **Homelab:** this is an upstream, generic skill. Read the `observability-engineering`
+> skill first for this repo's topology, pinned versions, endpoints and storage overrides.
+
 # Prometheus API Skill
 
 Query Prometheus monitoring systems via HTTP API at `/api/v1`.

@@ -3,6 +3,9 @@ name: grafana
 description: Comprehensive skill for interacting with Grafana's HTTP API to manage dashboards, data sources, folders, alerting, annotations, users, teams, and organizations. Use when Claude needs to (1) Create, read, update, or delete Grafana dashboards, (2) Manage data sources and connections, (3) Configure alerting rules, contact points, and notification policies, (4) Work with folders and permissions, (5) Manage users, teams, and service accounts, (6) Create or query annotations, (7) Execute queries against data sources, or any other Grafana automation task via API.
 ---
 
+> **Homelab:** this is an upstream, generic skill. Read the `observability-engineering`
+> skill first for this repo's topology, pinned versions, endpoints and storage overrides.
+
 # grafana-skill
 
 Programmatically manage Grafana resources using TypeScript tools and HTTP API workflows.

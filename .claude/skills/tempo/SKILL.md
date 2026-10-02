@@ -3,6 +3,9 @@ name: tempo
 description: Guide for implementing Grafana Tempo - a high-scale distributed tracing backend for OpenTelemetry traces. Use when configuring Tempo deployments, setting up storage backends (S3, Azure Blob, GCS), writing TraceQL queries, deploying via Helm, understanding trace structure, or troubleshooting Tempo issues on Kubernetes.
 ---
 
+> **Homelab:** this is an upstream, generic skill. Read the `observability-engineering`
+> skill first for this repo's topology, pinned versions, endpoints and storage overrides.
+
 # Grafana Tempo Skill
 
 Comprehensive guide for Grafana Tempo - the cost-effective, high-scale distributed tracing backend designed for OpenTelemetry.

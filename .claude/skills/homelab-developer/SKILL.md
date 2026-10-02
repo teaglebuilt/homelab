@@ -1,7 +1,7 @@
 ---
 name: homelab-developer
 description: Implement, debug, validate, or repair infrastructure code in the teaglebuilt homelab repository.
-argument-hint: "<implementation task or path to plan file>"
+argument-hint: "<implementation task or path to story or plan file>"
 context: fork
 agent: developer
 background: false
@@ -11,7 +11,7 @@ disable-model-invocation: true
 # Homelab Developer
 
 If no task was supplied, report that `/homelab-developer` requires an implementation
-request and stop. If the argument is a path under `.ai/plans/`, read that plan first
+request and stop. If the argument is a path under `.ai/stories/` or `.ai/plans/`, read it first
 and implement it.
 
 ## Scope

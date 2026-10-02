@@ -74,9 +74,9 @@ docs/                 # MkDocs documentation site
 
 ## Agentic Tools
 
-### Live Cluster Tools (via homelab-kagent MCP server)
+### Live Cluster Tools (via homelab-agent MCP server)
 
-The `homelab-kagent` MCP server (configured in `.mcp.json`) proxies through the agentgateway in the `ai` namespace and exposes the kagent tool server. Use these tools when you need to ground architecture decisions in the actual current state of the cluster — what's really deployed, how networking is actually wired, what policies are actually enforced.
+The `homelab-agent` MCP server (configured in `.mcp.json`) proxies through the agentgateway in the `ai` namespace and exposes the kagent tool server. Use these tools when you need to ground architecture decisions in the actual current state of the cluster — what's really deployed, how networking is actually wired, what policies are actually enforced.
 
 Relevant tool families:
 - `kagent-tools_helm_*` — see what's actually released and at which version
