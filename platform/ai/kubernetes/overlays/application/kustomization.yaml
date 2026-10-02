@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+# Non-GPU integrations only. LLM providers, kagent, and ai-gateway stay on mlops.
+# base includes ai-gateway-mesh for ClusterMesh reachability from open-webui.
+resources:
+  - ../../base
+  - ../../integrations

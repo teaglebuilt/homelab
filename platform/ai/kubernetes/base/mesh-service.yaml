@@ -1,0 +1,29 @@
+---
+# Cilium ClusterMesh front door for ai-gateway. Real backends run on mlops;
+# application open-webui dials this ClusterIP and Cilium routes cross-cluster.
+# Same pattern as otel-collector-mesh / loki-gateway-mesh.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-gateway-mesh
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: ai-gateway-mesh
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    service.cilium.io/global: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/instance: ai-gateway
+    app.kubernetes.io/name: ai-gateway
+    gateway.networking.k8s.io/gateway-name: ai-gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP

@@ -27,9 +27,10 @@ resources:
     memory: 2Gi
 
 extraEnvVars:
+  # ai-gateway-mesh is the Cilium global Service — backends live on mlops.
   - name: OPENAI_API_BASE_URLS
     value: >-
-      http://ai-gateway.ai.svc.cluster.local/vllm/v1;http://ai-gateway.ai.svc.cluster.local/openai/v1;http://ai-gateway.ai.svc.cluster.local/claude/v1
+      http://ai-gateway-mesh.ai.svc.cluster.local/vllm/v1;http://ai-gateway-mesh.ai.svc.cluster.local/openai/v1;http://ai-gateway-mesh.ai.svc.cluster.local/claude/v1
   - name: OPENAI_API_KEYS
     value: "not-required;not-required;not-required"
   - name: WEBUI_URL
@@ -78,13 +79,12 @@ extraEnvVars:
       secretKeyRef:
         name: openwebui-secrets
         key: webui_api_key
+  # Live qdrant is in `default` on application (declared `data` — see
+  # workload-reallocation Q7). Prefer the LB DNS so the URI survives ns moves.
   - name: QDRANT_URI
-    value: "http://qdrant.data.svc.cluster.local:6333"
+    value: "http://qdrant.homelab.internal:6333"
   - name: QDRANT_API_KEY
-    valueFrom:
-      secretKeyRef:
-        name: qdrant-secrets
-        key: qdrant_api_key
+    value: "your-super-secret-api-key"
   - name: STORAGE_PROVIDER
     value: s3
   - name: S3_REGION_NAME
@@ -112,7 +112,7 @@ extraEnvVars:
     value: "openai"
   - name: RAG_OPENAI_API_BASE_URL
     value: >-
-      http://ai-gateway.ai.svc.cluster.local/v1
+      http://ai-gateway-mesh.ai.svc.cluster.local/v1
   - name: RAG_EMBEDDING_MODEL
     value: "embeddings"
 requests:
