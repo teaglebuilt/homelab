@@ -10,9 +10,6 @@ spec:
   storage:
     size: 10Gi
     storageClass: local-path
-  affinity:
-    nodeSelector:
-      kubernetes.io/hostname: mlops-work-01
   bootstrap:
     initdb:
       database: leads
