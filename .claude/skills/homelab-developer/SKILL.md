@@ -82,8 +82,21 @@ procedure — do not reimplement that guidance here.
 | MCP, A2A, LLM-provider routing, agent traffic, agent connectivity                          | `agentgateway`              |
 | kagent agents, ModelConfig, MCPServer, AgentHarness, Substrate, memory, HITL               | `kagent`                    |
 | NVIDIA NIM deployment and model serving                                                    | `nvidia-nim`                |
-| Observability pipelines, OpenTelemetry, Prometheus, Loki, Tempo, dashboards, alerts        | `observability-engineering` |
+| Observability stack changes, cross-signal correlation, alerts — always load first          | `observability-engineering` |
+| PromQL, alert/recording rules, scrape targets, Prometheus API                              | `prometheus`                |
+| LogQL, Loki storage, retention, limits, OTLP log ingestion                                 | `loki`                      |
+| TraceQL, Tempo config, metrics-generator                                                   | `tempo`                     |
+| OTel Collector pipelines, operator CRs, instrumentation                                    | `opentelemetry`             |
+| Grafana dashboards, datasources, alerting via API                                          | `grafana`                   |
+| ExternalDNS sources, providers, record ownership                                           | `external-dns`              |
+| Cloudflare DNS records and zone operations                                                 | `cloudflare-dns`            |
+| ArgoCD ApplicationSets, Image Updater, cluster onboarding                                  | `argocd-advanced`           |
+| MkDocs site in `docs/`                                                                     | `mkdocs`                    |
 | n8n workflow authoring and maintenance                                                     | `n8n-workflow`              |
+
+Load `observability-engineering` before any of `prometheus`, `loki`, `tempo`,
+`opentelemetry`, or `grafana`. It holds the homelab versions, endpoints, and overrides
+that the generic backend skills get wrong for this repo.
 
 For Helm, Helmfile, Kustomize, Terraform, Docker Compose, and secrets work — which have no
 dedicated domain skill — read

@@ -13,7 +13,8 @@ Programmatically manage Grafana resources using TypeScript tools and HTTP API wo
 |----------|---------|------|
 | **DashboardCrud** | "create dashboard", "update dashboard", "delete dashboard", "list dashboards", "export dashboard" | `Tools/DashboardCrud.ts` |
 | **GrafanaClient** | "grafana API", "grafana client", "TypeScript grafana" | `Tools/GrafanaClient.ts` |
-| **ApiReference** | "grafana API reference", "grafana endpoints" | `References/` |
+| **ApiReference** | "grafana API reference", "grafana endpoints" | `references/` |
+| **DashboardOperations** | "dashboard workflow", "migrate dashboard", "bulk dashboard" | `Workflows/DashboardOperations.md` |
 
 ## Tools
 
@@ -104,13 +105,13 @@ curl -H "Authorization: Bearer $GRAFANA_TOKEN" \
 
 ## Reference Documentation
 
-- **[Dashboards](References/Dashboards.md)**: Complete dashboard CRUD, versions, permissions
-- **[DataSources](References/DataSources.md)**: Data source management, queries, health checks
-- **[Alerting](References/Alerting.md)**: Alert rules, contact points, notification policies
-- **[Folders](References/Folders.md)**: Folder management and permissions
-- **[Annotations](References/Annotations.md)**: Create, query, update annotations
-- **[UsersTeams](References/UsersTeams.md)**: User management, team operations
-- **[CommonPatterns](References/CommonPatterns.md)**: Error handling, pagination, utilities
+- **[Dashboards](references/dashboards.md)**: Complete dashboard CRUD, versions, permissions
+- **[DataSources](references/datasources.md)**: Data source management, queries, health checks
+- **[Alerting](references/alerting.md)**: Alert rules, contact points, notification policies
+- **[Folders](references/folders.md)**: Folder management and permissions
+- **[Annotations](references/annotations.md)**: Create, query, update annotations
+- **[UsersTeams](references/UsersTeams.md)**: User management, team operations
+- **[CommonPatterns](references/CommonPatterns.md)**: Error handling, pagination, utilities
 
 ## Examples
 
