@@ -3,7 +3,7 @@
 
 nameOverride: "otel-gateway"
 mode: "deployment"
-namespaceOverride: "monitoring"
+namespaceOverride: "observability"
 replicaCount: 3
 
 # Enable cluster-level presets

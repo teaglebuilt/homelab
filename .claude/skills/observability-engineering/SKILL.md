@@ -101,7 +101,7 @@ fields or Tempo service graphs in Prometheus need both backend skills plus
 The backend skills are generic. These facts take precedence over them.
 
 - **Storage is SeaweedFS S3** (`seaweedfs-s3.storage.svc.cluster.local:8333`, path-style,
-  insecure). Skip Azure, GCS, and workload-identity sections in `loki` and `tempo`.
+  insecure). Skip GCS and public-cloud IAM sections in `loki` and `tempo`.
 - **Loki is SingleBinary.** `read`, `write`, and `backend` are scaled to 0, and memcached
   caches are disabled. Ignore SSD/microservices sizing advice. Retention is 24h, and
   `allow_structured_metadata: true` is load-bearing for Loki → Tempo correlation.
@@ -113,8 +113,7 @@ The backend skills are generic. These facts take precedence over them.
 - **No multi-tenancy.** Omit `X-Scope-OrgID` unless you are explicitly changing that.
 - **Collectors are `OpenTelemetryCollector` CRs managed by the operator**, not the
   `opentelemetry-collector` Helm chart. The `presets:` and `mode:` examples in the
-  `opentelemetry` skill map to CR `spec` fields. Namespace is `observability`, not
-  `monitoring`.
+  `opentelemetry` skill map to CR `spec` fields.
 - **mlops collector must not be named `otel-collector`.** The mesh Service selects that
   instance label, and reusing the name creates a forwarding loop.
 - **Prometheus is reached by port-forward, not an HTTPRoute.** To use the `prometheus`

@@ -3,7 +3,7 @@
 
 nameOverride: "otel-collector"
 mode: "daemonset"
-namespaceOverride: "monitoring"
+namespaceOverride: "observability"
 
 # Enable comprehensive presets
 presets:

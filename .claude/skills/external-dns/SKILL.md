@@ -1,6 +1,6 @@
 ---
 name: external-dns
-description: Comprehensive guide for configuring, troubleshooting, and implementing External-DNS across Azure DNS, AWS Route53, Cloudflare, and Google Cloud DNS. Use when implementing automatic DNS management in Kubernetes, configuring provider-specific authentication (managed identities, IRSA, API tokens), troubleshooting DNS synchronization issues, setting up secure production-grade external-dns deployments, optimizing performance, avoiding rate limits, or implementing GitOps patterns with ArgoCD.
+description: Comprehensive guide for configuring, troubleshooting, and implementing External-DNS across Cloudflare, AWS Route53, and Google Cloud DNS. Use when implementing automatic DNS management in Kubernetes, configuring provider-specific authentication (IRSA, API tokens), troubleshooting DNS synchronization issues, setting up secure production-grade external-dns deployments, optimizing performance, avoiding rate limits, or implementing GitOps patterns with ArgoCD.
 ---
 
 # External-DNS Skill
@@ -9,13 +9,12 @@ Complete External-DNS operations for automatic DNS management in Kubernetes clus
 
 ## Overview
 
-External-DNS synchronizes exposed Kubernetes Services and Ingresses with DNS providers, eliminating manual DNS record management. This skill covers configuration, best practices, and troubleshooting across multiple DNS providers with emphasis on Azure and Cloudflare.
+External-DNS synchronizes exposed Kubernetes Services and Ingresses with DNS providers, eliminating manual DNS record management. This skill covers configuration, best practices, and troubleshooting across multiple DNS providers with emphasis on Cloudflare.
 
 ## Provider Quick Reference
 
 | Provider | Auth Method | Status | Reference |
 |----------|-------------|--------|-----------|
-| **Azure DNS** | Workload Identity (recommended) or Service Principal | Stable | `references/azure-dns.md` |
 | **Cloudflare** | API Token | Beta | `references/cloudflare.md` |
 | **AWS Route53** | IRSA (recommended) or Access Keys | Stable | Below |
 | **Google Cloud DNS** | Workload Identity | Stable | Below |
@@ -27,7 +26,7 @@ External-DNS synchronizes exposed Kubernetes Services and Ingresses with DNS pro
 fullnameOverride: external-dns
 
 provider:
-  name: <provider>  # azure, cloudflare, aws, google
+  name: <provider>  # cloudflare, aws, google
 
 # Sources to watch
 sources:
@@ -45,7 +44,7 @@ policy: upsert-only  # Recommended for production
 interval: "5m"
 
 # TXT record ownership (MUST be unique per cluster)
-txtOwnerId: "aks-cluster-name"
+txtOwnerId: "application-cloudflare"
 txtPrefix: "_externaldns."
 
 # Logging
@@ -76,80 +75,6 @@ serviceMonitor:
   interval: 30s
 ```
 
-## Azure DNS Configuration
-
-### Workload Identity (Recommended)
-
-```yaml
-provider:
-  name: azure
-
-serviceAccount:
-  labels:
-    azure.workload.identity/use: "true"
-  annotations:
-    azure.workload.identity/client-id: "<MANAGED_IDENTITY_CLIENT_ID>"
-
-podLabels:
-  azure.workload.identity/use: "true"
-
-env:
-  - name: AZURE_TENANT_ID
-    value: "<TENANT_ID>"
-  - name: AZURE_SUBSCRIPTION_ID
-    value: "<SUBSCRIPTION_ID>"
-  - name: AZURE_RESOURCE_GROUP
-    value: "<DNS_ZONE_RESOURCE_GROUP>"
-
-domainFilters:
-  - example.com
-
-txtOwnerId: "aks-cluster-name"
-policy: upsert-only
-interval: "5m"
-```
-
-### Required Azure RBAC Permissions
-
-```bash
-# Assign DNS Zone Contributor role to the managed identity
-az role assignment create \
-  --role "DNS Zone Contributor" \
-  --assignee "<MANAGED_IDENTITY_OBJECT_ID>" \
-  --scope "/subscriptions/<SUB_ID>/resourceGroups/<RG>/providers/Microsoft.Network/dnszones/<ZONE>"
-
-# For Private DNS Zones
-az role assignment create \
-  --role "Private DNS Zone Contributor" \
-  --assignee "<MANAGED_IDENTITY_OBJECT_ID>" \
-  --scope "/subscriptions/<SUB_ID>/resourceGroups/<RG>/providers/Microsoft.Network/privateDnsZones/<ZONE>"
-```
-
-### Service Principal Alternative
-
-```yaml
-provider:
-  name: azure
-
-env:
-  - name: AZURE_TENANT_ID
-    value: "<TENANT_ID>"
-  - name: AZURE_SUBSCRIPTION_ID
-    value: "<SUBSCRIPTION_ID>"
-  - name: AZURE_RESOURCE_GROUP
-    value: "<DNS_ZONE_RESOURCE_GROUP>"
-  - name: AZURE_CLIENT_ID
-    valueFrom:
-      secretKeyRef:
-        name: azure-credentials
-        key: client-id
-  - name: AZURE_CLIENT_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: azure-credentials
-        key: client-secret
-```
-
 ## Cloudflare Configuration
 
 ```yaml
@@ -170,7 +95,7 @@ extraArgs:
 domainFilters:
   - example.com
 
-txtOwnerId: "aks-cluster-name"
+txtOwnerId: "application-cloudflare"
 policy: upsert-only
 ```
 
@@ -335,8 +260,6 @@ kubectl get deployment external-dns -n external-dns -o yaml | grep -A20 args
 # Verify DNS records (Cloudflare)
 dig @1.1.1.1 app.example.com
 
-# Verify DNS records (Azure)
-az network dns record-set list -g <RESOURCE_GROUP> -z example.com -o table
 
 # Check TXT ownership records
 dig TXT _externaldns.app.example.com
@@ -423,7 +346,6 @@ spec:
 
 ## References
 
-- `references/azure-dns.md` - Complete Azure DNS configuration guide
 - `references/cloudflare.md` - Complete Cloudflare configuration guide
 - `references/troubleshooting.md` - Common issues and solutions
 - Official docs: <https://kubernetes-sigs.github.io/external-dns/>
@@ -433,9 +355,7 @@ spec:
 
 ## Gotchas
 
-- **`txtOwnerId` collisions silently corrupt DNS across clusters:** Two clusters with the same owner ID will reconcile each other's records into oblivion. Always use cluster-name + env (e.g., `aks-example-app-prd`) and verify with `dig TXT _externaldns.<host>`.
+- **`txtOwnerId` collisions silently corrupt DNS across clusters:** Two clusters with the same owner ID will reconcile each other's records into oblivion. Always use cluster-name + source (e.g., `application-cloudflare`, `application-unifi`) and verify with `dig TXT _externaldns.<host>`.
 - **`policy: sync` deletes records External-DNS didn't create when names match patterns:** A manually-created A record matching a managed hostname will be deleted on next reconcile. Production must be `upsert-only`; only dev clusters get `sync`.
 - **RBAC on K8s side AND DNS provider creds are both required:** External-DNS needs to read Ingress/Service objects AND have DNS-zone write. Read-only DNS creds produce silent no-ops with zero events emitted to the watched resources — only the pod logs show the auth error.
-- **Workload Identity needs three things, not one:** ServiceAccount annotation + pod label + federated credential on the managed identity. Missing the federated credential gives `ManagedIdentityCredential: 400` that looks like a token problem but is an identity-binding problem.
 - **`domainFilters` is prefix-matching, not exact:** `domainFilters: [example.com]` will manage `evil-example.com` if a hostile Ingress claims that hostname. Use `--exclude-domains` or stricter filtering on multi-tenant clusters.
-- **Azure Private DNS Zone needs a different role than public:** "DNS Zone Contributor" only works on public zones; private zones need "Private DNS Zone Contributor". Assigning the wrong one returns 403 only when the first record sync fires, not at deploy time.

@@ -36,10 +36,10 @@ Extract numeric values and aggregate.
 {namespace=~"(prod|staging)-.*"}
 
 # All logs from namespace
-{namespace="monitoring"}
+{namespace="observability"}
 
 # Exclude specific job
-{namespace="monitoring", job!="loki"}
+{namespace="observability", job!="loki"}
 ```
 
 ## Line Filters

@@ -23,7 +23,7 @@ helm repo update
 
 # Install with basic config
 helm install otel-collector open-telemetry/opentelemetry-collector \
-  --namespace monitoring --create-namespace \
+  --namespace observability --create-namespace \
   --set mode=daemonset
 ```
 
@@ -149,14 +149,14 @@ For in-depth guidance, see:
 
 ```bash
 # Check collector pods
-kubectl get pods -n monitoring -l app.kubernetes.io/name=otel-collector
+kubectl get pods -n observability -l app.kubernetes.io/name=otel-collector
 
 # View collector logs
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector --tail=100
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector --tail=100
 
 # Test OTLP endpoint
 kubectl run test-otlp --image=curlimages/curl:latest --rm -it -- \
-  curl -v http://otel-collector.monitoring:4318/v1/traces
+  curl -v http://otel-collector.observability:4318/v1/traces
 
 # Validate config syntax
 otelcol validate --config=config.yaml

@@ -170,7 +170,7 @@ compactor:
 ```yaml
 storage:
   trace:
-    backend: azure                # local, s3, gcs, azure
+    backend: s3                   # local, s3, gcs
 
     # Block polling
     blocklist_poll: 5m
@@ -196,25 +196,6 @@ storage:
       host: tempo-memcached:11211
       service: memcached-client
       timeout: 500ms
-```
-
-### Azure Storage
-
-```yaml
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: mystorageaccount
-      # Authentication (choose one):
-      use_federated_token: true           # Workload Identity
-      # use_managed_identity: true        # Managed Identity
-      # user_assigned_id: <client-id>     # User-assigned MI
-      # storage_account_key: <key>        # Account key (dev)
-      endpoint_suffix: blob.core.windows.net
-      hedge_requests_at: 400ms
-      hedge_requests_up_to: 2
 ```
 
 ### S3 Storage
@@ -429,10 +410,10 @@ tempo:
 
   storage:
     trace:
-      backend: azure
-      azure:
-        container_name: tempo-traces
-        storage_account_name: mystorageaccount
+      backend: s3
+      s3:
+        bucket: tempo-traces
+        endpoint: <s3-endpoint>
 
   ingester:
     trace_idle_period: 5s
@@ -451,9 +432,9 @@ tempo:
   structuredConfig:
     storage:
       trace:
-        backend: azure
-        azure:
-          container_name: tempo-traces
+        backend: s3
+        s3:
+          bucket: tempo-traces
 
     ingester:
       trace_idle_period: 5s
@@ -477,17 +458,17 @@ extraArgs:
   config.expand-env: true
 
 extraEnv:
-  - name: AZURE_STORAGE_KEY
+  - name: S3_SECRET_KEY
     valueFrom:
       secretKeyRef:
         name: tempo-secret
-        key: storage-key
+        key: secret_key
 
 # In config
 storage:
   trace:
-    azure:
-      storage_account_key: ${AZURE_STORAGE_KEY}
+    s3:
+      secret_key: ${S3_SECRET_KEY}
 ```
 
 ## Configuration Validation
@@ -517,34 +498,6 @@ ingester:
 compactor:
   compaction:
     block_retention: 24h
-```
-
-### Production (Azure)
-
-```yaml
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: prodstorageaccount
-      use_federated_token: true
-      hedge_requests_at: 400ms
-      hedge_requests_up_to: 2
-
-ingester:
-  lifecycler:
-    ring:
-      replication_factor: 3
-
-compactor:
-  compaction:
-    block_retention: 336h
-
-overrides:
-  defaults:
-    ingestion_rate_limit_bytes: 50000000
-    max_bytes_per_trace: 10000000
 ```
 
 ### High-Throughput

@@ -30,7 +30,7 @@ loki:
     configs:
       - from: "2024-04-01"
         store: tsdb
-        object_store: azure
+        object_store: s3
         schema: v13
         index:
           prefix: loki_index_
@@ -114,67 +114,6 @@ loki:
         kms_key_id: <kms-key-arn>
 ```
 
-### Azure Blob Storage
-
-**Authentication Methods:**
-
-1. **User-Assigned Managed Identity (Recommended)**
-
-```yaml
-loki:
-  storage:
-    type: azure
-    azure:
-      accountName: mystorageaccount
-      useManagedIdentity: true
-      useFederatedToken: false
-      userAssignedId: <identity-client-id>
-      requestTimeout: 30s
-```
-
-2. **Workload Identity Federation**
-
-```yaml
-loki:
-  podLabels:
-    azure.workload.identity/use: "true"
-
-serviceAccount:
-  annotations:
-    azure.workload.identity/client-id: <identity-client-id>
-
-loki:
-  storage:
-    azure:
-      accountName: mystorageaccount
-      useManagedIdentity: false
-      useFederatedToken: true
-```
-
-3. **Account Key (Dev only)**
-
-```yaml
-loki:
-  storage:
-    azure:
-      accountName: mystorageaccount
-      accountKey: ${AZURE_STORAGE_KEY}
-```
-
-4. **SAS Token**
-
-```yaml
-loki:
-  storage:
-    azure:
-      accountName: mystorageaccount
-      sasToken: ${AZURE_SAS_TOKEN}
-```
-
-**Required RBAC Role:**
-
-- `Storage Blob Data Contributor` on the storage account
-
 ### Google Cloud Storage
 
 **Configuration:**
@@ -244,7 +183,7 @@ loki:
     retention_delete_delay: 2h
     retention_delete_worker_count: 50
     compaction_interval: 10m
-    delete_request_store: azure
+    delete_request_store: s3
 
   limits_config:
     retention_period: 744h    # 31 days (minimum: 24h)
@@ -321,7 +260,7 @@ loki:
     results_cache:
       cache:
         memcached_client:
-          host: loki-memcached-frontend.monitoring.svc
+          host: loki-memcached-frontend.observability.svc
           service: memcached-client
           timeout: 500ms
           max_idle_conns: 16
@@ -335,7 +274,7 @@ loki:
   chunk_store_config:
     chunk_cache_config:
       memcached_client:
-        host: loki-memcached-chunks.monitoring.svc
+        host: loki-memcached-chunks.observability.svc
         service: memcached-client
         timeout: 500ms
         max_idle_conns: 16
@@ -375,7 +314,7 @@ loki:
     retention_enabled: true
     retention_delete_delay: 2h
     retention_delete_worker_count: 50
-    delete_request_store: azure
+    delete_request_store: s3
 ```
 
 **Component Requirements:**
@@ -395,7 +334,7 @@ loki:
       # Old schema (keep for historical data)
       - from: "2023-01-01"
         store: boltdb-shipper
-        object_store: azure
+        object_store: s3
         schema: v12
         index:
           prefix: loki_index_
@@ -404,7 +343,7 @@ loki:
       # New schema (future date, UTC 00:00:00)
       - from: "2024-04-01"
         store: tsdb
-        object_store: azure
+        object_store: s3
         schema: v13
         index:
           prefix: loki_index_
@@ -420,30 +359,6 @@ loki:
 
 ## Storage Troubleshooting
 
-### Azure Container Not Found
-
-```bash
-az storage container create --name loki-chunks --account-name <storage>
-az storage container create --name loki-ruler --account-name <storage>
-az storage container create --name loki-admin --account-name <storage>
-```
-
-### Azure Authorization Failure
-
-```bash
-# Check role assignments
-az role assignment list --scope <storage-scope> --query "[?principalId=='<principal-id>']"
-
-# Assign role if missing
-az role assignment create \
-  --role "Storage Blob Data Contributor" \
-  --assignee-object-id <principal-id> \
-  --scope <storage-scope>
-
-# Restart ingester to refresh token
-kubectl delete pod -n monitoring <ingester-pod>
-```
-
 ### S3 Access Denied
 
 ```bash
@@ -458,8 +373,8 @@ aws s3 ls s3://my-loki-bucket/
 
 ```bash
 # Check compactor logs
-kubectl logs -n monitoring -l app.kubernetes.io/component=compactor --tail=200
+kubectl logs -n observability -l app.kubernetes.io/component=compactor --tail=200
 
 # Verify compactor is running as singleton
-kubectl get pods -n monitoring -l app.kubernetes.io/component=compactor
+kubectl get pods -n observability -l app.kubernetes.io/component=compactor
 ```

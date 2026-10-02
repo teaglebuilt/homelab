@@ -1,6 +1,6 @@
 ---
 name: loki
-description: Guide for implementing Grafana Loki - a horizontally scalable, highly available log aggregation system. Use when configuring Loki deployments, setting up storage backends (S3, Azure Blob, GCS), writing LogQL queries, configuring retention and compaction, deploying via Helm, integrating with OpenTelemetry, or troubleshooting Loki issues on Kubernetes.
+description: Guide for implementing Grafana Loki - a horizontally scalable, highly available log aggregation system. Use when configuring Loki deployments, setting up storage backends (S3, GCS), writing LogQL queries, configuring retention and compaction, deploying via Helm, integrating with OpenTelemetry, or troubleshooting Loki issues on Kubernetes.
 ---
 
 > **Homelab:** this is an upstream, generic skill. Read the `observability-engineering`
@@ -15,7 +15,7 @@ Comprehensive guide for Grafana Loki - the cost-effective, horizontally-scalable
 Loki is a **horizontally-scalable, highly-available, multi-tenant log aggregation system** that:
 
 - **Indexes only metadata (labels)** - Not full log content like traditional systems
-- **Stores compressed chunks** in affordable object storage (S3, GCS, Azure Blob)
+- **Stores compressed chunks** in affordable object storage (S3, GCS)
 - **Uses Prometheus-style labels** for organizing log streams
 - **Multi-tenant by default** with built-in tenant isolation
 - **Cost-efficient** - Dramatically smaller index and lower operational costs
@@ -115,7 +115,7 @@ loki:
     configs:
       - from: "2024-04-01"
         store: tsdb
-        object_store: azure  # or s3, gcs
+        object_store: s3  # or gcs
         schema: v13
         index:
           prefix: loki_index_
@@ -123,27 +123,6 @@ loki:
 ```
 
 ## Storage Configuration
-
-### Azure Blob Storage (Recommended for Azure)
-
-```yaml
-loki:
-  storage:
-    type: azure
-    bucketNames:
-      chunks: loki-chunks
-      ruler: loki-ruler
-      admin: loki-admin
-    azure:
-      accountName: <storage-account-name>
-      # Option 1: User-Assigned Managed Identity (Recommended)
-      useManagedIdentity: true
-      useFederatedToken: false
-      userAssignedId: <identity-client-id>
-      # Option 2: Account Key (Dev only)
-      # accountKey: <account-key>
-      requestTimeout: 30s
-```
 
 ### AWS S3
 
@@ -235,7 +214,7 @@ loki:
     retention_delete_delay: 2h
     retention_delete_worker_count: 50
     compaction_interval: 10m
-    delete_request_store: azure         # Match your storage type
+    delete_request_store: s3                  # Match your storage type
 ```
 
 ## Caching Configuration
@@ -266,7 +245,7 @@ loki:
   chunk_store_config:
     chunk_cache_config:
       memcached_client:
-        host: loki-memcached-chunks.monitoring.svc
+        host: loki-memcached-chunks.observability.svc
         service: memcached-client
 ```
 
@@ -385,7 +364,7 @@ helm repo update
 
 ```bash
 helm install loki grafana/loki \
-  --namespace monitoring \
+  --namespace observability \
   --values values.yaml
 ```
 
@@ -401,18 +380,19 @@ loki:
     configs:
       - from: "2024-04-01"
         store: tsdb
-        object_store: azure
+        object_store: s3
         schema: v13
         index:
           prefix: loki_index_
           period: 24h
 
   storage:
-    type: azure
-    azure:
-      accountName: mystorageaccount
-      useManagedIdentity: true
-      userAssignedId: <client-id>
+    type: s3
+    s3:
+      endpoint: <s3-endpoint>
+      accessKeyId: ${S3_ACCESS_KEY}
+      secretAccessKey: ${S3_SECRET_KEY}
+      s3ForcePathStyle: true
     bucketNames:
       chunks: loki-chunks
       ruler: loki-ruler
@@ -462,49 +442,6 @@ monitoring:
     enabled: true
 ```
 
-## Azure Identity Configuration
-
-### User-Assigned Managed Identity (Recommended)
-
-**1. Create Identity:**
-
-```bash
-az identity create \
-  --name loki-identity \
-  --resource-group <rg>
-
-IDENTITY_CLIENT_ID=$(az identity show --name loki-identity --resource-group <rg> --query clientId -o tsv)
-IDENTITY_PRINCIPAL_ID=$(az identity show --name loki-identity --resource-group <rg> --query principalId -o tsv)
-```
-
-**2. Assign to Node Pool:**
-
-```bash
-az vmss identity assign \
-  --resource-group <aks-node-rg> \
-  --name <vmss-name> \
-  --identities /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/loki-identity
-```
-
-**3. Grant Storage Permission:**
-
-```bash
-az role assignment create \
-  --role "Storage Blob Data Contributor" \
-  --assignee-object-id $IDENTITY_PRINCIPAL_ID \
-  --scope /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/<storage>
-```
-
-**4. Configure Loki:**
-
-```yaml
-loki:
-  storage:
-    azure:
-      useManagedIdentity: true
-      userAssignedId: <IDENTITY_CLIENT_ID>
-```
-
 ## Multi-Tenancy
 
 ```yaml
@@ -523,32 +460,7 @@ curl -H "X-Scope-OrgID: tenant-a" \
 
 ### Common Issues
 
-**1. Container Not Found (Azure)**
-
-```bash
-# Create required containers
-az storage container create --name loki-chunks --account-name <storage>
-az storage container create --name loki-ruler --account-name <storage>
-az storage container create --name loki-admin --account-name <storage>
-```
-
-**2. Authorization Failure (Azure)**
-
-```bash
-# Verify RBAC assignment
-az role assignment list --scope /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/<storage>
-
-# Assign if missing
-az role assignment create \
-  --role "Storage Blob Data Contributor" \
-  --assignee-object-id <principal-id> \
-  --scope <storage-scope>
-
-# Restart pod to refresh token
-kubectl delete pod -n monitoring <ingester-pod>
-```
-
-**3. Ingester OOM**
+**1. Ingester OOM**
 
 ```yaml
 # Increase memory limits
@@ -558,7 +470,7 @@ ingester:
       memory: 16Gi
 ```
 
-**4. Query Timeout**
+**2. Query Timeout**
 
 ```yaml
 loki:
@@ -573,19 +485,19 @@ loki:
 
 ```bash
 # Check pod status
-kubectl get pods -n monitoring -l app.kubernetes.io/name=loki
+kubectl get pods -n observability -l app.kubernetes.io/name=loki
 
 # Check ingester logs
-kubectl logs -n monitoring -l app.kubernetes.io/component=ingester --tail=100
+kubectl logs -n observability -l app.kubernetes.io/component=ingester --tail=100
 
 # Check compactor logs
-kubectl logs -n monitoring -l app.kubernetes.io/component=compactor --tail=100
+kubectl logs -n observability -l app.kubernetes.io/component=compactor --tail=100
 
 # Verify readiness
-kubectl exec -it <loki-pod> -n monitoring -- wget -qO- http://localhost:3100/ready
+kubectl exec -it <loki-pod> -n observability -- wget -qO- http://localhost:3100/ready
 
 # Check configuration
-kubectl exec -it <loki-pod> -n monitoring -- cat /etc/loki/config/config.yaml
+kubectl exec -it <loki-pod> -n observability -- cat /etc/loki/config/config.yaml
 ```
 
 ## API Reference

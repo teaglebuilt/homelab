@@ -13,7 +13,7 @@ helm repo update
 
 ```bash
 helm install otel-collector open-telemetry/opentelemetry-collector \
-  --namespace monitoring \
+  --namespace observability \
   --create-namespace \
   --set mode=daemonset
 ```
@@ -22,7 +22,7 @@ helm install otel-collector open-telemetry/opentelemetry-collector \
 
 ```bash
 helm install otel-collector open-telemetry/opentelemetry-collector \
-  --namespace monitoring \
+  --namespace observability \
   --create-namespace \
   -f values.yaml
 ```
@@ -101,7 +101,7 @@ mode: "sidecar"
 ```yaml
 nameOverride: "otel-collector"
 mode: "daemonset"
-namespaceOverride: "monitoring"
+namespaceOverride: "observability"
 
 # Presets
 presets:
@@ -256,12 +256,6 @@ resources:
     cpu: 50m
     memory: 128Mi
 
-# Spot instance tolerations (AKS)
-tolerations:
-  - key: kubernetes.azure.com/scalesetpriority
-    operator: Equal
-    value: "spot"
-    effect: NoSchedule
 
 # Debug enabled
 config:
@@ -339,7 +333,7 @@ spec:
           ref: values
       destination:
         server: "{{url}}"
-        namespace: monitoring
+        namespace: observability
       syncPolicy:
         automated:
           prune: true
@@ -396,7 +390,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: otel-collector
-  namespace: monitoring
+  namespace: observability
 spec:
   podSelector:
     matchLabels:
@@ -415,7 +409,7 @@ spec:
     - to:
         - namespaceSelector:
             matchLabels:
-              name: monitoring
+              name: observability
       ports:
         - port: 9090  # Prometheus
         - port: 3100  # Loki
@@ -426,23 +420,23 @@ spec:
 
 ```bash
 # Check pods
-kubectl get pods -n monitoring -l app.kubernetes.io/name=otel-collector
+kubectl get pods -n observability -l app.kubernetes.io/name=otel-collector
 
 # Check DaemonSet rollout
-kubectl rollout status daemonset/otel-collector -n monitoring
+kubectl rollout status daemonset/otel-collector -n observability
 
 # Check logs
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector --tail=100
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector --tail=100
 
 # Check service endpoints
-kubectl get endpoints -n monitoring otel-collector
+kubectl get endpoints -n observability otel-collector
 
 # Port forward for testing
-kubectl port-forward -n monitoring svc/otel-collector 4318:4318
+kubectl port-forward -n observability svc/otel-collector 4318:4318
 
 # Check ServiceMonitor
-kubectl get servicemonitor -n monitoring otel-collector -o yaml
+kubectl get servicemonitor -n observability otel-collector -o yaml
 
 # Describe pod for troubleshooting
-kubectl describe pod -n monitoring -l app.kubernetes.io/name=otel-collector
+kubectl describe pod -n observability -l app.kubernetes.io/name=otel-collector
 ```

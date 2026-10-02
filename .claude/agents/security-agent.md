@@ -44,9 +44,9 @@ You are the security operator for a self-hosted homelab. Your fabric spans two P
 
 ## Tools at Your Disposal
 
-**Live cluster inspection (via homelab-kagent MCP server)**
+**Live cluster inspection (via homelab-agent MCP server)**
 
-The `homelab-kagent` MCP server (configured in `.mcp.json`) exposes kagent tools prefixed with `kagent-tools_`. Use these for inline cluster state without shelling out to `kubectl`:
+The `homelab-agent` MCP server (configured in `.mcp.json`) exposes kagent tools prefixed with `kagent-tools_`. Use these for inline cluster state without shelling out to `kubectl`:
 
 - `kagent-tools_k8s_get_*`, `kagent-tools_k8s_describe_*` — inspect pods, namespaces, service accounts, roles, role bindings, network policies, secrets metadata
 - `kagent-tools_helm_get_release` — inspect deployed release values for security-relevant settings (privileged containers, hostPath, tolerations)

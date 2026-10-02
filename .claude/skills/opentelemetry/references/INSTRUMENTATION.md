@@ -49,7 +49,7 @@ spec:
       - name: app
         env:
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://otel-collector.monitoring.svc.cluster.local:4317"
+          value: "http://otel-collector.observability.svc.cluster.local:4317"
         - name: OTEL_SERVICE_NAME
           value: "my-app"
         - name: OTEL_RESOURCE_ATTRIBUTES
@@ -97,7 +97,7 @@ env:
 - name: JAVA_TOOL_OPTIONS
   value: "-javaagent:/opt/opentelemetry-javaagent.jar"
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: "http://otel-collector.monitoring:4317"
+  value: "http://otel-collector.observability:4317"
 - name: OTEL_SERVICE_NAME
   value: "my-java-app"
 - name: OTEL_TRACES_EXPORTER
@@ -144,7 +144,7 @@ opentelemetry-instrument python app.py
 ```yaml
 env:
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: "http://otel-collector.monitoring:4317"
+  value: "http://otel-collector.observability:4317"
 - name: OTEL_SERVICE_NAME
   value: "my-python-app"
 - name: OTEL_PYTHON_LOG_CORRELATION
@@ -201,7 +201,7 @@ sdk.start();
 ```yaml
 env:
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: "http://otel-collector.monitoring:4317"
+  value: "http://otel-collector.observability:4317"
 - name: OTEL_SERVICE_NAME
   value: "my-node-app"
 - name: NODE_OPTIONS
@@ -279,7 +279,7 @@ metadata:
   namespace: my-namespace
 spec:
   exporter:
-    endpoint: http://otel-collector.monitoring:4317
+    endpoint: http://otel-collector.observability:4317
   propagators:
     - tracecontext
     - baggage
@@ -364,10 +364,10 @@ db.statement
 
 ```bash
 # Check collector logs for received spans
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i span
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i span
 
 # Use debug exporter
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -A 20 "ResourceSpans"
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -A 20 "ResourceSpans"
 ```
 
 ### Generate Test Traffic
@@ -384,10 +384,10 @@ done
 
 ```bash
 # Grafana Tempo query
-kubectl port-forward -n monitoring svc/tempo 3100:3100
+kubectl port-forward -n observability svc/tempo 3100:3100
 curl http://localhost:3100/api/search?q=service.name=my-app
 
 # Jaeger UI
-kubectl port-forward -n monitoring svc/jaeger-query 16686:16686
+kubectl port-forward -n observability svc/jaeger-query 16686:16686
 # Open http://localhost:16686
 ```

@@ -66,7 +66,7 @@ service:
 **Check logs**:
 
 ```bash
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector --previous
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector --previous
 ```
 
 **Common causes**:
@@ -90,14 +90,14 @@ otelcol validate --config=config.yaml
 1. **Check receiver is listening**:
 
 ```bash
-kubectl exec -n monitoring -it deploy/otel-collector -- netstat -tlnp
+kubectl exec -n observability -it deploy/otel-collector -- netstat -tlnp
 ```
 
 2. **Test OTLP endpoint**:
 
 ```bash
 kubectl run test-otlp --image=curlimages/curl:latest --rm -it -- \
-  curl -v http://otel-collector.monitoring:4318/v1/traces \
+  curl -v http://otel-collector.observability:4318/v1/traces \
   -H "Content-Type: application/json" \
   -d '{"resourceSpans":[]}'
 ```
@@ -105,14 +105,14 @@ kubectl run test-otlp --image=curlimages/curl:latest --rm -it -- \
 3. **Check network policies**:
 
 ```bash
-kubectl get networkpolicies -n monitoring
-kubectl describe networkpolicy -n monitoring
+kubectl get networkpolicies -n observability
+kubectl describe networkpolicy -n observability
 ```
 
 4. **Verify service discovery**:
 
 ```bash
-kubectl get endpoints -n monitoring otel-collector
+kubectl get endpoints -n observability otel-collector
 ```
 
 **Common causes**:
@@ -130,20 +130,20 @@ kubectl get endpoints -n monitoring otel-collector
 1. **Check exporter logs**:
 
 ```bash
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i export
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i export
 ```
 
 2. **Verify backend connectivity**:
 
 ```bash
-kubectl exec -n monitoring -it deploy/otel-collector -- \
+kubectl exec -n observability -it deploy/otel-collector -- \
   wget -O- http://prometheus:9090/-/healthy
 ```
 
 3. **Check exporter metrics**:
 
 ```bash
-kubectl exec -n monitoring -it deploy/otel-collector -- \
+kubectl exec -n observability -it deploy/otel-collector -- \
   curl localhost:8888/metrics | grep otelcol_exporter
 ```
 
@@ -169,13 +169,13 @@ kubectl exec -n monitoring -it deploy/otel-collector -- \
 1. **Check memory usage**:
 
 ```bash
-kubectl top pods -n monitoring -l app.kubernetes.io/name=otel-collector
+kubectl top pods -n observability -l app.kubernetes.io/name=otel-collector
 ```
 
 2. **Check memory limiter**:
 
 ```bash
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i "memory"
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i "memory"
 ```
 
 **Solutions**:
@@ -211,19 +211,19 @@ resources:
 1. **Check restart count**:
 
 ```bash
-kubectl get pods -n monitoring -l app.kubernetes.io/name=otel-collector
+kubectl get pods -n observability -l app.kubernetes.io/name=otel-collector
 ```
 
 2. **Check previous logs**:
 
 ```bash
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector --previous
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector --previous
 ```
 
 3. **Check events**:
 
 ```bash
-kubectl get events -n monitoring --sort-by='.lastTimestamp' | grep otel
+kubectl get events -n observability --sort-by='.lastTimestamp' | grep otel
 ```
 
 **Common causes**:
@@ -265,7 +265,7 @@ resources:
 1. **Check pod events**:
 
 ```bash
-kubectl describe pod -n monitoring -l app.kubernetes.io/name=otel-collector
+kubectl describe pod -n observability -l app.kubernetes.io/name=otel-collector
 ```
 
 2. **Check node taints**:
@@ -274,15 +274,8 @@ kubectl describe pod -n monitoring -l app.kubernetes.io/name=otel-collector
 kubectl describe nodes | grep -A 5 Taints
 ```
 
-**Solution for spot instances (AKS)**:
-
-```yaml
-tolerations:
-  - key: kubernetes.azure.com/scalesetpriority
-    operator: Equal
-    value: "spot"
-    effect: NoSchedule
-```
+**Solution**: add a toleration matching the node taint, or schedule the collector onto
+untainted nodes with a `nodeSelector`.
 
 ## Metrics to Monitor
 
@@ -338,7 +331,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: otel-collector-alerts
-  namespace: monitoring
+  namespace: observability
 spec:
   groups:
   - name: otel-collector
@@ -424,16 +417,16 @@ failed to create
 
 ```bash
 # Check for errors
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i error
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i error
 
 # Check memory issues
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i memory
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i memory
 
 # Check export status
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i export
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i export
 
 # Check receiver status
-kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i receiver
+kubectl logs -n observability -l app.kubernetes.io/name=otel-collector | grep -i receiver
 ```
 
 ## Quick Fixes
@@ -441,9 +434,9 @@ kubectl logs -n monitoring -l app.kubernetes.io/name=otel-collector | grep -i re
 ### Restart Collector
 
 ```bash
-kubectl rollout restart daemonset/otel-collector -n monitoring
+kubectl rollout restart daemonset/otel-collector -n observability
 # or
-kubectl rollout restart deployment/otel-collector -n monitoring
+kubectl rollout restart deployment/otel-collector -n observability
 ```
 
 ### Force Sync ArgoCD
@@ -455,12 +448,12 @@ argocd app sync <cluster>-otel --force
 ### Scale Down/Up
 
 ```bash
-kubectl scale deployment otel-collector -n monitoring --replicas=0
-kubectl scale deployment otel-collector -n monitoring --replicas=3
+kubectl scale deployment otel-collector -n observability --replicas=0
+kubectl scale deployment otel-collector -n observability --replicas=3
 ```
 
 ### Clear Checkpoints (Log Collection)
 
 ```bash
-kubectl exec -n monitoring -it <pod> -- rm -rf /var/lib/otelcol/checkpoints
+kubectl exec -n observability -it <pod> -- rm -rf /var/lib/otelcol/checkpoints
 ```

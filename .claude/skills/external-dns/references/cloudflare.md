@@ -70,7 +70,7 @@ domainFilters:
   - subdomain.example.com
 
 # TXT record ownership (must be unique per cluster)
-txtOwnerId: "aks-cluster-name"
+txtOwnerId: "application-cloudflare"
 txtPrefix: "_externaldns."
 
 # Policy
@@ -254,7 +254,7 @@ env:
         key: token
 domainFilters:
   - domain1.com
-txtOwnerId: "aks-cluster-domain1"
+txtOwnerId: "application-cloudflare"
 
 # Instance 2: domain2.com (separate deployment)
 fullnameOverride: external-dns-domain2
@@ -266,7 +266,7 @@ env:
         key: token
 domainFilters:
   - domain2.com
-txtOwnerId: "aks-cluster-domain2"
+txtOwnerId: "mlops-cloudflare"
 ```
 
 ## Validation Commands

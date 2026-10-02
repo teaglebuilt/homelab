@@ -91,102 +91,6 @@ storage:
         kms_key_id: <kms-key-arn>
 ```
 
-### Azure Blob Storage
-
-**Authentication Methods:**
-
-#### 1. Workload Identity Federation (Recommended)
-
-```yaml
-serviceAccount:
-  annotations:
-    azure.workload.identity/client-id: <identity-client-id>
-
-podLabels:
-  azure.workload.identity/use: "true"
-
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: mystorageaccount
-      use_federated_token: true
-      endpoint_suffix: blob.core.windows.net
-```
-
-#### 2. User-Assigned Managed Identity
-
-```yaml
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: mystorageaccount
-      use_managed_identity: true
-      user_assigned_id: <identity-client-id>
-```
-
-#### 3. Account Key (Development Only)
-
-```yaml
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: mystorageaccount
-      storage_account_key: ${AZURE_STORAGE_KEY}
-
-extraArgs:
-  config.expand-env: true
-
-extraEnv:
-  - name: AZURE_STORAGE_KEY
-    valueFrom:
-      secretKeyRef:
-        name: azure-storage-secret
-        key: account-key
-```
-
-#### 4. SAS Token
-
-```yaml
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: mystorageaccount
-      sas_token: ${AZURE_SAS_TOKEN}
-```
-
-**Required RBAC Role:**
-
-- `Storage Blob Data Contributor` on the storage account
-
-**Azure Configuration Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `storage_account_name` | String | Azure storage account name |
-| `container_name` | String | Container for trace data |
-| `prefix` | String | Optional path prefix |
-| `endpoint_suffix` | String | Default: `blob.core.windows.net` |
-| `hedge_requests_at` | Duration | Threshold for hedged requests |
-| `hedge_requests_up_to` | Integer | Max hedged requests |
-
-**Azurite Emulator (Local Development):**
-
-```yaml
-storage:
-  trace:
-    azure:
-      endpoint_suffix: azurite-host.svc.cluster.local:10000
-      # Tempo auto-detects non-blob endpoints
-```
-
 ### Google Cloud Storage
 
 **Configuration:**
@@ -300,7 +204,7 @@ storage:
   trace:
     cache: memcached
     memcached:
-      host: tempo-memcached.monitoring.svc
+      host: tempo-memcached.observability.svc
       service: memcached-client
       timeout: 500ms
       max_idle_conns: 16
@@ -345,9 +249,6 @@ Reduce long-tail latency by sending parallel requests:
 ```yaml
 storage:
   trace:
-    azure:
-      hedge_requests_at: 400ms
-      hedge_requests_up_to: 2
     s3:
       hedge_requests_at: 400ms
       hedge_requests_up_to: 2
@@ -361,35 +262,6 @@ storage:
     blocklist_poll: 5m
     blocklist_poll_jitter_ms: 500
     blocklist_poll_tenant_index_builders: 1
-```
-
-## Azure Lifecycle Management
-
-Automatically delete old data:
-
-```json
-{
-  "rules": [
-    {
-      "enabled": true,
-      "name": "tempo-cleanup",
-      "type": "Lifecycle",
-      "definition": {
-        "actions": {
-          "baseBlob": {
-            "delete": {
-              "daysAfterModificationGreaterThan": 60
-            }
-          }
-        },
-        "filters": {
-          "blobTypes": ["blockBlob"],
-          "prefixMatch": ["tempo-traces/"]
-        }
-      }
-    }
-  ]
-}
 ```
 
 ## Deployment Mode Considerations
@@ -414,48 +286,26 @@ distributor:
   extraArgs:
     config.expand-env: true
   extraEnv:
-    - name: AZURE_STORAGE_KEY
+    - name: S3_SECRET_KEY
       valueFrom:
         secretKeyRef:
-          name: azure-secret
-          key: key
+          name: tempo-s3-secret
+          key: secret_key
 
 ingester:
   extraArgs:
     config.expand-env: true
   extraEnv:
-    - name: AZURE_STORAGE_KEY
+    - name: S3_SECRET_KEY
       valueFrom:
         secretKeyRef:
-          name: azure-secret
-          key: key
+          name: tempo-s3-secret
+          key: secret_key
 
 # Repeat for querier, queryFrontend, compactor
 ```
 
 ## Storage Troubleshooting
-
-### Azure Container Not Found
-
-```bash
-az storage container create --name tempo-traces --account-name <storage>
-```
-
-### Azure Authorization Failure
-
-```bash
-# Check role assignments
-az role assignment list --scope <storage-scope> --query "[?principalId=='<principal-id>']"
-
-# Assign role if missing
-az role assignment create \
-  --role "Storage Blob Data Contributor" \
-  --assignee-object-id <principal-id> \
-  --scope <storage-scope>
-
-# Restart pod to refresh token
-kubectl delete pod -n monitoring <tempo-pod>
-```
 
 ### S3 Access Denied
 
@@ -471,8 +321,8 @@ aws s3 ls s3://my-tempo-bucket/
 
 ```bash
 # Check compactor logs
-kubectl logs -n monitoring -l app.kubernetes.io/component=compactor --tail=200
+kubectl logs -n observability -l app.kubernetes.io/component=compactor --tail=200
 
 # Verify compactor is running
-kubectl get pods -n monitoring -l app.kubernetes.io/component=compactor
+kubectl get pods -n observability -l app.kubernetes.io/component=compactor
 ```

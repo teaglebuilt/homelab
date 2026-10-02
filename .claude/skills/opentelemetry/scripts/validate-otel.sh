@@ -184,21 +184,21 @@ check_kubernetes() {
     fi
 
     # Check namespace
-    if kubectl get namespace monitoring &> /dev/null; then
-        print_status "monitoring namespace exists"
+    if kubectl get namespace observability &> /dev/null; then
+        print_status "observability namespace exists"
     else
-        print_warning "monitoring namespace not found"
+        print_warning "observability namespace not found"
     fi
 
     # Check OTEL collector
-    if kubectl get pods -n monitoring -l app.kubernetes.io/name=otel-collector 2>/dev/null | grep -q Running; then
+    if kubectl get pods -n observability -l app.kubernetes.io/name=otel-collector 2>/dev/null | grep -q Running; then
         print_status "OTEL collector pods running"
     else
         print_warning "No running OTEL collector pods found"
     fi
 
     # Check ServiceMonitor
-    if kubectl get servicemonitor -n monitoring otel-collector &> /dev/null; then
+    if kubectl get servicemonitor -n observability otel-collector &> /dev/null; then
         print_status "ServiceMonitor exists"
     else
         print_warning "ServiceMonitor not found"
@@ -208,7 +208,7 @@ check_kubernetes() {
 
 # Test OTLP endpoint
 test_otlp_endpoint() {
-    local endpoint="${1:-http://otel-collector.monitoring:4318}"
+    local endpoint="${1:-http://otel-collector.observability:4318}"
 
     echo "Testing OTLP endpoint: $endpoint"
 

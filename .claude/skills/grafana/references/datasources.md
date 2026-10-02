@@ -203,27 +203,6 @@ POST /api/datasources
 }
 ```
 
-### Azure Monitor Example
-
-```json
-{
-  "name": "Azure Monitor",
-  "type": "grafana-azure-monitor-datasource",
-  "access": "proxy",
-  "jsonData": {
-    "cloudName": "azuremonitor",
-    "tenantId": "your-tenant-id",
-    "clientId": "your-client-id",
-    "subscriptionId": "your-subscription-id"
-  },
-  "secureJsonData": {
-    "clientSecret": "your-client-secret"
-  }
-}
-```
-
----
-
 ## Update Data Source
 
 ### By ID (Deprecated)
@@ -425,7 +404,6 @@ GET /api/datasources/uid/prometheus-uid/resources/api/v1/label/__name__/values
 | MySQL | `mysql` |
 | Elasticsearch | `elasticsearch` |
 | CloudWatch | `cloudwatch` |
-| Azure Monitor | `grafana-azure-monitor-datasource` |
 | Google Cloud Monitoring | `stackdriver` |
 | Graphite | `graphite` |
 | Tempo | `tempo` |

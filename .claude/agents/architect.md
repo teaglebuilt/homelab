@@ -4,10 +4,10 @@ description: Designs and reviews changes to this homelab. Use for architecture, 
 model: opus
 effort: high
 permissionMode: plan
-tools: Read, Glob, Grep, Bash, Skill, Agent(Explore), Write
+tools: Read, Glob, Grep, Bash, Skill, Agent(Explore)
 disallowedTools: Write, Edit
 mcpServers:
-  - homelab-kagent
+  - homelab-agent
 maxTurns: 30
 color: blue
 ---

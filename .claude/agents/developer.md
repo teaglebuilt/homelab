@@ -32,19 +32,8 @@ You are an infrastructure developer for a self-hosted homelab. You write Helm ch
 - Writing Gateway API resources that do not match the v1 spec
 - For UniFi / UDM Pro firewall / VLAN / switch port changes, hand off to the network-agent rather than reasoning about controller state directly
 
-## Live Cluster Tools (via homelab-kagent MCP server)
+## Live Cluster Tools
 
-The `homelab-kagent` MCP server (configured in `.mcp.json`) proxies through the agentgateway in the `ai` namespace and exposes the kagent tool server. This gives you direct, authenticated access to the live mlops cluster without shelling out to `kubectl`. Tool names are prefixed with `kagent-tools_` and cover:
-
-- `kagent-tools_k8s_*` — get/describe/apply/delete/patch resources, get events, pod logs, exec commands
-- `kagent-tools_helm_*` — list/get/upgrade/uninstall releases, manage repos
-- `kagent-tools_cilium_*` — endpoint health, BPF maps, identities, IP cache, PCAP recorders, encryption state
-- `kagent-tools_argo_*` — rollout list/pause/promote/set-image, gateway plugin verification
-- `kagent-tools_istio_*` — Istio operations when applicable
-
-When to use these over local `kubectl`:
-- Use MCP tools when you need the result inline in the conversation (e.g., to verify a change landed, inspect live state, debug a failing pod).
-- Use local `kubectl` via Bash when the output is large, you need piping, or the command is destructive and you want the user to see it explicitly.
-- Treat these tools as read-leaning: `k8s_get_*`, `k8s_describe_*`, `helm_get_release`, `cilium_get_endpoint_health` first; modifications only after confirming intent.
-
-These tools talk to the same cluster as `kubectl` — changes are real. Respect the same safety rules you would for direct cluster access.
+CLAUDE.md documents the `homelab-agent` MCP server and the `kagent-tools_*` families.
+Follow it as written; it is already in context. Clusters: `application` (apps, AI,
+observability hub) and `mlops` (GPU workloads, observability spoke).

@@ -1,6 +1,6 @@
 ---
 name: tempo
-description: Guide for implementing Grafana Tempo - a high-scale distributed tracing backend for OpenTelemetry traces. Use when configuring Tempo deployments, setting up storage backends (S3, Azure Blob, GCS), writing TraceQL queries, deploying via Helm, understanding trace structure, or troubleshooting Tempo issues on Kubernetes.
+description: Guide for implementing Grafana Tempo - a high-scale distributed tracing backend for OpenTelemetry traces. Use when configuring Tempo deployments, setting up storage backends (S3, GCS), writing TraceQL queries, deploying via Helm, understanding trace structure, or troubleshooting Tempo issues on Kubernetes.
 ---
 
 > **Homelab:** this is an upstream, generic skill. Read the `observability-engineering`
@@ -16,7 +16,7 @@ Tempo is a **high-scale distributed tracing backend** that:
 
 - **Trace-ID lookup model** - No indexing of every attribute, keeps ingestion fast and storage costs low
 - **OpenTelemetry native** - First-class support for OTLP protocol
-- **Object storage backed** - Stores traces in affordable S3, GCS, or Azure Blob Storage
+- **Object storage backed** - Stores traces in affordable S3 or GCS object storage
 - **TraceQL query language** - Powerful query language inspired by PromQL and LogQL
 - **Apache Parquet format** - 5-10x less data pulled per query vs legacy formats
 - **Multi-tenant by default** - Built-in tenant isolation via `X-Scope-OrgID` header
@@ -103,7 +103,7 @@ helm repo update
 
 ```bash
 helm install tempo grafana/tempo-distributed \
-  --namespace monitoring \
+  --namespace observability \
   --values values.yaml
 ```
 
@@ -113,11 +113,11 @@ helm install tempo grafana/tempo-distributed \
 # Storage configuration
 storage:
   trace:
-    backend: azure  # or s3, gcs
-    azure:
-      container_name: tempo-traces
-      storage_account_name: mystorageaccount
-      use_federated_token: true  # Workload Identity
+    backend: s3  # or gcs, local
+    s3:
+      bucket: tempo-traces
+      endpoint: <s3-endpoint>
+      region: us-east-1
 
 # Distributor
 distributor:
@@ -188,27 +188,6 @@ metricsGenerator:
 ```
 
 ## Storage Configuration
-
-### Azure Blob Storage (Recommended for Azure)
-
-```yaml
-storage:
-  trace:
-    backend: azure
-    azure:
-      container_name: tempo-traces
-      storage_account_name: <storage-account-name>
-      # Option 1: Workload Identity (Recommended)
-      use_federated_token: true
-      # Option 2: User-Assigned Managed Identity
-      use_managed_identity: true
-      user_assigned_id: <identity-client-id>
-      # Option 3: Account Key (Dev only)
-      # storage_account_key: <account-key>
-      endpoint_suffix: blob.core.windows.net
-      hedge_requests_at: 400ms
-      hedge_requests_up_to: 2
-```
 
 ### AWS S3
 
@@ -351,91 +330,11 @@ multitenancy_enabled: true
 # curl -H "X-Scope-OrgID: tenant-1" http://tempo:3200/api/traces/<traceID>
 ```
 
-## Azure Identity Configuration
-
-### Workload Identity Federation (Recommended)
-
-**1. Enable Workload Identity on AKS:**
-
-```bash
-az aks update \
-  --name <aks-cluster> \
-  --resource-group <rg> \
-  --enable-oidc-issuer \
-  --enable-workload-identity
-```
-
-**2. Create User-Assigned Managed Identity:**
-
-```bash
-az identity create \
-  --name tempo-identity \
-  --resource-group <rg>
-
-IDENTITY_CLIENT_ID=$(az identity show --name tempo-identity --resource-group <rg> --query clientId -o tsv)
-```
-
-**3. Assign Storage Permission:**
-
-```bash
-az role assignment create \
-  --role "Storage Blob Data Contributor" \
-  --assignee-object-id <principal-id> \
-  --scope /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/<storage>
-```
-
-**4. Create Federated Credential:**
-
-```bash
-az identity federated-credential create \
-  --name tempo-federated \
-  --identity-name tempo-identity \
-  --resource-group <rg> \
-  --issuer <aks-oidc-issuer-url> \
-  --subject system:serviceaccount:monitoring:tempo \
-  --audiences api://AzureADTokenExchange
-```
-
-**5. Configure Helm Values:**
-
-```yaml
-serviceAccount:
-  annotations:
-    azure.workload.identity/client-id: <IDENTITY_CLIENT_ID>
-
-podLabels:
-  azure.workload.identity/use: "true"
-
-storage:
-  trace:
-    azure:
-      use_federated_token: true
-```
-
 ## Troubleshooting
 
 ### Common Issues
 
-**1. Container Not Found (Azure)**
-
-```bash
-az storage container create --name tempo-traces --account-name <storage>
-```
-
-**2. Authorization Failure (Azure)**
-
-```bash
-# Verify RBAC assignment
-az role assignment list --scope <storage-scope>
-
-# Assign if missing
-az role assignment create \
-  --role "Storage Blob Data Contributor" \
-  --assignee-object-id <principal-id> \
-  --scope <storage-scope>
-```
-
-**3. Ingester OOM**
+**1. Ingester OOM**
 
 ```yaml
 ingester:
@@ -444,7 +343,7 @@ ingester:
       memory: 16Gi  # Increase from 8Gi
 ```
 
-**4. Query Timeout**
+**2. Query Timeout**
 
 ```yaml
 querier:
@@ -456,19 +355,19 @@ querier:
 
 ```bash
 # Check pod status
-kubectl get pods -n monitoring -l app.kubernetes.io/name=tempo
+kubectl get pods -n observability -l app.kubernetes.io/name=tempo
 
 # Check distributor logs
-kubectl logs -n monitoring -l app.kubernetes.io/component=distributor --tail=100
+kubectl logs -n observability -l app.kubernetes.io/component=distributor --tail=100
 
 # Check ingester logs
-kubectl logs -n monitoring -l app.kubernetes.io/component=ingester --tail=100
+kubectl logs -n observability -l app.kubernetes.io/component=ingester --tail=100
 
 # Verify readiness
-kubectl exec -it <tempo-pod> -n monitoring -- wget -qO- http://localhost:3200/ready
+kubectl exec -it <tempo-pod> -n observability -- wget -qO- http://localhost:3200/ready
 
 # Check ring status
-kubectl port-forward svc/tempo-distributor 3200:3200 -n monitoring
+kubectl port-forward svc/tempo-distributor 3200:3200 -n observability
 curl http://localhost:3200/distributor/ring
 ```
 

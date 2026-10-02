@@ -1,15 +1,15 @@
 ---
 name: cloudflare-dns
-description: Comprehensive guide for managing Cloudflare DNS with Azure integration. Use when configuring Cloudflare as authoritative DNS provider for Azure-hosted applications, managing DNS records via API, setting up API tokens, configuring proxy settings, troubleshooting DNS issues, implementing DNS security best practices, or integrating External-DNS with Cloudflare for Kubernetes workloads.
+description: Comprehensive guide for managing Cloudflare DNS. Use when configuring Cloudflare as authoritative DNS provider, managing DNS records via API, setting up API tokens, configuring proxy settings, troubleshooting DNS issues, implementing DNS security best practices, or integrating External-DNS with Cloudflare for Kubernetes workloads.
 ---
 
 # Cloudflare DNS Skill
 
-Complete Cloudflare DNS operations via REST API with focus on Azure integration.
+Complete Cloudflare DNS operations via REST API.
 
 ## Overview
 
-This skill covers Cloudflare DNS management for Azure-hosted workloads, including:
+This skill covers Cloudflare DNS management, including:
 
 - API token configuration and security
 - DNS record management (A, AAAA, CNAME, TXT, MX)
@@ -252,7 +252,7 @@ sources:
 domainFilters:
   - example.com
 
-txtOwnerId: "aks-cluster-name"  # MUST be unique per cluster
+txtOwnerId: "application-cloudflare"  # MUST be unique per cluster
 txtPrefix: "_externaldns."
 policy: upsert-only  # Production: NEVER use sync
 interval: "5m"
@@ -394,7 +394,7 @@ kubectl logs -n external-dns deployment/external-dns | grep -i "All records are 
 1. **Scope tokens** - Use specific zones, not "All zones"
 2. **IP filtering** - Restrict to known IPs when possible
 3. **Rotate regularly** - Every 90 days for production
-4. **Store securely** - Kubernetes Secrets or Azure Key Vault
+4. **Store securely** - Kubernetes Secrets, SOPS-encrypted in Git
 5. **Audit usage** - Check Cloudflare audit logs
 
 ### Token Rotation
@@ -435,9 +435,9 @@ extraArgs:
 interval: "10m"  # Less frequent polling
 ```
 
-## Azure Integration
+## cert-manager Integration
 
-### cert-manager with Cloudflare DNS-01
+### DNS-01 Solver with Cloudflare
 
 ```yaml
 apiVersion: cert-manager.io/v1
@@ -461,39 +461,9 @@ spec:
             - example.com
 ```
 
-### AKS Ingress Configuration
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: myapp
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - app.example.com
-      secretName: app-tls
-  rules:
-    - host: app.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: myapp
-                port:
-                  number: 80
-```
-
 ## References
 
 - `references/api-reference.md` - Complete Cloudflare DNS API documentation
-- `references/azure-integration.md` - Azure-specific patterns and configurations
 - `scripts/cloudflare-dns.sh` - Helper script for common operations
 - [Cloudflare API Documentation](https://developers.cloudflare.com/api/)
 - [External-DNS Cloudflare Tutorial](https://kubernetes-sigs.github.io/external-dns/latest/tutorials/cloudflare/)
@@ -503,7 +473,7 @@ spec:
 ## Gotchas
 
 - **Rate limits are per-API-token, not per-zone:** A noisy External-DNS loop on token X exhausts the 1,200/5min budget for every zone that token touches. Split high-churn zones into a separate token to isolate blast radius.
-- **Proxied A records return Cloudflare IPs, not yours:** `dig +short app.example.com` showing `104.x.x.x` is correct, not broken. Origin reachability must be tested via Host header or directly against the Azure origin IP.
+- **Proxied A records return Cloudflare IPs, not yours:** `dig +short app.example.com` showing `104.x.x.x` is correct, not broken. Origin reachability must be tested via Host header or directly against the origin IP.
 - **TTL is ignored when proxied:** Setting TTL on an orange-cloud record looks accepted but Cloudflare overrides it with "Auto" (=1). Disable proxy first if you genuinely need a specific TTL (e.g., DNS-01 cert flows).
 - **External-DNS `txtOwnerId` collisions corrupt records across clusters:** Two clusters sharing the same `txtOwnerId` will fight over ownership TXT records and silently overwrite each other's A records. Always use a unique cluster identifier.
 - **`policy: sync` deletes records External-DNS didn't create:** If a manual A record matches a managed hostname pattern, sync mode will delete it during reconciliation. Production must use `upsert-only`.

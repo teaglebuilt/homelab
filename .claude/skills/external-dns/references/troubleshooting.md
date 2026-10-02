@@ -145,29 +145,6 @@ metadata:
 
 ### Provider-Specific Solutions
 
-#### Azure DNS
-
-```bash
-# Check environment variables
-kubectl exec -n external-dns deployment/external-dns -- env | grep AZURE
-
-# Verify Workload Identity labels
-kubectl get pod -n external-dns -l app.kubernetes.io/name=external-dns -o yaml | grep "azure.workload.identity"
-
-# Check service account annotations
-kubectl get sa external-dns -n external-dns -o yaml | grep azure
-
-# Verify role assignment
-az role assignment list --assignee <IDENTITY_OBJECT_ID> --scope <DNS_ZONE_ID> -o table
-```
-
-**Solutions**:
-
-1. Verify AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP are correct
-2. Ensure Workload Identity labels are on both ServiceAccount AND Pod
-3. Check federated credential subject: `system:serviceaccount:external-dns:external-dns`
-4. Verify DNS Zone Contributor role is assigned to the managed identity
-
 #### Cloudflare
 
 ```bash
@@ -216,8 +193,6 @@ kubectl exec -n external-dns deployment/external-dns -- aws sts get-caller-ident
 # Check current TXT ownership records
 dig TXT _externaldns.app.example.com
 
-# For Azure
-az network dns record-set txt list -g <RG> -z <ZONE> | grep external-dns
 
 # For Cloudflare
 curl "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=TXT" \
@@ -230,17 +205,15 @@ curl "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=TXT" 
 
 ```yaml
 # Cluster 1
-txtOwnerId: "aks-cluster-1-eastus"
+txtOwnerId: "application-cloudflare"
 
 # Cluster 2
-txtOwnerId: "aks-cluster-2-westus"
+txtOwnerId: "mlops-cloudflare"
 ```
 
 #### Clean Up Orphaned TXT Records
 
 ```bash
-# For Azure - delete orphaned TXT record
-az network dns record-set txt delete -g <RG> -z <ZONE> -n _externaldns.app --yes
 
 # For Cloudflare
 RECORD_ID="<record-id-from-list>"
@@ -577,7 +550,6 @@ kubectl get events -n external-dns --sort-by='.lastTimestamp' > events.txt
 | Problem | Quick Fix |
 |---------|-----------|
 | No records created | Check `domainFilters` and `sources` |
-| Auth failure (Azure) | Verify Workload Identity labels and role assignment |
 | Auth failure (Cloudflare) | Test API token with curl |
 | Rate limited | Increase `interval` to 10m+ |
 | TXT conflicts | Ensure unique `txtOwnerId` per cluster |
