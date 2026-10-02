@@ -51,14 +51,13 @@ tasks:
 
   deploy:
     dir: ai
-    desc: Deploy AI platform (GPU/mlops-only; skipped on other clusters)
+    desc: Deploy AI platform integrations
     vars:
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/mlops/kubeconfig'
-    status:
-      - test "{{.CLUSTER}}" != "mlops"
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
     cmds:
       - task: install-crds
-        vars: { CLUSTER: 'mlops' }
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -n {{.AI_NAMESPACE}} -f -
 

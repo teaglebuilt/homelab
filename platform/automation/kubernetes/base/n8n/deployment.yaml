@@ -24,8 +24,6 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-      nodeSelector:
-        kubernetes.io/hostname: mlops-work-01
       initContainers:
         - name: download-workflows
           image: public.ecr.aws/aws-cli/aws-cli:2.27.38
