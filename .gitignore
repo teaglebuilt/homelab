@@ -49,4 +49,7 @@ site/
 
 # Private files (only committed on private branch)
 **/private/
+
 .envrc.local
+.envrc
+.envrc.bak

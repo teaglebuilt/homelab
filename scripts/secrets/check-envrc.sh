@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 
 SECRETS=homelab.sops.env
-PLAIN_FILES=(.envrc .envrc.next homelab.env)
+PLAIN_FILES=(.envrc homelab.env)
 SECRET_NAME='(KEY|TOKEN|SECRET|PASSWORD|PASS)$'
 SECRET_VALUE='(sk-[A-Za-z0-9_-]{16,}|nvapi-|hf_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|![A-Za-z0-9_-]+=[0-9a-f-]{36})'
 fail=0
