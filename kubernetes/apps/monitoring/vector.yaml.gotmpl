@@ -8,6 +8,10 @@ customConfig:
     kubernetes_logs:
       type: "kubernetes_logs"
       use_apiserver_cache: true
+      # Fresh DaemonSet / emptyDir checkpoint reads container logs from byte 0.
+      # Without this, Vector floods Loki with hours of history → 429 rate limit
+      # and 400 "entry too far behind". Only ship recent lines.
+      ignore_older_secs: 900
       pod_annotation_fields:
         # Keep default kubernetes.container_name — templates/structured_metadata
         # reference that path. Renaming to "container" broke Loki sink rendering.
@@ -104,10 +108,24 @@ customConfig:
         - "enrich_logs"
       # Cilium global Service: local backends on application, ClusterMesh hop from mlops.
       endpoint: "http://loki-gateway-mesh.observability.svc.cluster.local"
-      tenant_id: "1"
+      # auth_enabled:false → Loki maps all writes to org "fake". A non-fake
+      # tenant_id still works for push but splits quotas; omit for single-tenant.
       encoding:
         codec: "json"
+      # accept: agentgateway access logs often arrive slightly disordered within
+      # a stream; drop was discarding the entire ai-gateway series.
       out_of_order_action: "accept"
+      # Keep catch-up bursts under Loki's ingestion_rate_mb.
+      batch:
+        max_bytes: 524288
+        max_events: 100
+        timeout_secs: 1
+      request:
+        retry_attempts: 10
+        retry_initial_backoff_secs: 1
+        retry_max_duration_secs: 30
+        rate_limit_num: 8
+        rate_limit_duration_secs: 1
       # Static cluster from helmfile. Dynamic keys must survive helmfile gotmpl AND
       # the chart's `tpl` on customConfig — hence the nested escaping.
       # pod/container demoted to structured_metadata to cut stream cardinality.

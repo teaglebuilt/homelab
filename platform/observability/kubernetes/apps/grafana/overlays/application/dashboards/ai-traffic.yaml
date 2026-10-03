@@ -1,0 +1,263 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: gen-ai-requests
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Loki: count ai-gateway gen.ai request logs by route/model. Only stream labels in {}; container is structured metadata (| container=...). route/model are textboxes — label_values cannot use logfmt pipelines.",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Total gen.ai request log lines in the selected range (Instant + $__range).",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 100 },
+                  { "color": "red", "value": 1000 }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+          "id": 1,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "sum(count_over_time({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\" [$__range]))",
+              "queryType": "instant",
+              "refId": "A"
+            }
+          ],
+          "title": "gen.ai requests ($__range)",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Same filter, rate over time (range query + $__interval).",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "lineWidth": 1,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
+          "id": 2,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "sum by (gen_ai_response_model) (rate({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\" [$__interval]))",
+              "legendFormat": "{{gen_ai_response_model}}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Request rate by model",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Breakdown of gen.ai request counts by route in the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "lineWidth": 1,
+                "showPoints": "never",
+                "stacking": { "group": "A", "mode": "normal" }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+          "id": 3,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "sum by (route) (count_over_time({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\" [$__interval]))",
+              "legendFormat": "{{route}}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Requests by route",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Working today: access-log volume by route (no gen_ai.* required).",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "lineWidth": 1,
+                "showPoints": "never"
+              },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+          "id": 4,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "sum by (route) (rate({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"route=\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" [$__interval]))",
+              "legendFormat": "{{route}}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Access log rate by route (live today)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Raw lines matching gen_ai.request.model after logfmt filters.",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
+          "id": 5,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "{cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\"",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Matching gen.ai log lines",
+          "type": "logs"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["ai", "agentgateway", "loki", "gen.ai"],
+      "templating": {
+        "list": [
+          {
+            "allValue": ".+",
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "datasource": { "type": "loki", "uid": "loki" },
+            "definition": "label_values({service_name=\"ai-gateway\"}, cluster)",
+            "includeAll": true,
+            "label": "cluster",
+            "multi": true,
+            "name": "cluster",
+            "query": "label_values({service_name=\"ai-gateway\"}, cluster)",
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": { "selected": false, "text": ".+", "value": ".+" },
+            "label": "route",
+            "name": "route",
+            "options": [
+              { "selected": true, "text": ".+", "value": ".+" }
+            ],
+            "query": ".+",
+            "type": "textbox"
+          },
+          {
+            "current": { "selected": false, "text": ".+", "value": ".+" },
+            "label": "model",
+            "name": "model",
+            "options": [
+              { "selected": true, "text": ".+", "value": ".+" }
+            ],
+            "query": ".+",
+            "type": "textbox"
+          }
+        ]
+      },
+      "time": { "from": "now-6h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "AI Traffic",
+      "uid": "gen-ai-requests-loki",
+      "version": 4,
+      "weekStart": ""
+    }
