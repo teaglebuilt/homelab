@@ -20,11 +20,22 @@ helmCharts:
         multitenancyEnabled: false
         reportingEnabled: true
         retention: 24h
-        # Service graphs + span metrics for the Tempo datasource. Requires the
-        # Prometheus remote-write receiver (--web.enable-remote-write-receiver).
         metricsGenerator:
           enabled: true
           remoteWriteUrl: "http://prometheus-community-kube-prometheus.observability:9090/api/v1/write"
+          registry:
+            external_labels:
+              source: tempo
+              cluster: application
+          processor:
+            span_metrics:
+              dimensions:
+                - gen.ai.request.model
+                - gen.ai.system
+                - kagent.user_id
+              enable_target_info: true
+            local_blocks:
+              flush_to_storage: true
         overrides:
           defaults:
             metrics_generator:

@@ -36,12 +36,12 @@ spec:
         histogram:
           explicit:
             buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096, 8.192, 16.384]
+        # Token counts intentionally omitted — they explode Prom label cardinality.
+        # Keep in sync with tempo metricsGenerator.processor.span_metrics.dimensions.
         dimensions:
           - name: gen.ai.request.model
           - name: gen.ai.system
           - name: kagent.user_id
-          - name: gen.ai.usage.input_tokens
-          - name: gen.ai.usage.output_tokens
         exemplars:
           enabled: true
         metrics_flush_interval: 15s
