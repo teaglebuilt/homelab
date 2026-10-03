@@ -5,9 +5,10 @@
 - [ ] - Complete Cluster Operations
   - [X] - [Move non ML Workloads to application cluster like data namespace](./stories/workload-reallocation.md)
   - [ ] - [Provisioning Secrets & Parameters Management](./stories/secrets-management.md)
-  - [ ] - Create administration cluster for gitops (ArgoCD)
+  - [ ] - [Talos Optimizations](./stories/talos-optimizations.md)
+  - [ ] - [Create administration cluster for gitops (ArgoCD)](./stories/gitops-management.md)
 - [ ] - Complete Cluster Operational Reliability
-  - [ ] - [Stabilize GPU Workloads](./stories/gpu-hardware-reliability.md)
+  - [ ] - [Stabilize GPU Workload](./stories/gpu-hardware-reliability.md)
 - [ ] - Observability
   - [ ] - GPU Hardware Observability
   - [ ] - AI Gateway Observability
