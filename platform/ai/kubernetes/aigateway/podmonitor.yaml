@@ -2,15 +2,17 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: agentgateway-gateways
-  namespace: observability
+  name: agentgateway-monitoring
+  namespace: ai
   labels:
-    release: kube-prometheus-stack
+    release: prometheus-community
     app: agentgateway
+    app.kubernetes.io/name: agentgateway
+    app.kubernetes.io/part-of: homelab
 spec:
   namespaceSelector:
     matchNames:
-      - kube-system
+      - ai
   selector:
     matchExpressions:
       - key: gateway.networking.k8s.io/gateway-name

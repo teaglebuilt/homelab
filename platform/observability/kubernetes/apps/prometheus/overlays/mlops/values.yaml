@@ -1,8 +1,4 @@
 ---
-# mlops AGENT overlay — a Prometheus *spoke*. It scrapes local GPU/vLLM targets
-# and remote_writes them to the central `application` hub. Agent mode = no local
-# storage, no UI, no rule evaluation. Anything that needs to be queried, alerted
-# on, or graphed lives on the `application` overlay.
 prometheus:
   enabled: true
   serviceMonitor:
@@ -13,29 +9,10 @@ prometheus:
   prometheusSpec:
     nodeSelector:
       kubernetes.io/hostname: mlops-work-00
-    # Attribution for everything this spoke ships to the hub. Without it, mlops
-    # series are indistinguishable from the hub's own targets once they land in
-    # the central TSDB (`cluster` had zero label values before this).
-    #
-    # NOTE on the asymmetry: externalLabels are applied on remote_write, federation
-    # and alerting — NOT to a Prometheus server's own locally-stored series. So this
-    # label appears on mlops series AT THE HUB, but setting the same key on the
-    # application overlay would NOT back-label the hub's locally-scraped targets.
-    # Hub-local series (incl. job="netops-host") stay unlabeled; they remain
-    # distinguishable by the `netops_role`/`proxmox_host` labels that job applies.
     externalLabels:
       cluster: mlops
-    # Ship everything scraped here up to the central hub on the application cluster.
-    # Path is private: prometheus.homelab.internal is an internal-only ExternalDNS
-    # zone (not public), and mlops<->application are joined via Cilium clustermesh.
-    # Prometheus' remote-write-receiver has NO native auth — tighten with a
-    # CiliumNetworkPolicy on the hub (restrict to cluster=mlops) if needed, not app creds.
     remoteWrite:
-      - url: http://prometheus.homelab.internal:9090/api/v1/write
-    # Local annotation-based discovery so the agent can actually COLLECT the
-    # DCGM/vLLM metrics it forwards. This is per-cluster and MUST stay on the agent —
-    # it is the source of the metrics we remote_write; it is not "global" config.
-    # (parca job dropped — TODO(user): re-add once parca's cluster/target is confirmed.)
+      - url: http://prometheus-mesh.observability.svc.cluster.local:9090/api/v1/write
     additionalScrapeConfigs:
       - job_name: 'kubernetes-endpoints'
         scrape_interval: 30s

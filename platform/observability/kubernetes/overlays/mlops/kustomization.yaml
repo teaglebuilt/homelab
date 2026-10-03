@@ -4,6 +4,5 @@ resources:
   - ../../base
   - ../../apps/prometheus/overlays/mlops
   - ../../apps/opentelemetry/overlays/mlops
-  # Loki itself runs on application; this is only the Cilium global Service so
-  # mlops Vector can push logs cross-cluster via ClusterMesh.
   - ../../apps/loki/mesh-service.yaml
+  - ../../apps/prometheus/mesh-service.yaml

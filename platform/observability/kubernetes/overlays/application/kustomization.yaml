@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ../../base
   - ../../apps/prometheus/overlays/application
+  - ../../apps/prometheus/mesh-service.yaml
   - ../../apps/grafana/overlays/application
   - ../../apps/opentelemetry/overlays/application
   - ../../apps/tempo
