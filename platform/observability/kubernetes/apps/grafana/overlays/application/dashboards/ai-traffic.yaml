@@ -23,7 +23,7 @@ spec:
           }
         ]
       },
-      "description": "Loki: count ai-gateway gen.ai request logs by route/model. Only stream labels in {}; container is structured metadata (| container=...). route/model are textboxes — label_values cannot use logfmt pipelines.",
+      "description": "ai-gateway access logs from Loki (Vector). Stream labels only in {}; container is structured metadata. route/status come from logfmt/regexp on the message line.",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -31,7 +31,7 @@ spec:
       "panels": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "description": "Total gen.ai request log lines in the selected range (Instant + $__range).",
+          "description": "Access-log lines with route= in the selected range.",
           "fieldConfig": {
             "defaults": {
               "color": { "mode": "thresholds" },
@@ -66,17 +66,17 @@ spec:
             {
               "datasource": { "type": "loki", "uid": "loki" },
               "editorMode": "code",
-              "expr": "sum(count_over_time({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\" [$__range]))",
+              "expr": "sum(count_over_time({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"route=\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" [$__range]))",
               "queryType": "instant",
               "refId": "A"
             }
           ],
-          "title": "gen.ai requests ($__range)",
+          "title": "Requests ($__range)",
           "type": "stat"
         },
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "description": "Same filter, rate over time (range query + $__interval).",
+          "description": "Access-log rate by HTTP status.",
           "fieldConfig": {
             "defaults": {
               "color": { "mode": "palette-classic" },
@@ -103,18 +103,18 @@ spec:
             {
               "datasource": { "type": "loki", "uid": "loki" },
               "editorMode": "code",
-              "expr": "sum by (gen_ai_response_model) (rate({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\" [$__interval]))",
-              "legendFormat": "{{gen_ai_response_model}}",
+              "expr": "sum by (status) (rate({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"http.status=\" |= \"route=\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | regexp \"http\\\\.status=(?P<status>\\\\d+)\" [$__interval]))",
+              "legendFormat": "{{status}}",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Request rate by model",
+          "title": "Request rate by status",
           "type": "timeseries"
         },
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "description": "Breakdown of gen.ai request counts by route in the selected range.",
+          "description": "Access-log counts by Gateway API route name.",
           "fieldConfig": {
             "defaults": {
               "color": { "mode": "palette-classic" },
@@ -140,7 +140,7 @@ spec:
             {
               "datasource": { "type": "loki", "uid": "loki" },
               "editorMode": "code",
-              "expr": "sum by (route) (count_over_time({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\" [$__interval]))",
+              "expr": "sum by (route) (count_over_time({cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"route=\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" [$__interval]))",
               "legendFormat": "{{route}}",
               "queryType": "range",
               "refId": "A"
@@ -151,7 +151,7 @@ spec:
         },
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "description": "Working today: access-log volume by route (no gen_ai.* required).",
+          "description": "Access-log rate by route (same filter as the count panel).",
           "fieldConfig": {
             "defaults": {
               "color": { "mode": "palette-classic" },
@@ -181,12 +181,12 @@ spec:
               "refId": "A"
             }
           ],
-          "title": "Access log rate by route (live today)",
+          "title": "Access log rate by route",
           "type": "timeseries"
         },
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "description": "Raw lines matching gen_ai.request.model after logfmt filters.",
+          "description": "Raw ai-gateway access lines (route=).",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
           "id": 5,
           "options": {
@@ -203,18 +203,18 @@ spec:
             {
               "datasource": { "type": "loki", "uid": "loki" },
               "editorMode": "code",
-              "expr": "{cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"gen_ai.request.model\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\" | gen_ai_response_model=~\"$model\"",
+              "expr": "{cluster=~\"$cluster\", service_name=\"ai-gateway\"} | container=\"agentgateway\" |= \"route=\" | json | line_format \"{{.message}}\" | logfmt | route=~\"$route\"",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Matching gen.ai log lines",
+          "title": "Access log lines",
           "type": "logs"
         }
       ],
       "refresh": "30s",
       "schemaVersion": 39,
-      "tags": ["ai", "agentgateway", "loki", "gen.ai"],
+      "tags": ["ai", "agentgateway", "loki", "access-logs"],
       "templating": {
         "list": [
           {
@@ -240,24 +240,14 @@ spec:
             ],
             "query": ".+",
             "type": "textbox"
-          },
-          {
-            "current": { "selected": false, "text": ".+", "value": ".+" },
-            "label": "model",
-            "name": "model",
-            "options": [
-              { "selected": true, "text": ".+", "value": ".+" }
-            ],
-            "query": ".+",
-            "type": "textbox"
           }
         ]
       },
-      "time": { "from": "now-6h", "to": "now" },
+      "time": { "from": "now-1h", "to": "now" },
       "timepicker": {},
       "timezone": "browser",
       "title": "AI Traffic",
       "uid": "gen-ai-requests-loki",
-      "version": 4,
+      "version": 5,
       "weekStart": ""
     }
