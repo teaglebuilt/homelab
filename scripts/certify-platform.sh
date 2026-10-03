@@ -1,13 +1,14 @@
 #!/bin/bash
 # shellcheck shell=bash disable=2128
-
 # Variables
-NAMESPACE="kube-system"
-SECRET_NAME="homelab-tls"
+NAMESPACE="cert-manager"
+SECRET_NAME="homelab-ca-secret"
 CERT_FILE="/tmp/homelab-ca.crt"
 KEYCHAIN="login.keychain"
 MAX_WAIT=300  # Maximum wait time in seconds (5 minutes)
 SLEEP_INTERVAL=10  # Time between checks
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export KUBECONFIG="${SCRIPT_DIR}/../kubernetes/generated/application/kubeconfig"
 
 echo "⏳ Waiting for certificate secret '$SECRET_NAME' to be created in namespace '$NAMESPACE'..."
 

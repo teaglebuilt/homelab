@@ -6,5 +6,5 @@ metadata:
   namespace: kube-system
 spec:
   blocks:
-    - start: ${APP_LB_POOL_START}
-      stop: ${APP_LB_POOL_STOP}
+    - start: ${LB_POOL_START}
+      stop: ${LB_POOL_STOP}
