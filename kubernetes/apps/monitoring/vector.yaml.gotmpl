@@ -93,6 +93,21 @@ customConfig:
         if !exists(.trace_id) { .trace_id = "" }
         if !exists(.span_id) { .span_id = "" }
 
+    # ignore_older_secs only skips files by mtime. A recently-written 0.log still
+    # contains hours/days of history; Loki then 400s "timestamp too old" and the
+    # Loki sink can stall that stream. Drop stale events before export.
+    drop_stale:
+      type: "filter"
+      inputs:
+        - "enrich_logs"
+      condition: |
+        ts, err = to_unix_timestamp(.timestamp)
+        if err != null {
+          true
+        } else {
+          ts > to_unix_timestamp(now()) - 3600
+        }
+
   sinks:
     # graylog.homelab.internal NXDOMAIN; GRAYLOG_IP=192.168.2.11:1514 is syslog, not GELF/12201.
     # Disabled so a dead sink cannot backpressure Loki. Re-enable when GELF resolves.
@@ -105,7 +120,7 @@ customConfig:
     loki:
       type: "loki"
       inputs:
-        - "enrich_logs"
+        - "drop_stale"
       # Cilium global Service: local backends on application, ClusterMesh hop from mlops.
       endpoint: "http://loki-gateway-mesh.observability.svc.cluster.local"
       # auth_enabled:false → Loki maps all writes to org "fake". A non-fake
@@ -115,17 +130,21 @@ customConfig:
       # accept: agentgateway access logs often arrive slightly disordered within
       # a stream; drop was discarding the entire ai-gateway series.
       out_of_order_action: "accept"
-      # Keep catch-up bursts under Loki's ingestion_rate_mb.
+      # Sized for Loki ingestion_rate_mb=16 with dual-cluster Vector.
       batch:
-        max_bytes: 524288
-        max_events: 100
+        max_bytes: 1048576
+        max_events: 250
         timeout_secs: 1
       request:
         retry_attempts: 10
         retry_initial_backoff_secs: 1
         retry_max_duration_secs: 30
-        rate_limit_num: 8
+        rate_limit_num: 32
         rate_limit_duration_secs: 1
+      buffer:
+        type: memory
+        max_events: 50000
+        when_full: block
       # Static cluster from helmfile. Dynamic keys must survive helmfile gotmpl AND
       # the chart's `tpl` on customConfig — hence the nested escaping.
       # pod/container demoted to structured_metadata to cut stream cardinality.
