@@ -2,6 +2,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: data
+resources:
+  - httproute.yaml
 helmCharts:
   - name: qdrant
     repo: https://qdrant.github.io/qdrant-helm
@@ -31,13 +33,41 @@ helmCharts:
           consensus:
             tick_period_ms: 200
       service:
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: qdrant.homelab.internal
-        type: LoadBalancer
+        type: ClusterIP
+
+# helmCharts inflate before NamespaceTransformer in some kustomize versions,
+# so chart objects omit metadata.namespace. Force it onto release-labeled objects.
 patches:
-  - path: headless-external-dns-patch.yaml
-    target:
+  - target:
+      labelSelector: "app.kubernetes.io/instance=qdrant"
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: data
+  - target:
+      kind: Service
+      name: qdrant
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: qdrant
+        annotations:
+          # ClusterMesh: share backends with the mlops front-door Service
+          # (overlays/mlops → mesh-service.yaml). DNS: qdrant.data.svc.cluster.local
+          service.cilium.io/global: "true"
+          service.cilium.io/shared: "true"
+          service.cilium.io/affinity: "local"
+  - target:
       kind: Service
       name: qdrant-headless
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: qdrant-headless
+        annotations:
+          external-dns.alpha.kubernetes.io/exclude: "true"
+
 generators:
   - secrets-generator.yaml

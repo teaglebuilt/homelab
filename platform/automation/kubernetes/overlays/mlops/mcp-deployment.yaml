@@ -26,16 +26,14 @@ spec:
       containers:
         - name: firecrawl-mcp
           image: node:22-alpine
-          # npx fetches firecrawl-mcp@3.23.0 from the npm registry on start (needs egress).
           command: ["npx", "-y", "firecrawl-mcp@3.23.0"]
           env:
             - name: HTTP_STREAMABLE_SERVER
               value: "true"
             - name: FIRECRAWL_API_URL
-              value: http://firecrawl-firecrawl-api.automation.svc.cluster.local:3002
+              value: http://firecrawl.homelab.internal
             - name: FIRECRAWL_API_KEY
               value: fc-self-hosted
-            # Writable npm cache/home for the non-root user.
             - name: HOME
               value: /home/node
             - name: HOST

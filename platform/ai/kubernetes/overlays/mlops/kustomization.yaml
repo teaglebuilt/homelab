@@ -2,13 +2,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: ai
-# GPU / agent stack stays on mlops. open-webui + openedai-speech live in
-# overlays/application (workload-reallocation Phase 4).
 resources:
   - ../../base
   - ../../aigateway
   - ../../llm-providers
   - ../../mcp
+  - ../../agents
   - ../../routes
 helmCharts:
   - name: agentgateway
