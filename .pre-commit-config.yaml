@@ -31,7 +31,7 @@ repos:
   - repo: local
     hooks:
       - id: homelab-secrets-guard
-        name: Block plaintext secrets in envrc / homelab.env
+        name: Block plaintext secrets in envrc / homelab.sops.env
         entry: scripts/secrets/check-envrc.sh
         language: script
         files: ^(\.envrc|\.envrc\.next|homelab\.env|homelab\.sops\.env)$

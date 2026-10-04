@@ -22,7 +22,6 @@ includes:
     taskfile: .taskfiles/secrets/Taskfile.yml
 
 dotenv: [
-  './homelab.env',
   './kubernetes/.env',
   './containers/.env',
   './platform/observability/.env',

@@ -4,7 +4,7 @@
 
 - [ ] - Complete Cluster Operations
   - [X] - [Move non ML Workloads to application cluster like data namespace](./stories/workload-reallocation.md)
-  - [ ] - [Provisioning Secrets & Parameters Management](./stories/secrets-management.md)
+  - [X] - [Provisioning Secrets & Parameters Management](./stories/secrets-management.md)
   - [ ] - [Talos Optimizations](./stories/talos-optimizations.md)
   - [ ] - [Create administration cluster for gitops (ArgoCD)](./stories/gitops-management.md)
 - [ ] - Complete Cluster Operational Reliability
