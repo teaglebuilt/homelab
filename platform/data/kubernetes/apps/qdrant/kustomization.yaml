@@ -34,6 +34,10 @@ helmCharts:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: qdrant.homelab.internal
         type: LoadBalancer
-
+patches:
+  - path: headless-external-dns-patch.yaml
+    target:
+      kind: Service
+      name: qdrant-headless
 generators:
   - secrets-generator.yaml
