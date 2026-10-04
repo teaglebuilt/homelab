@@ -23,6 +23,9 @@ env:
 tasks:
   provision-mlops:
     dir: kubernetes
+    preconditions:
+      - sh: test -n "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
+        msg: "PROXMOX_NODE_TWO_API_TOKEN not loaded. Run: task secrets:run -- kubernetes:provision-mlops"
     cmds:
       - |-
         tofu -chdir=terraform/mlops init --upgrade
@@ -47,6 +50,9 @@ tasks:
 
   destroy-mlops:
     dir: kubernetes
+    preconditions:
+      - sh: test -n "{{.PROXMOX_NODE_TWO_API_TOKEN}}"
+        msg: "PROXMOX_NODE_TWO_API_TOKEN not loaded. Run: task secrets:run -- kubernetes:destroy-mlops"
     cmds:
       - |-
         tofu -chdir=terraform/mlops init --upgrade
@@ -85,10 +91,12 @@ tasks:
       PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
       PROXMOX_VE_SSH_PRIVATE_KEY: "{{.PROXMOX_NODE_ONE_PRIVATE_KEY}}"
     preconditions:
+      - sh: test -n "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+        msg: "PROXMOX_NODE_ONE_API_TOKEN not loaded. Run: task secrets:run -- kubernetes:provision-application"
       - sh: '[ -n "$APP_MASTER_NODE_IP" ]'
-        msg: "APP_MASTER_NODE_IP is not set — add APP_MASTER_NODE_IP and APP_WORKER_ONE_NODE_IP to kubernetes/.env (192.168.2.0/24 IPs on pve). See kubernetes/clusters/application/cluster.yaml."
+        msg: "APP_MASTER_NODE_IP is not set — set APP_MASTER_NODE_IP and APP_WORKER_ONE_NODE_IP in homelab.sops.env (192.168.2.0/24 IPs on pve). See kubernetes/clusters/application/cluster.yaml."
       - sh: '[ -n "$APP_WORKER_ONE_NODE_IP" ]'
-        msg: "APP_WORKER_ONE_NODE_IP is not set — add it to kubernetes/.env."
+        msg: "APP_WORKER_ONE_NODE_IP is not set — add it to homelab.sops.env."
     cmds:
       - tofu -chdir=terraform/application init --upgrade
       - |-
@@ -110,6 +118,9 @@ tasks:
 
   destroy-application:
     dir: kubernetes
+    preconditions:
+      - sh: test -n "{{.PROXMOX_NODE_ONE_API_TOKEN}}"
+        msg: "PROXMOX_NODE_ONE_API_TOKEN not loaded. Run: task secrets:run -- kubernetes:destroy-application"
     env:
       PROXMOX_VE_ENDPOINT: "https://{{.PROXMOX_NODE_ONE_IP}}:8006"
       PROXMOX_VE_API_TOKEN: "{{.PROXMOX_NODE_ONE_API_TOKEN}}"

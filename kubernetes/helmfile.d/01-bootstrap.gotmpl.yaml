@@ -91,6 +91,8 @@ releases:
               kubectl wait --for=condition=established --timeout=120s "crd/$crd"
             done
 
+            export LB_POOL_START={{ index (splitList "-" $clusterCfg.lbPool) 0 | quote }}
+            export LB_POOL_STOP={{ index (splitList "-" $clusterCfg.lbPool) 1 | quote }}
             kustomize build --enable-exec --enable-helm ../apps/networking/cilium/overlays/{{ $cluster }} | envsubst | kubectl apply -f -
 
             kubectl -n kube-system rollout status ds/cilium --timeout=600s

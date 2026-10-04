@@ -18,6 +18,8 @@ includes:
   ansible:
     dir: ansible
     taskfile: ansible/Taskfile.yml
+  secrets:
+    taskfile: .taskfiles/secrets/Taskfile.yml
 
 dotenv: [
   './kubernetes/.env',
@@ -40,6 +42,12 @@ tasks:
     cmd: noop() { :; }
 
   deploy-kubernetes:
+    desc: Provision both clusters and deploy everything, with provisioning secrets injected
+    cmds:
+      - task: secrets:run
+        vars: { TARGET: _deploy-kubernetes }
+
+  _deploy-kubernetes:
     cmds:
       - task: kubernetes:provision-application
       - task: kubernetes:provision-mlops
@@ -91,6 +99,12 @@ tasks:
       - terraform apply -auto-approve -input=false
 
   destroy-kubernetes:
+    desc: Destroy both clusters, with provisioning secrets injected
+    cmds:
+      - task: secrets:run
+        vars: { TARGET: _destroy-kubernetes }
+
+  _destroy-kubernetes:
     cmds:
       - task: kubernetes:destroy-mlops
       - task: kubernetes:destroy-application

@@ -84,7 +84,10 @@ extraEnvVars:
   - name: QDRANT_URI
     value: "http://qdrant.homelab.internal:6333"
   - name: QDRANT_API_KEY
-    value: "your-super-secret-api-key"
+    valueFrom:
+      secretKeyRef:
+        name: openwebui-secrets
+        key: qdrant_api_key
   - name: STORAGE_PROVIDER
     value: s3
   - name: S3_REGION_NAME
