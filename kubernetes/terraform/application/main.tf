@@ -36,7 +36,9 @@ module "talos_cluster" {
       ip            = var.app_worker_one_node_ip
       vm_id         = 501
       cpu           = 4
-      disk_size     = 40
+      # local-path PVCs share this disk (postgres, qdrant, open-webui, seaweedfs).
+      # 40G filled up and SeaweedFS stopped allocating volumes → Loki S3 500s.
+      disk_size     = 100
       ram_dedicated = 12192
     }
     # "application-work-01" = {

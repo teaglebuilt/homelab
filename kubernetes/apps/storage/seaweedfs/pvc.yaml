@@ -10,9 +10,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  # Node-local disk (default class, Talos /var/local-path-provisioner) — SeaweedFS
-  # IS the S3 server, so its own object bytes sit on local disk, not NFS. Loki (the
-  # S3 client) then needs no filesystem mount at all.
+  # Keep on local-path (not nfs-csi): SeaweedFS is the hot S3 path for Loki/Tempo.
+  # local-path does not enforce quota — real capacity is the worker node's disk
+  # (application-work-00 disk_size in kubernetes/terraform/application/main.tf).
   storageClassName: local-path
   resources:
     requests:
