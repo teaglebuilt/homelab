@@ -1,13 +1,11 @@
 ---
-# Moved from platform/automation: v1alpha3 references (ModelConfig, Harness,
-# RemoteMCPServer, WorkerPool) must be in the Agent's own namespace, and they
-# all live in `ai`.
 apiVersion: api.kagent.dev/v1alpha3
-kind: AgentTemplate
+kind: Agent
 metadata:
   name: scraping-service-agent
   namespace: ai
 spec:
+  type: Declarative
   description: >-
     Generic scraping-as-a-service. Given a task (target URL + what to find +
     the desired output schema), it drives a headless browser via the Firecrawl
@@ -55,14 +53,4 @@ spec:
           apiGroup: api.kagent.dev
           kind: RemoteMCPServer
           name: firecrawl
----
-apiVersion: api.kagent.dev/v1alpha3
-kind: Agent
-metadata:
-  name: scraping-service-agent
-  namespace: ai
-spec:
-  templateRef:
-    name: scraping-service-agent
-  harnessRef:
-    name: kagent
+          toolNames: []

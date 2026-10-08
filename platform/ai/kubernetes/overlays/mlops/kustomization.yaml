@@ -16,15 +16,6 @@ helmCharts:
     releaseName: agentgateway
     version: v2.2.1
     namespace: ai
-  # kagent 1.0 (api.kagent.dev/v1alpha3) with Agent Substrate as a subchart.
-  # Alpha: pin exactly and read release notes before bumping. Keep the
-  # kagent-crds version in platform/ai/Taskfile.yml and the Harness image
-  # digests in kubernetes/harness/ in step. See docs/adr/0009.
-  #
-  # Cluster prerequisites (Substrate): Kubernetes with the ClusterTrustBundle,
-  # ClusterTrustBundleProjection and PodCertificateRequest feature gates and the
-  # certificates.k8s.io/v1beta1 API enabled. mlops runs Kubernetes 1.32.2 today,
-  # which doesn't meet this.
   - name: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     releaseName: kagent

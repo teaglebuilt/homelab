@@ -1,0 +1,23 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: incident-responder
+  namespace: ai
+spec:
+  modelConfig:
+    name: default-model-config
+  systemPrompt: You help engineers work through production incidents.
+  skills:
+    - name: incident-triage
+      source:
+        oci: registry.example.com/skills/incident-triage@sha256:<digest>
+  plugins:
+    - source:
+        git:
+          url: https://github.com/example/agent-plugins
+          commit: <full-commit-id>
+        path: bundles/observability
+      skills:
+        - log-search
+        - runbook-lookup

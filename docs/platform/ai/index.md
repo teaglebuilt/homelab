@@ -15,7 +15,8 @@ Everything below runs on the `mlops` cluster in namespace `ai`. It is deployed b
 |-----------|---------|-----------|---------------|
 | agentgateway controller (chart v2.2.1) | `mlops` | `ai` | `platform/ai/kubernetes/kustomization.yaml` |
 | `ai-gateway` Gateway (`agentgateway` class, LB `192.168.2.203`) | `mlops` | `ai` | `platform/ai/kubernetes/aigateway/` |
-| kagent (chart 0.9.11), agents, kmcp | `mlops` | `ai` | `platform/ai/kubernetes/kustomization.yaml` |
+| kagent (chart 1.0.0-alpha9, `api.kagent.dev/v1alpha3`), Agent Substrate (subchart), kmcp | `mlops` | `ai` | `platform/ai/kubernetes/overlays/mlops/kustomization.yaml` (ADR-0009) |
+| Harnesses (`kagent`, `claude`), AgentTemplates, Agents | `mlops` | `ai` | `platform/ai/kubernetes/harness/`, `platform/ai/kubernetes/agents/` |
 | LLM providers: OpenAI, Anthropic, self-hosted vLLM | `mlops` | `ai` | `platform/ai/kubernetes/llm-providers/` |
 | MCP servers (GitHub, Firecrawl, Context7, memory) and `/mcp` route | `mlops` | `ai` | `platform/ai/kubernetes/mcp/`, `mcp-backend.yaml`, `mcp-route.yaml` |
 | Open WebUI, openedai-speech | `mlops` | `ai` | `platform/ai/kubernetes/integrations/` |
