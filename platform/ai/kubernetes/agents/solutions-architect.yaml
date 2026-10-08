@@ -15,7 +15,7 @@ spec:
     architecture plans for this repo — not generic cloud advice.
   declarative:
     runtime: python
-    modelConfig: claude-sonnet-4
+    modelConfig: llmd-vllm-config
     promptTemplate:
       dataSources:
         - alias: builtin

@@ -6,6 +6,7 @@ kind: Kustomization
 resources:
   - ../../base
   - otel-collector.yaml
+  - servicemonitor.yaml
 helmCharts:
   - name: opentelemetry-operator
     releaseName: open-telemetry

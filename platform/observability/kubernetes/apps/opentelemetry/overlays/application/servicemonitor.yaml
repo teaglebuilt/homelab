@@ -1,0 +1,23 @@
+---
+# Scrape spanmetrics from the application gateway collector's prometheus
+# exporter (:8889). Traces → spanmetrics connector → this endpoint.
+# (mlops otel-agent only forwards OTLP; it does not emit spanmetrics.)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: otel-collector
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/part-of: homelab
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: observability.otel-collector
+      app.kubernetes.io/name: otel-collector-collector
+      operator.opentelemetry.io/collector-service-type: base
+  endpoints:
+    - port: prometheus
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
