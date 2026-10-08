@@ -7,6 +7,5 @@ resources:
   - automation-platform-storage.yaml
   - n8n
   - firecrawl
-  - agents/scraping-agent.yaml
 generators:
   - secrets-generator.yaml

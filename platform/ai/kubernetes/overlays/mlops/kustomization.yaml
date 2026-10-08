@@ -7,6 +7,7 @@ resources:
   - ../../aigateway
   - ../../llm-providers
   - ../../mcp
+  - ../../harness
   - ../../agents
   - ../../routes
 helmCharts:
@@ -15,27 +16,34 @@ helmCharts:
     releaseName: agentgateway
     version: v2.2.1
     namespace: ai
+  # kagent 1.0 (api.kagent.dev/v1alpha3) with Agent Substrate as a subchart.
+  # Alpha: pin exactly and read release notes before bumping. Keep the
+  # kagent-crds version in platform/ai/Taskfile.yml and the Harness image
+  # digests in kubernetes/harness/ in step. See docs/adr/0009.
+  #
+  # Cluster prerequisites (Substrate): Kubernetes with the ClusterTrustBundle,
+  # ClusterTrustBundleProjection and PodCertificateRequest feature gates and the
+  # certificates.k8s.io/v1beta1 API enabled. mlops runs Kubernetes 1.32.2 today,
+  # which doesn't meet this.
   - name: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     releaseName: kagent
-    version: 0.10.3
+    version: 1.0.0-alpha9
     namespace: ai
     valuesInline:
       kmcp:
         enabled: true
-      securityContext:
+      podSecurityContext:
         runAsNonRoot: true
         runAsUser: 65532
         runAsGroup: 65532
-      containerSecurityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      securityContext:
         allowPrivilegeEscalation: false
         capabilities:
           drop:
             - ALL
-        runAsNonRoot: true
-        runAsUser: 65532
-        seccompProfile:
-          type: RuntimeDefault
         readOnlyRootFilesystem: true
       providers:
         default: openAI
@@ -51,33 +59,32 @@ helmCharts:
             host: ollama.ai.svc.cluster.local:11434
       controller:
         substrate:
-          enabled: false
-          ateApiEndpoint: "dns:///api.ate-system.svc:443"
-          ateApiInsecure: true
+          # Endpoints are derived from the bundled substrate subchart
+          # (kagent-api.ai.svc:443, kagent-atenet-router.ai.svc:80).
+          enabled: true
+      substrate:
+        enabled: true
+        credentialProvider:
+          # Lets agents in `ai` use credentials (ModelConfig Secrets) from `ai`.
+          namespacePolicies:
+            - atespace: ai
+              allowedNamespaces: [ai]
       substrateWorkerPool:
-        create: false
-      agents:
-        istio-agent:
-          enabled: false
-        argo-rollouts-agent:
-          enabled: false
-        helm-agent:
-          enabled: false
+        create: true
+        name: kagent-default
+        sandboxClass: gvisor
+        # ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.4.0-alpha1 (matches substrate 0.4.0-alpha1)
+        workerImage: ghcr.io/kagent-dev/substrate/ateom-gvisor@sha256:a1ce5b950724c6167889324df6729ccf8c5b3b2963863f4602c21c17587ba454
       otel:
-        tracing:
+        exporter:
+          otlp:
+            endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+            protocol: grpc
+            timeout: "15000"
+        traces:
           enabled: true
-          exporter:
-            otlp:
-              endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
-              timeout: 15
-              insecure: true
-        logging:
+        logs:
           enabled: true
-          exporter:
-            otlp:
-              endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
-              timeout: 15
-              insecure: true
       kagent-tools:
         otel:
           tracing:

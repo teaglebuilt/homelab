@@ -1,0 +1,19 @@
+---
+# Default runtime for kagent agents: the Go ADK on Agent Substrate.
+# Image digest resolved from ghcr.io/kagent-dev/kagent/golang-adk:1.0.0-alpha9.
+# Bump it together with the kagent chart version in overlays/mlops.
+apiVersion: api.kagent.dev/v1alpha3
+kind: Harness
+metadata:
+  name: kagent
+  namespace: ai
+spec:
+  kagent: {}
+  workload:
+    image: ghcr.io/kagent-dev/kagent/golang-adk@sha256:26ae5c772d4a59b24ecb3619c3499e106e3b28abbc239de25b4ff8d746f97e69
+  substrate:
+    workerPoolRef:
+      name: kagent-default
+    snapshotPolicy:
+      # Substrate's in-cluster RustFS bucket (substrate.rustfs.bucket).
+      location: s3://ate-snapshots/kagent/

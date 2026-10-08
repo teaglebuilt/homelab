@@ -46,10 +46,17 @@ tasks:
           --create-namespace \
           --wait
       - echo "Installing kagent-crds..."
+      # 1.0 serves api.kagent.dev/v1alpha3 only. Upgrading this release from 0.10.x
+      # removes the legacy kagent.dev Agent/ModelConfig/RemoteMCPServer/AgentHarness
+      # CRDs, which deletes every resource of those kinds (docs/adr/0009).
+      # substrate.enabled installs the Agent Substrate CRDs (ate.dev).
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
+          --version 1.0.0-alpha9 \
           --namespace ai \
+          --set kmcp.enabled=true \
+          --set substrate.enabled=true \
           --wait
 
   deploy:

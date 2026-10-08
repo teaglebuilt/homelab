@@ -1,0 +1,22 @@
+---
+# Claude Code runtime for coding agents (software factory builders and verifiers).
+# Image digest resolved from ghcr.io/kagent-dev/kagent/claude-harness:1.0.0-alpha9,
+# which pins Claude Code 2.1.285. Claude Code mods need 2.1.287 or later, so
+# harness-repo mods don't run here yet; skills and MCP config do.
+#
+# Credentials are injected by the Substrate credential provider. HTTPS egress
+# also needs the egress-mitm-ca-pool Secret (see docs/adr/0009).
+apiVersion: api.kagent.dev/v1alpha3
+kind: Harness
+metadata:
+  name: claude
+  namespace: ai
+spec:
+  claude: {}
+  workload:
+    image: ghcr.io/kagent-dev/kagent/claude-harness@sha256:e72d66d9f3b6eafbc59d18cef150fb5d31cb89ead83999a33c06264c21e86d4c
+  substrate:
+    workerPoolRef:
+      name: kagent-default
+    snapshotPolicy:
+      location: s3://ate-snapshots/claude/

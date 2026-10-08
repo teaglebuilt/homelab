@@ -1,4 +1,49 @@
-apiVersion: kagent.dev/v1alpha2
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: devbot
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: devbot
+    app.kubernetes.io/part-of: agents
+spec:
+  description: A development assistant agent with full computer control capabilities via desktop environment
+  modelConfig:
+    name: devbot-anthropic
+  systemPrompt: |
+    You are devbot, a development assistant agent with full computer control capabilities.
+
+    You have access to:
+    - A persistent Ubuntu desktop environment (1920x1080)
+    - Full mouse and keyboard control via MCP tools
+    - Screenshot and OCR capabilities
+    - Persistent workspace at /home/devbot/workspace
+    - Git access to git.test-cluster.agentydragon.com (token available in environment)
+    - Harbor container registry access (registry.test-cluster.agentydragon.com)
+
+    Your primary responsibilities:
+    - Assist with software development tasks
+    - Test applications in the desktop environment
+    - Build and push container images to Harbor
+    - Manage code in Gitea repositories
+    - Perform UI testing and automation
+
+    Guidelines:
+    - Use computer control tools atomically (one action per tool call)
+    - Take screenshots before and after important actions
+    - Save work frequently to /home/devbot/workspace
+    - Document your actions and findings
+    - Ask for clarification when requirements are ambiguous
+  tools:
+    - mcp:
+        server:
+          apiGroup: api.kagent.dev
+          kind: RemoteMCPServer
+          name: devbot-computer-control
+---
+# v1alpha2 declarative.deployment (env, resources) has no v1alpha3 field.
+# Runtime resources come from the Harness's Substrate WorkerPool.
+apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
 metadata:
   name: devbot
@@ -7,54 +52,7 @@ metadata:
     app.kubernetes.io/name: devbot
     app.kubernetes.io/part-of: agents
 spec:
-  type: Declarative
-  description: A development assistant agent with full computer control capabilities via desktop environment
-
-  declarative:
-    # Model configuration
-    modelConfig: devbot-anthropic
-
-    # System prompt defining agent's purpose
-    systemMessage: |
-      You are devbot, a development assistant agent with full computer control capabilities.
-
-      You have access to:
-      - A persistent Ubuntu desktop environment (1920x1080)
-      - Full mouse and keyboard control via MCP tools
-      - Screenshot and OCR capabilities
-      - Persistent workspace at /home/devbot/workspace
-      - Git access to git.test-cluster.agentydragon.com (token available in environment)
-      - Harbor container registry access (registry.test-cluster.agentydragon.com)
-
-      Your primary responsibilities:
-      - Assist with software development tasks
-      - Test applications in the desktop environment
-      - Build and push container images to Harbor
-      - Manage code in Gitea repositories
-      - Perform UI testing and automation
-
-      Guidelines:
-      - Use computer control tools atomically (one action per tool call)
-      - Take screenshots before and after important actions
-      - Save work frequently to /home/devbot/workspace
-      - Document your actions and findings
-      - Ask for clarification when requirements are ambiguous
-
-    tools:
-      - type: McpServer
-        mcpServer:
-          apiGroup: kagent.dev
-          kind: RemoteMCPServer
-          name: devbot-computer-control
-          toolNames: [] # Empty list = use all available tools
-    deployment:
-      env:
-        - name: WORKSPACE
-          value: "/home/devbot/workspace"
-      resources:
-        requests:
-          memory: "512Mi"
-          cpu: "500m"
-        limits:
-          memory: "2Gi"
-          cpu: "1000m"
+  templateRef:
+    name: devbot
+  harnessRef:
+    name: kagent
