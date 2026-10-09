@@ -37,7 +37,6 @@ spec:
   tools:
     - mcp:
         server:
-          apiGroup: api.kagent.dev
           kind: RemoteMCPServer
           name: devbot-computer-control
 ---

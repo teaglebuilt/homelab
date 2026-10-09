@@ -89,14 +89,12 @@ spec:
   tools:
     - mcp:
         server:
-          apiGroup: api.kagent.dev
           kind: RemoteMCPServer
           name: kb-retrieval
         tools:
           - kb_search
     - mcp:
         server:
-          apiGroup: api.kagent.dev
           kind: RemoteMCPServer
           name: kagent-tool-server
         tools:

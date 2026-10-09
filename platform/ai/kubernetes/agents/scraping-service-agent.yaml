@@ -1,11 +1,13 @@
 ---
 apiVersion: api.kagent.dev/v1alpha3
-kind: Agent
+kind: AgentTemplate
 metadata:
   name: scraping-service-agent
   namespace: ai
+  labels:
+    app.kubernetes.io/name: scraping-service-agent
+    app.kubernetes.io/part-of: homelab
 spec:
-  type: Declarative
   description: >-
     Generic scraping-as-a-service. Given a task (target URL + what to find +
     the desired output schema), it drives a headless browser via the Firecrawl
@@ -50,7 +52,19 @@ spec:
   tools:
     - mcp:
         server:
-          apiGroup: api.kagent.dev
           kind: RemoteMCPServer
           name: firecrawl
-          toolNames: []
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: scraping-service-agent
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: scraping-service-agent
+    app.kubernetes.io/part-of: homelab
+spec:
+  templateRef:
+    name: scraping-service-agent
+  harnessRef:
+    name: kagent

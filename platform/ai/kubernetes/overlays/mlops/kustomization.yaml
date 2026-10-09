@@ -53,6 +53,14 @@ helmCharts:
           # Endpoints are derived from the bundled substrate subchart
           # (kagent-api.ai.svc:443, kagent-atenet-router.ai.svc:80).
           enabled: true
+      # Agent Substrate isn't a separate helmCharts entry: the kagent chart bundles
+      # it as a subchart (charts/substrate, version 0.4.0-alpha1, condition
+      # `substrate.enabled`). Keys under `substrate:` are that subchart's values.
+      # It renders into this release: kagent-api, kagent-ate-controller,
+      # kagent-atelet (DaemonSet), kagent-atenet-router/-egress,
+      # kagent-k8s-credential-provider, kagent-postgres, kagent-rustfs, and the
+      # gvisor-default SandboxConfig. Its CRDs (ate.dev) come from kagent-crds
+      # with substrate.enabled=true in platform/ai/Taskfile.yml.
       substrate:
         enabled: true
         credentialProvider:
