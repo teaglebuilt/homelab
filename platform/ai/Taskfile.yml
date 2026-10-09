@@ -69,8 +69,11 @@ tasks:
     cmds:
       - task: install-crds
         vars: { CLUSTER: '{{.CLUSTER}}' }
+      # Do not pass -n: Substrate/podcert resources target ate-system /
+      # podcertificate-controller-system; -n ai makes kubectl reject them.
+      # Per-resource namespaces come from the overlay / Helm charts.
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   destroy:
     dir: ai
@@ -80,7 +83,7 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
 
   test:
     cmds:

@@ -14,13 +14,16 @@ module "talos_cluster" {
     endpoint            = var.k8s_api_server_ip
     gateway             = var.network_gateway
     talos_version       = "v1.11.5"
-    kubernetes_version  = "1.32.2"
+    # 1.34+ required for PodCertificate projected volumes (Agent Substrate / kagent 1.0).
+    kubernetes_version  = "1.34.1"
     cluster_name        = "mlops"
     logging_server      = var.graylog_ip
     # Explicit (matches the prior Talos default). application uses 10.245.0.0/16
     # so pod CIDRs stay non-overlapping for ClusterMesh.
     pod_subnet          = "10.244.0.0/16"
     service_subnet      = "10.96.0.0/12"
+    # Substrate charts mount podCertificate + ClusterTrustBundle projections.
+    pod_certificates    = true
   }
 
   nodes = {

@@ -63,6 +63,10 @@ spec:
               mountPath: /etc/searxng/settings.yml
               subPath: settings.yml
               readOnly: true
+            # - name: private-settings
+            #   mountPath: /etc/searxng/private-settings.yml
+            #   subPath: private-settings.yml
+            #   readOnly: true
             - name: cache
               mountPath: /var/cache/searxng
             - name: tmp
@@ -94,6 +98,9 @@ spec:
         - name: settings
           configMap:
             name: searxng-settings
+        # - name: settings
+        #   configMap:
+        #     name: private-searxng-settings
         - name: cache
           emptyDir: {}
         - name: tmp

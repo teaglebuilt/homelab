@@ -1,0 +1,17 @@
+# Agent Substrate (kagent 1.0) projects PodCertificates + ClusterTrustBundles.
+# Requires Kubernetes >= 1.34 with these alpha gates (disabled by default).
+# See docs/adr/0009-kagent-v1alpha3-in-place.md and substrate upstream kind config.
+---
+cluster:
+  apiServer:
+    extraArgs:
+      feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true
+      runtime-config: certificates.k8s.io/v1beta1=true
+  controllerManager:
+    extraArgs:
+      feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true
+---
+machine:
+  kubelet:
+    extraArgs:
+      feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true

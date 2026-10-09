@@ -1,0 +1,8 @@
+# Kubelet half of PodCertificate / ClusterTrustBundle projection (workers).
+# Control-plane apiServer/controllerManager gates live in
+# patches/controlplane/pod-certificates.yaml.
+---
+machine:
+  kubelet:
+    extraArgs:
+      feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true

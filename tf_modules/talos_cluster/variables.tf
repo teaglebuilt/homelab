@@ -30,6 +30,9 @@ variable "cluster" {
     # image. Default true. Set false only for a host whose Proxmox Perl HTTP client
     # (LWP) fails verification even though the OS (curl) trusts the cert.
     verify_image_download = optional(bool, true)
+    # Enable PodCertificateRequest / ClusterTrustBundle feature gates (K8s >= 1.34).
+    # Required for Agent Substrate (kagent 1.0). Off by default.
+    pod_certificates = optional(bool, false)
   })
 }
 

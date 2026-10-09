@@ -1,0 +1,90 @@
+# https://docs.searxng.org/admin/settings/settings.html
+use_default_settings: true
+
+general:
+  instance_name: "homelab research"
+  privacypolicy_url: false
+  donation_url: false
+  contact_url: false
+  enable_metrics: true
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "auto"
+  # json required for OpenWebUI / API clients
+  formats:
+    - html
+    - json
+
+server:
+  # secret_key / base_url / port / bind_address come from SEARXNG_* env vars
+  limiter: false
+  public_instance: false
+  image_proxy: false
+
+ui:
+  static_use_hash: true
+
+outgoing:
+  request_timeout: 6.0
+  max_request_timeout: 15.0
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+  using_tor_proxy: false
+
+# Private engines via Tor SOCKS5h (merged by name with defaults).
+# https://docs.searxng.org/admin/settings/settings_engines.html
+engines:
+  - name: duckduckgo private
+    engine: duckduckgo
+    shortcut: pddg
+    categories: [private]
+    disabled: false
+    timeout: 20.0
+    using_tor_proxy: true
+    proxies:
+      http:
+        - socks5h://tegress.homelab.internal:9050
+      https:
+        - socks5h://tegress.homelab.internal:9050
+
+  - name: mojeek private
+    engine: mojeek
+    shortcut: pmj
+    categories: [private]
+    disabled: false
+    timeout: 20.0
+    using_tor_proxy: true
+    proxies:
+      http:
+        - socks5h://tegress.homelab.internal:9050
+      https:
+        - socks5h://tegress.homelab.internal:9050
+
+  - name: startpage private
+    engine: startpage
+    shortcut: psp
+    categories: [private]
+    disabled: false
+    timeout: 20.0
+    using_tor_proxy: true
+    proxies:
+      http:
+        - socks5h://tegress.homelab.internal:9050
+      https:
+        - socks5h://tegress.homelab.internal:9050
+
+  - name: wikipedia private
+    engine: wikipedia
+    shortcut: pwp
+    categories: [private]
+    disabled: false
+    timeout: 20.0
+    using_tor_proxy: true
+    proxies:
+      http:
+        - socks5h://tegress.homelab.internal:9050
+      https:
+        - socks5h://tegress.homelab.internal:9050

@@ -17,7 +17,7 @@ data "talos_machine_configuration" "this" {
   kubernetes_version  = var.cluster.kubernetes_version
   machine_type        = each.value.machine_type
   machine_secrets     = talos_machine_secrets.this.machine_secrets
-  config_patches = each.value.machine_type == "controlplane" ? [
+  config_patches = each.value.machine_type == "controlplane" ? concat([
     templatefile("${path.module}/templates/controlplane.yaml.tftpl", {
       hostname        = each.key
       node_name       = each.value.host_node
@@ -34,7 +34,9 @@ data "talos_machine_configuration" "this" {
     templatefile("${path.module}/patches/logging.yaml", {
       log_destination: var.cluster.logging_server
     }),
-  ] : concat([
+  ], try(var.cluster.pod_certificates, false) ? [
+    file("${path.module}/patches/controlplane/pod-certificates.yaml"),
+  ] : []) : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname        = each.key
       node_name       = each.value.host_node
@@ -57,6 +59,8 @@ data "talos_machine_configuration" "this" {
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/gpu-worker-label.yaml"),
+  ] : [], try(var.cluster.pod_certificates, false) ? [
+    file("${path.module}/patches/worker/pod-certificates.yaml"),
   ] : [])
 }
 
