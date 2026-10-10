@@ -1,0 +1,9 @@
+---
+# Vendored from oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds:0.5.0-alpha1
+# (that chart ships no values.yaml, so kustomize helmCharts fails with evalsymlink).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - resources/ate.dev_csidriverconfigs.yaml
+  - resources/ate.dev_sandboxconfigs.yaml
+  - resources/ate.dev_workerpools.yaml

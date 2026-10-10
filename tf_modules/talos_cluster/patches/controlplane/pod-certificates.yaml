@@ -6,7 +6,7 @@ cluster:
   apiServer:
     extraArgs:
       feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true
-      runtime-config: certificates.k8s.io/v1beta1=true
+      runtime-config: certificates.k8s.io/v1beta1=true,certificates.k8s.io/v1alpha1/podcertificaterequests=true
   controllerManager:
     extraArgs:
       feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true

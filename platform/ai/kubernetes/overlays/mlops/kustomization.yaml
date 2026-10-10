@@ -10,6 +10,8 @@ resources:
   - ../../harness
   - ../../agents
   - ../../routes
+  # Substrate lives in ate-system and is applied separately (Taskfile deploy):
+  # this overlay sets namespace: ai, which would rewrite ate-system resources.
 helmCharts:
   - name: agentgateway
     repo: oci://ghcr.io/kgateway-dev/charts
@@ -50,30 +52,20 @@ helmCharts:
             host: ollama.ai.svc.cluster.local:11434
       controller:
         substrate:
-          # Endpoints are derived from the bundled substrate subchart
-          # (kagent-api.ai.svc:443, kagent-atenet-router.ai.svc:80).
+          # Separate substrate release in ate-system (kubernetes/substrate/).
           enabled: true
-      # Agent Substrate isn't a separate helmCharts entry: the kagent chart bundles
-      # it as a subchart (charts/substrate, version 0.4.0-alpha1, condition
-      # `substrate.enabled`). Keys under `substrate:` are that subchart's values.
-      # It renders into this release: kagent-api, kagent-ate-controller,
-      # kagent-atelet (DaemonSet), kagent-atenet-router/-egress,
-      # kagent-k8s-credential-provider, kagent-postgres, kagent-rustfs, and the
-      # gvisor-default SandboxConfig. Its CRDs (ate.dev) come from kagent-crds
-      # with substrate.enabled=true in platform/ai/Taskfile.yml.
+          ateApiEndpoint: dns:///api.ate-system.svc:443
+          atenetRouterURL: http://atenet-router.ate-system.svc:80
+      # Bundled substrate subchart off — CRDs + control plane come from
+      # platform/ai/kubernetes/substrate/ (substrate-crds + substrate 0.5.0-alpha1).
       substrate:
-        enabled: true
-        credentialProvider:
-          # Lets agents in `ai` use credentials (ModelConfig Secrets) from `ai`.
-          namespacePolicies:
-            - atespace: ai
-              allowedNamespaces: [ai]
+        enabled: false
       substrateWorkerPool:
         create: true
         name: kagent-default
         sandboxClass: gvisor
-        # ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.4.0-alpha1 (matches substrate 0.4.0-alpha1)
-        workerImage: ghcr.io/kagent-dev/substrate/ateom-gvisor@sha256:a1ce5b950724c6167889324df6729ccf8c5b3b2963863f4602c21c17587ba454
+        # Must match the separate substrate chart version (0.5.0-alpha1).
+        workerImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.5.0-alpha1
       otel:
         exporter:
           otlp:

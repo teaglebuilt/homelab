@@ -1,0 +1,14 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: kagent
+  namespace: data
+spec:
+  name: kagent
+  owner: kagent
+  cluster:
+    name: app-postgres
+  extensions:
+    - name: vector
+      ensure: present

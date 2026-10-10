@@ -49,14 +49,15 @@ tasks:
       # 1.0 serves api.kagent.dev/v1alpha3 only. Upgrading this release from 0.10.x
       # removes the legacy kagent.dev Agent/ModelConfig/RemoteMCPServer/AgentHarness
       # CRDs, which deletes every resource of those kinds (docs/adr/0009).
-      # substrate.enabled installs the Agent Substrate CRDs (ate.dev).
+      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.5.0-alpha1),
+      # not from this chart — keep substrate.enabled=false to avoid double-manage.
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
           --version 1.0.0-alpha9 \
           --namespace ai \
           --set kmcp.enabled=true \
-          --set substrate.enabled=true \
+          --set substrate.enabled=false \
           --wait
 
   deploy:
@@ -69,9 +70,9 @@ tasks:
     cmds:
       - task: install-crds
         vars: { CLUSTER: '{{.CLUSTER}}' }
-      # Do not pass -n: Substrate/podcert resources target ate-system /
-      # podcertificate-controller-system; -n ai makes kubectl reject them.
-      # Per-resource namespaces come from the overlay / Helm charts.
+      # Substrate is ate-system; must not go through overlays/*/ (namespace: ai).
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/substrate | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 

@@ -1,0 +1,150 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: substrate-identity-bootstrap
+  namespace: ate-system
+  labels:
+    app.kubernetes.io/name: substrate-identity-bootstrap
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    # Bump when the script changes so a Completed Job is replaced after TTL.
+    homelab.teaglebuilt/substrate-identity-version: v0.5.0-alpha1-1
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: substrate-identity-bootstrap
+        app.kubernetes.io/part-of: homelab
+    spec:
+      serviceAccountName: substrate-identity-bootstrap
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          # alpine:3.21.3
+          image: alpine@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+          imagePullPolicy: IfNotPresent
+          # Root required for apk (curl/jq/openssl). Short-lived bootstrap only.
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: ATE_NS
+              value: ate-system
+            - name: PODCERT_NS
+              value: podcertificate-controller-system
+            - name: ATE_VERSION
+              value: v0.5.0-alpha1
+            - name: KUBECTL_VERSION
+              value: v1.32.2
+            - name: API_AUDIENCE
+              value: api.ate-system.svc
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              apk add --no-cache curl jq openssl >/dev/null
+
+              arch="$(uname -m)"
+              case "$arch" in
+                x86_64|amd64) arch=amd64 ;;
+                aarch64|arm64) arch=arm64 ;;
+                *) echo "unsupported arch: $arch" >&2; exit 1 ;;
+              esac
+
+              curl -fsSL -o /tmp/kubectl \
+                "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${arch}/kubectl"
+              curl -fsSL -o /tmp/kubectl-ate \
+                "https://github.com/kagent-dev/substrate/releases/download/${ATE_VERSION}/kubectl-ate-linux-${arch}"
+              chmod +x /tmp/kubectl /tmp/kubectl-ate
+              export PATH="/tmp:${PATH}"
+
+              secret_exists() {
+                kubectl get secret "$2" -n "$1" >/dev/null 2>&1
+              }
+
+              make_ca_pool() {
+                ns="$1"; name="$2"; shift 2
+                if secret_exists "$ns" "$name"; then
+                  echo "secret ${ns}/${name} already exists; skipping"
+                  return 0
+                fi
+                kubectl ate admin make-ca-pool \
+                  --ca-id=1 \
+                  --name="$name" \
+                  --secret-namespace="$ns" \
+                  "$@"
+                echo "created secret ${ns}/${name}"
+              }
+
+              make_jwt_pool() {
+                ns="$1"; name="$2"
+                if secret_exists "$ns" "$name"; then
+                  echo "secret ${ns}/${name} already exists; skipping"
+                  return 0
+                fi
+                kubectl ate admin make-jwt-pool \
+                  --key-id=1 \
+                  --name="$name" \
+                  --secret-namespace="$ns"
+                echo "created secret ${ns}/${name}"
+              }
+
+              kubectl create namespace "$PODCERT_NS" --dry-run=client -o yaml | kubectl apply -f -
+
+              make_ca_pool "$PODCERT_NS" service-dns-ca-pool
+              make_ca_pool "$PODCERT_NS" pod-identity-ca-pool
+              make_jwt_pool "$ATE_NS" actor-id-jwt-pool
+              make_ca_pool "$ATE_NS" actor-id-ca-pool
+              make_ca_pool "$ATE_NS" egress-mitm-ca-pool --key-type=ECDSAP256
+
+              if ! secret_exists "$ATE_NS" actor-id-ca-certs; then
+                tmpdir=$(mktemp -d)
+                kubectl get secret actor-id-ca-pool -n "$ATE_NS" \
+                  -o jsonpath='{.data.pool}' | base64 -d \
+                  | jq -r '.CAs[0].RootCertificateDER' | base64 -d \
+                  | openssl x509 -inform der -outform pem > "${tmpdir}/ca.crt"
+                kubectl create secret generic actor-id-ca-certs -n "$ATE_NS" \
+                  --from-file=ca.crt="${tmpdir}/ca.crt"
+                rm -rf "$tmpdir"
+                echo "created secret ${ATE_NS}/actor-id-ca-certs"
+              else
+                echo "secret ${ATE_NS}/actor-id-ca-certs already exists; skipping"
+              fi
+
+              if kubectl get configmap ate-api-authentication -n "$ATE_NS" >/dev/null 2>&1; then
+                echo "configmap ${ATE_NS}/ate-api-authentication already exists; skipping"
+              else
+                issuer=$(kubectl get --raw /.well-known/openid-configuration | jq -r .issuer)
+                if [ -z "$issuer" ] || [ "$issuer" = "null" ]; then
+                  echo "failed to read OIDC issuer from apiserver" >&2
+                  exit 1
+                fi
+                # Talos advertises an external issuer (https://<cp-ip>:6443).
+                # Upstream: omit certificateAuthorityFile / discoveryTokenFile.
+                auth_file=$(mktemp)
+                printf '%s\n' \
+                  'actorIdentityJWTProvider: kubernetes' \
+                  'jwtProviders:' \
+                  '- name: kubernetes' \
+                  "  issuer: ${issuer}" \
+                  '  audiences:' \
+                  "  - ${API_AUDIENCE}" \
+                  > "$auth_file"
+                kubectl create configmap ate-api-authentication -n "$ATE_NS" \
+                  --from-file=authentication.yaml="$auth_file"
+                rm -f "$auth_file"
+                echo "created configmap ${ATE_NS}/ate-api-authentication (issuer=${issuer})"
+              fi
+
+              echo "substrate identity bootstrap complete"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

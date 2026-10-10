@@ -6,7 +6,7 @@ metadata:
   namespace: ai
 spec:
   modelConfig:
-    name: default-model-config
+    name: llmd-vllm-config
   systemPrompt: You help engineers work through production incidents.
   skills:
     - name: incident-triage
