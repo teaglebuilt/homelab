@@ -59,8 +59,6 @@ data "talos_machine_configuration" "this" {
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/gpu-worker-label.yaml"),
-  ] : [], try(var.cluster.pod_certificates, false) ? [
-    file("${path.module}/patches/worker/pod-certificates.yaml"),
   ] : [])
 }
 
