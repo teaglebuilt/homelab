@@ -124,7 +124,7 @@ releases:
 
   - name: netops-agent
     namespace: default
-    chart: /Users/teaglebuilt/github/teaglebuilt/netops-agent/chart
+    chart: /Users/teaglebuilt/github/teaglebuilt/platform/observability/netops-agent/chart
     version: 0.1.0
     installed: true
     createNamespace: false
