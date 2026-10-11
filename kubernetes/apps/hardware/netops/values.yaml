@@ -14,7 +14,7 @@
 image:
   repository: ghcr.io/teaglebuilt/netops-agent
   # Pin to the digest-equivalent tag currently running on mlops (not mutable "dev").
-  tag: aea1aac
+  tag: 54aa399-dirty
   pullPolicy: Always
 
 imagePullSecrets:

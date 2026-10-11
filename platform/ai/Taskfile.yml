@@ -60,6 +60,25 @@ tasks:
           --set substrate.enabled=false \
           --wait
 
+  install-substrate-crds:
+    desc: Apply ate.dev CRDs and wait until Established (before SandboxConfig)
+    internal: true
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    # Substrate (ate-system) is only in the mlops overlay.
+    status:
+      - '[ "{{.CLUSTER}}" != "mlops" ]'
+    cmds:
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/substrate/crds | kubectl apply -f -
+        kubectl wait --for=condition=Established \
+          crd/csidriverconfigs.ate.dev \
+          crd/sandboxconfigs.ate.dev \
+          crd/workerpools.ate.dev \
+          --timeout=60s
+
   deploy:
     dir: ai
     desc: Deploy AI platform (per-cluster overlay)
@@ -70,9 +89,10 @@ tasks:
     cmds:
       - task: install-crds
         vars: { CLUSTER: '{{.CLUSTER}}' }
-      # Substrate is ate-system; must not go through overlays/*/ (namespace: ai).
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/substrate | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+      # kubectl apply of CRDs + CRs in one stream races; SandboxConfig needs
+      # ate.dev CRDs Established first (overlay also re-applies them, which is fine).
+      - task: install-substrate-crds
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
