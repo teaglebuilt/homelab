@@ -19,6 +19,10 @@ variable "cluster" {
     endpoint            = string
     gateway             = string
     talos_version       = string
+    # Pin the machine-config document contract independently of the OS image.
+    # Talos 1.14+ generates multi-document Kube* configs that conflict with our
+    # legacy v1alpha1 patches. Omit to use talos_version.
+    config_version      = optional(string)
     kubernetes_version  = string
     cluster_name        = string
     logging_server      = string

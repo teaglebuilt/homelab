@@ -14,6 +14,9 @@ module "talos_cluster" {
     endpoint            = var.k8s_api_server_ip
     gateway             = var.network_gateway
     talos_version       = "v1.14.2"
+    # Keep the v1alpha1 config contract until templates/patches migrate to
+    # Talos 1.14 multi-document Kube* kinds. OS image stays on v1.14.2.
+    config_version      = "v1.11.5"
     # kagent 1.0 / Agent Substrate requires Kubernetes 1.37+.
     kubernetes_version  = "1.37.1"
     cluster_name        = "mlops"

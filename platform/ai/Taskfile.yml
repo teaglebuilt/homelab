@@ -105,3 +105,24 @@ tasks:
           --docker-server=nvcr.io \
           --docker-username='$oauthtoken' \
           --docker-password='{{.NGC_API_KEY}}'
+
+  build-claude-harness:
+    desc: Build and push the Claude harness with a newer Claude Code (VERSION=latest by default)
+    vars:
+      VERSION: '{{.VERSION | default "latest"}}'
+      REGISTRY: '{{.REGISTRY | default "ghcr.io/nextgensolutions-llc"}}'
+      PLATFORMS: '{{.PLATFORMS | default "linux/amd64"}}'
+      CLAUDE_CODE_VERSION:
+        sh: |
+          v='{{.VERSION}}'
+          [ "$v" = latest ] && v="$(curl -fsS https://downloads.claude.ai/claude-code-releases/latest)"
+          echo "$v"
+    cmds:
+      - |-
+        docker buildx build \
+          --platform '{{.PLATFORMS}}' \
+          --build-arg CLAUDE_CODE_VERSION='{{.CLAUDE_CODE_VERSION}}' \
+          -f '{{.TASKFILE_DIR}}/kubernetes/harness/Dockerfile.claude' \
+          -t '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' \
+          --push '{{.TASKFILE_DIR}}/kubernetes/harness'
+      - docker buildx imagetools inspect '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}'

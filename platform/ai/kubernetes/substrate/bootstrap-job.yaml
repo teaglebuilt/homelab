@@ -10,7 +10,7 @@ metadata:
     # Bump when the script changes so a Completed Job is replaced after TTL.
     homelab.teaglebuilt/substrate-identity-version: v0.5.0-alpha1-1
 spec:
-  ttlSecondsAfterFinished: 300
+  ttlSecondsAfterFinished: 3600
   backoffLimit: 3
   template:
     metadata:
@@ -40,7 +40,7 @@ spec:
             - name: ATE_VERSION
               value: v0.5.0-alpha1
             - name: KUBECTL_VERSION
-              value: v1.32.2
+              value: v1.37.1
             - name: API_AUDIENCE
               value: api.ate-system.svc
           command: ["/bin/sh", "-ec"]

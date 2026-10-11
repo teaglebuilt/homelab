@@ -13,7 +13,9 @@ data "talos_machine_configuration" "this" {
   for_each            = var.nodes
   cluster_name        = var.cluster.name
   cluster_endpoint    = "https://${var.cluster.endpoint}:6443"
-  talos_version       = var.cluster.talos_version
+  # config_version pins the generated document contract; talos_version remains
+  # the OS/image version used for secrets and node identity.
+  talos_version       = coalesce(var.cluster.config_version, var.cluster.talos_version)
   kubernetes_version  = var.cluster.kubernetes_version
   machine_type        = each.value.machine_type
   machine_secrets     = talos_machine_secrets.this.machine_secrets
