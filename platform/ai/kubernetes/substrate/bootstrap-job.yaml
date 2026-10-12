@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/part-of: homelab
   annotations:
     # Bump when the script changes so a Completed Job is replaced after TTL.
-    homelab.teaglebuilt/substrate-identity-version: v0.5.0-alpha1-1
+    homelab.teaglebuilt/substrate-identity-version: v0.5.0-alpha1-2
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 3
@@ -97,6 +97,7 @@ spec:
 
               make_ca_pool "$PODCERT_NS" service-dns-ca-pool
               make_ca_pool "$PODCERT_NS" pod-identity-ca-pool
+              make_ca_pool "$PODCERT_NS" postgres-ca-pool
               make_jwt_pool "$ATE_NS" actor-id-jwt-pool
               make_ca_pool "$ATE_NS" actor-id-ca-pool
               make_ca_pool "$ATE_NS" egress-mitm-ca-pool --key-type=ECDSAP256

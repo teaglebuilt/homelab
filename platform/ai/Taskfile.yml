@@ -4,6 +4,7 @@ version: 3
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
   AI_NAMESPACE: ai
+  AGENTGATEWAY_VERSION: v1.6.0
 
 tasks:
   adopt-crds:
@@ -15,7 +16,7 @@ tasks:
     cmds:
       - |
         export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        for crd in $(kubectl get crds -o name | grep -E 'agentgateway\.dev|kgateway\.dev'); do
+        for crd in $(kubectl get crds -o name | grep 'agentgateway\.dev'); do
           kubectl label "$crd" app.kubernetes.io/managed-by=Helm --overwrite
           kubectl annotate "$crd" meta.helm.sh/release-name=agentgateway-crds meta.helm.sh/release-namespace=ai --overwrite
         done
@@ -40,8 +41,8 @@ tasks:
       - echo "Installing agentgateway-crds..."
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install agentgateway-crds \
-          oci://ghcr.io/kgateway-dev/charts/agentgateway-crds \
-          --version v2.2.1 \
+          oci://ghcr.io/agentgateway/charts/agentgateway-crds \
+          --version '{{.AGENTGATEWAY_VERSION}}' \
           --namespace ai \
           --create-namespace \
           --wait
@@ -60,7 +61,25 @@ tasks:
           --set substrate.enabled=false \
           --wait
 
+  install-agentgateway:
+    desc: Install the agentgateway controller (creates the agentgateway GatewayClass)
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    status:
+      - '[ "{{.CLUSTER}}" != "mlops" ]'
+    cmds:
+      - echo "Installing agentgateway controller..."
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install agentgateway \
+          oci://ghcr.io/agentgateway/charts/agentgateway \
+          --version '{{.AGENTGATEWAY_VERSION}}' \
+          --namespace ai \
+          --create-namespace \
+          --wait
+
   install-substrate-crds:
+    dir: ai
     desc: Apply ate.dev CRDs and wait until Established (before SandboxConfig)
     internal: true
     vars:
@@ -88,6 +107,8 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - task: install-crds
+        vars: { CLUSTER: '{{.CLUSTER}}' }
+      - task: install-agentgateway
         vars: { CLUSTER: '{{.CLUSTER}}' }
       # kubectl apply of CRDs + CRs in one stream races; SandboxConfig needs
       # ate.dev CRDs Established first (overlay also re-applies them, which is fine).

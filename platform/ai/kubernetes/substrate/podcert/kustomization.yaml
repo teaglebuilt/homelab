@@ -1,0 +1,13 @@
+---
+# Signers for *.podcert.ate.dev. The substrate chart does not deploy these.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: podcertificate-controller-system
+resources:
+  - namespace.yaml
+helmCharts:
+  - name: substrate-podcert
+    repo: oci://ghcr.io/kagent-dev/substrate/helm
+    version: 0.5.0-alpha1
+    releaseName: substrate-podcert
+    namespace: podcertificate-controller-system

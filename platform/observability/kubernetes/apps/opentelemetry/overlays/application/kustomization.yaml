@@ -1,11 +1,12 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# application: full collector — the OTel operator, the collector CR (real
-# backends for the mesh Service), plus the shared global Service from base.
+# application: OTel operator + mesh Service + ServiceMonitor.
+# OpenTelemetryCollector CR (otel-collector.yaml) is applied by
+# platform/observability/Taskfile.yml after the operator webhook is Ready —
+# same apply stream races the mutating webhook (failurePolicy=Fail).
 resources:
   - ../../base
-  - otel-collector.yaml
   - servicemonitor.yaml
 helmCharts:
   - name: opentelemetry-operator
@@ -24,8 +25,11 @@ helmCharts:
             memory: 128Mi
           limits:
             memory: 256Mi
+      # cert-manager (not autoGenerateCert): kustomize helmCharts has no live
+      # secret lookup, so autoGenerateCert mints a new CA every build and breaks
+      # the mutating webhook until the operator reloads.
       admissionWebhooks:
         certManager:
-          enabled: false
-        autoGenerateCert:
           enabled: true
+        autoGenerateCert:
+          enabled: false
