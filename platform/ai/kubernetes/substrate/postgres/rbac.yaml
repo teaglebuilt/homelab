@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: substrate-postgres-setup
+  namespace: ate-system
+  labels:
+    app.kubernetes.io/name: substrate-postgres-setup
+    app.kubernetes.io/part-of: homelab
+---
+# pg_hba rejects the postgres superuser over TLS and trusts only the local
+# socket, so setup.sql has to run inside the pod via exec.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: substrate-postgres-setup
+  namespace: ate-system
+  labels:
+    app.kubernetes.io/name: substrate-postgres-setup
+    app.kubernetes.io/part-of: homelab
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [pods/exec]
+    verbs: [create]
+  - apiGroups: [apps]
+    resources: [statefulsets]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, create, patch, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: substrate-postgres-setup
+  namespace: ate-system
+  labels:
+    app.kubernetes.io/name: substrate-postgres-setup
+    app.kubernetes.io/part-of: homelab
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: substrate-postgres-setup
+subjects:
+  - kind: ServiceAccount
+    name: substrate-postgres-setup
+    namespace: ate-system

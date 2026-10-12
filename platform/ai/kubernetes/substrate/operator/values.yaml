@@ -7,6 +7,12 @@ credentialProvider:
     - atespace: ai
       allowedNamespaces: [ai]
 
+postgres:
+  # Connection strings reference /run/postgres.podcert.ate.dev/*.pem, which
+  # ate-api-server only mounts when this is on.
+  clientCertificates:
+    enabled: true
+
 rustfs:
   enabled: true
   storageSize: 1Gi
