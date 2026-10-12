@@ -119,4 +119,4 @@ spec:
   templateRef:
     name: solutions-architect
   harnessRef:
-    name: kagent
+    name: claude

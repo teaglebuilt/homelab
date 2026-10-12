@@ -7,6 +7,7 @@ resources:
   - memory.yaml
   - context7.yaml
   - firecrawl.yaml
+  - kb-retrieval.yaml
 generators:
   - secrets-generator.yaml
 replacements:
