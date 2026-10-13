@@ -20,30 +20,26 @@ includes:
 tasks:
   deploy:
     dir: platform
-    summary: 'deploy all platform services running on kubernetes'
+    summary: 'Deploy platform via cluster Helmfile (stages 00-06)'
+    requires:
+      vars: [CLUSTER]
+    cmds:
+      - task: kubernetes:sync-cluster
+        vars:
+          CLUSTER: '{{.CLUSTER}}'
+
+  destroy:
+    dir: platform
+    summary: 'Destroy only disposable (lifecycle=stateless) platform releases'
     requires:
       vars: [CLUSTER]
     vars:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      - task: data:deploy
-        vars: { CLUSTER: '{{.CLUSTER}}' }
-      - task: ai:deploy
-        vars: { CLUSTER: '{{.CLUSTER}}' }
-      - task: automation:deploy
-        vars: { CLUSTER: '{{.CLUSTER}}' }
-      - task: observability:deploy
-        vars: { CLUSTER: '{{.CLUSTER}}' }
-      # - task: research:deploy
-      #   vars: { CLUSTER: '{{.CLUSTER}}' }
-      - kubectl rollout restart deployment reflector -n kube-system
-
-  destroy:
-    dir: platform
-    summary: 'destroy all platform services running on kubernetes'
-    cmds:
-      - task: ai:destroy
-      - task: automation:destroy
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile \
+          -f '{{.ROOT_DIR}}/kubernetes/clusters/{{.CLUSTER}}/helmfile.yaml' \
+          destroy --selector lifecycle=stateless
 
   test:
     dir: platform

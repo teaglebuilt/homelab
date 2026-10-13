@@ -1,39 +1,8 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# mlops: a local "agent" collector. agentgateway/kagent do their own endpoint
-# discovery, which can't see Cilium global-service backends (those live only in
-# the eBPF datapath, not the K8s EndpointSlice). So producers must send to a
-# LOCAL collector with real endpoints; this agent then forwards (OTLP) to the
-# gateway collector on `application` via the otel-collector-mesh global Service
-# (a plain ClusterIP dial, which does route cross-cluster).
-# OpenTelemetryCollector CR (otel-collector.yaml) is applied by
-# platform/observability/Taskfile.yml after the operator webhook is Ready —
-# same apply stream races the mutating webhook (failurePolicy=Fail).
+# Chart-free: mesh Service only. Operator is Helmfile stage 04.
+# OpenTelemetryCollector CR (otel-collector.yaml) is applied by the
+# open-telemetry postsync hook after webhook readiness.
 resources:
   - ../../base
-helmCharts:
-  - name: opentelemetry-operator
-    releaseName: open-telemetry
-    repo: https://open-telemetry.github.io/opentelemetry-helm-charts
-    version: 0.114.1
-    namespace: observability
-    includeCRDs: true
-    valuesInline:
-      manager:
-        collectorImage:
-          repository: otel/opentelemetry-collector-k8s
-        resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
-          limits:
-            memory: 256Mi
-      # cert-manager (not autoGenerateCert): kustomize helmCharts has no live
-      # secret lookup, so autoGenerateCert mints a new CA every build and breaks
-      # the mutating webhook until the operator reloads.
-      admissionWebhooks:
-        certManager:
-          enabled: true
-        autoGenerateCert:
-          enabled: false

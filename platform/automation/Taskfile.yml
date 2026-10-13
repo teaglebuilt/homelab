@@ -2,28 +2,31 @@
 version: 3
 
 vars:
-  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
   SCRAPER_IMAGE: ghcr.io/nextgensolutions-llc/scrapers
   SCRAPER_TAG:
     sh: git rev-parse --short HEAD
 
 tasks:
   deploy:
-    desc: Deploy automation stack
+    desc: Deploy automation stack via Helmfile stage 05
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile \
+          -f '{{.ROOT_DIR}}/kubernetes/clusters/{{.CLUSTER}}/helmfile.yaml' \
+          sync --selector tier=platform,stack=automation
 
   destroy:
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./automation/kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile \
+          -f '{{.ROOT_DIR}}/kubernetes/clusters/{{.CLUSTER}}/helmfile.yaml' \
+          destroy --selector stack=automation,lifecycle=stateless
 
   n8n:workflows:backup:
     desc: Run n8n workflow/credential export to S3 now

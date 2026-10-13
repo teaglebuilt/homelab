@@ -13,7 +13,9 @@ Helmfile stages deploy in order:
 - `01-bootstrap` -- CNI (Cilium), CoreDNS, Spegel, NFS CSI
 - `02-core` -- Cloudflare tunnel, ExternalDNS, cert-manager, homelab-gateway
 - `03-hardware` -- NVIDIA device plugin, kwasm/Spin operator, metrics-server
-- `04-monitoring` -- observability stack
+- `04-monitoring` -- Vector, grafana-operator, kube-prometheus-stack, OTel, Loki, Tempo
+- `05-platform` -- data, AI, automation, research workloads
+- `06-gitops` -- optional ArgoCD handoff
 
 ## homelab-gateway Chart
 

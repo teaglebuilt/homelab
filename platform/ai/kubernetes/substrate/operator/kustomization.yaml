@@ -1,11 +1,6 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: ate-system
-helmCharts:
-  - name: substrate
-    repo: oci://ghcr.io/kagent-dev/substrate/helm
-    version: 0.5.0-alpha1
-    releaseName: substrate
-    namespace: ate-system
-    valuesFile: values.yaml
+# Operator chart moved to Helmfile stage 05 (oci substrate 0.5.0-alpha1).
+# values.yaml retained for the Helmfile release.
+resources: []

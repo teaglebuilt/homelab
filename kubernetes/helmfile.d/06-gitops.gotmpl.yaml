@@ -1,5 +1,5 @@
 ---
-{{- /* Stage 05 — GitOps (Phase 2 seam). DISABLED by default.
+{{- /* Stage 06 — GitOps (Phase 2 seam). DISABLED by default.
        Enabled per-cluster via clusters/<cluster>/environment.yaml → enable.gitops.
        While gitops:false this stage renders to nothing (the release is guarded by
        the {{- if }} below, so the argocd values — incl. requiredEnv — are never

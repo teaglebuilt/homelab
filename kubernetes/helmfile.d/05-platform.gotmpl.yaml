@@ -1,0 +1,310 @@
+---
+{{- /* Stage 05 — Platform workloads (data, AI, automation, research).
+       Charts become Helmfile releases; chart-free Kustomize overlays apply in
+       postsync after CRD/webhook readiness. Stateful and CRD releases carry
+       lifecycle labels so routine destroy can select lifecycle=stateless. */ -}}
+{{- $cluster := .Values | get "cluster" "mlops" }}
+{{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
+{{- $enable := $env | get "enable" dict }}
+{{- $dataStack := $enable | get "dataStack" true }}
+{{- $aiStack := $enable | get "aiStack" true }}
+{{- $automationStack := $enable | get "automationStack" true }}
+{{- $researchStack := $enable | get "researchStack" false }}
+{{- $isApp := eq $cluster "application" }}
+{{- $isMlops := eq $cluster "mlops" }}
+{{- $scripts := "../scripts" }}
+{{- $dataRoot := "../../platform/data/kubernetes" }}
+{{- $aiRoot := "../../platform/ai/kubernetes" }}
+{{- $autoRoot := "../../platform/automation/kubernetes" }}
+{{- $researchRoot := "../../platform/research/kubernetes" }}
+bases:
+  - ../defaults.yaml
+
+repositories:
+  - name: qdrant
+    url: https://qdrant.github.io/qdrant-helm
+  - name: openwebui
+    url: https://helm.openwebui.com/
+
+releases:
+{{- if $isApp }}
+  - name: qdrant
+    namespace: data
+    createNamespace: true
+    chart: qdrant/qdrant
+    version: 1.14.1
+    installed: {{ $dataStack }}
+    labels:
+      tier: platform
+      stack: data
+      lifecycle: stateful
+    values:
+      - {{ $dataRoot }}/apps/qdrant/values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $dataRoot }}/overlays/{{ $cluster }}
+            kubectl -n data annotate service qdrant-headless \
+              external-dns.alpha.kubernetes.io/exclude=true --overwrite || true
+{{- else if $isMlops }}
+  - name: data-mesh
+    namespace: data
+    createNamespace: true
+    chart: ../charts/platform-hook
+    version: 0.1.0
+    installed: {{ $dataStack }}
+    labels:
+      tier: platform
+      stack: data
+      lifecycle: stateful
+    values:
+      - name: data-mesh
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $dataRoot }}/overlays/{{ $cluster }}
+{{- end }}
+
+{{- if $isMlops }}
+  - name: agentgateway-crds
+    namespace: ai
+    createNamespace: true
+    chart: oci://ghcr.io/agentgateway/charts/agentgateway-crds
+    version: v1.6.0
+    installed: {{ $aiStack }}
+    labels:
+      tier: crds
+      stack: ai
+      lifecycle: crds
+
+  - name: agentgateway
+    namespace: ai
+    createNamespace: true
+    chart: oci://ghcr.io/agentgateway/charts/agentgateway
+    version: v1.6.0
+    installed: {{ $aiStack }}
+    needs:
+      - ai/agentgateway-crds
+    labels:
+      tier: platform
+      stack: ai
+      lifecycle: stateless
+    values:
+      - {{ $aiRoot }}/values/agentgateway.yaml
+
+  - name: kagent-crds
+    namespace: ai
+    createNamespace: true
+    chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
+    version: 1.0.0-alpha9
+    installed: {{ $aiStack }}
+    labels:
+      tier: crds
+      stack: ai
+      lifecycle: crds
+    values:
+      - kmcp:
+          enabled: true
+        substrate:
+          enabled: false
+
+  - name: kagent
+    namespace: ai
+    createNamespace: true
+    chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent
+    version: 1.0.0-alpha9
+    installed: {{ $aiStack }}
+    needs:
+      - ai/kagent-crds
+      - ai/agentgateway
+    labels:
+      tier: platform
+      stack: ai
+      lifecycle: stateless
+    values:
+      - {{ $aiRoot }}/values/kagent.yaml
+
+  - name: substrate
+    namespace: ate-system
+    createNamespace: true
+    chart: oci://ghcr.io/kagent-dev/substrate/helm/substrate
+    version: 0.5.0-alpha1
+    installed: {{ $aiStack }}
+    needs:
+      - ai/kagent
+    labels:
+      tier: platform
+      stack: ai
+      lifecycle: stateful
+    values:
+      - {{ $aiRoot }}/substrate/operator/values.yaml
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $aiRoot }}/substrate/crds \
+              --kustomize-flags ""
+            {{ $scripts }}/wait-for-crds.sh --group ate.dev
+
+  - name: substrate-podcert
+    namespace: podcertificate-controller-system
+    createNamespace: true
+    chart: oci://ghcr.io/kagent-dev/substrate/helm/substrate-podcert
+    version: 0.5.0-alpha1
+    installed: {{ $aiStack }}
+    needs:
+      - ate-system/substrate
+    labels:
+      tier: platform
+      stack: ai
+      lifecycle: stateless
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $aiRoot }}/substrate/podcert/manifests \
+              --kustomize-flags ""
+
+  - name: ai-manifests
+    namespace: ai
+    chart: ../charts/platform-hook
+    version: 0.1.0
+    installed: {{ $aiStack }}
+    labels:
+      tier: platform
+      stack: ai
+      lifecycle: stateless
+    needs:
+      - ai/kagent
+      - ate-system/substrate
+    values:
+      - name: ai-manifests
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $aiRoot }}/overlays/{{ $cluster }}
+{{- end }}
+
+{{- if $isApp }}
+  - name: open-webui
+    namespace: ai
+    createNamespace: true
+    chart: openwebui/open-webui
+    version: 16.6.0
+    installed: {{ $aiStack }}
+    labels:
+      tier: platform
+      stack: ai
+      lifecycle: stateful
+    values:
+      - {{ $aiRoot }}/integrations/openwebui/values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $aiRoot }}/overlays/{{ $cluster }}
+{{- end }}
+{{- if $isApp }}
+  - name: firecrawl
+    namespace: automation
+    createNamespace: true
+    chart: ../charts/firecrawl
+    version: 0.1.0
+    installed: {{ $automationStack }}
+    labels:
+      tier: platform
+      stack: automation
+      lifecycle: stateful
+    values:
+      - {{ $autoRoot }}/base/firecrawl/values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $autoRoot }}/overlays/{{ $cluster }}
+{{- else if $isMlops }}
+  - name: automation-manifests
+    namespace: automation
+    createNamespace: true
+    chart: ../charts/platform-hook
+    version: 0.1.0
+    installed: {{ $automationStack }}
+    labels:
+      tier: platform
+      stack: automation
+      lifecycle: stateless
+    values:
+      - name: automation-manifests
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $autoRoot }}/overlays/{{ $cluster }}
+{{- end }}
+{{- if and $isApp $researchStack }}
+  - name: research-manifests
+    namespace: research
+    createNamespace: true
+    chart: ../charts/platform-hook
+    version: 0.1.0
+    installed: true
+    labels:
+      tier: platform
+      stack: research
+      lifecycle: stateful
+    values:
+      - name: research-manifests
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh {{ $researchRoot }}
+{{- end }}

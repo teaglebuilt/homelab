@@ -7,19 +7,19 @@ keeps no long-term data and forwards metrics, traces and logs to the hub.
 
 | Component | Cluster | Namespace | Deployed from |
 |-----------|---------|-----------|---------------|
-| Prometheus, Alertmanager, Grafana (kube-prometheus-stack) | `application` | `observability` | `platform/observability/kubernetes/apps/prometheus/overlays/application`, `apps/grafana/overlays/application` |
-| Loki, Tempo | `application` | `observability` | `platform/observability/kubernetes/apps/loki`, `apps/tempo` |
-| OpenTelemetry gateway collector (`otel-collector-mesh`) | `application` | `observability` | `platform/observability/kubernetes/apps/opentelemetry/overlays/application` |
+| Prometheus, Alertmanager, Grafana (kube-prometheus-stack) | `application` | `observability` | Helmfile stage `04-monitoring` + chart-free rules/Grafana CRs |
+| Loki, Tempo | `application` | `observability` | Helmfile stage `04-monitoring` (`apps/loki/values.yaml`, `apps/tempo/values.yaml`) |
+| OpenTelemetry operator + gateway collector | `application` | `observability` | Helmfile stage `04-monitoring` (webhook wait → collector CR) |
 | grafana-operator | `application` | `observability` | Helmfile stage `04-monitoring` (`enable.grafanaOperator`) |
-| Prometheus in agent mode (remote-write to `prometheus.homelab.internal`) | `mlops` | `observability` | `platform/observability/kubernetes/apps/prometheus/overlays/mlops` |
-| OpenTelemetry agent collector | `mlops` | `observability` | `platform/observability/kubernetes/apps/opentelemetry/overlays/mlops` |
-| `loki-gateway-mesh` global Service | `mlops` | `observability` | `platform/observability/kubernetes/apps/loki/mesh-service.yaml` |
+| Prometheus in agent mode | `mlops` | `observability` | Helmfile stage `04-monitoring` |
+| OpenTelemetry agent collector | `mlops` | `observability` | Helmfile stage `04-monitoring` (webhook wait → collector CR) |
+| Mesh Services (`prometheus-mesh`, `loki-gateway-mesh`) | both | `observability` | Chart-free postsync manifests under `overlays/<cluster>/manifests` |
 | Vector (log shipping to `loki-gateway-mesh`) | both | `observability` | Helmfile stage `04-monitoring` (`kubernetes/apps/monitoring/vector.yaml.gotmpl`) |
 | dcgm-exporter (GPU metrics) | `mlops` | `kube-system` | Helmfile stage `03-hardware` (`enable.gpu`) |
 | Grafana, InfluxDB, Chronograf, UnPoller (UniFi metrics) | Portainer LXC | — | `platform/observability/compose.yaml`, pushed by `platform/observability/terraform/` |
 
 The Kubernetes stack is applied per cluster by `task platform:observability:deploy CLUSTER=<cluster>`,
-which builds `platform/observability/kubernetes/overlays/<cluster>`. Grafana is served on the
+which runs `helmfile sync --selector tier=platform,stack=observability`. Grafana is served on the
 `application` internal gateway at `grafana.homelab.internal`.
 
 ## GPU Metrics

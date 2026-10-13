@@ -18,6 +18,9 @@ helmfiles:
   - path: ../../helmfile.d/04-monitoring.gotmpl.yaml
     values:
       - cluster: application
-  - path: ../../helmfile.d/05-gitops.gotmpl.yaml
+  - path: ../../helmfile.d/05-platform.gotmpl.yaml
+    values:
+      - cluster: application
+  - path: ../../helmfile.d/06-gitops.gotmpl.yaml
     values:
       - cluster: application

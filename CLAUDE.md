@@ -9,7 +9,7 @@ homelab and developer platform built on kubernetes.
 ```
 kubernetes/           # K8s cluster management
   clusters/           # Cluster definitions: mlops, application
-  helmfile.d/         # Staged Helmfile deploys: 00-prepare -> 01-bootstrap -> 02-core -> 03-hardware -> 04-monitoring
+  helmfile.d/         # Staged Helmfile deploys: 00-prepare -> ... -> 04-monitoring -> 05-platform -> 06-gitops
   charts/             # Custom charts (homelab-gateway wraps kgateway v2.4.4)
   apps/               # Per-app configs: networking/, security/, storage/, gitops/, hardware/, monitoring/
   terraform/          # Cluster-level Terraform (Talos provisioning)

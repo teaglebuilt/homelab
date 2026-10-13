@@ -2,72 +2,41 @@
 version: 3
 
 vars:
-  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone
   TERRAFORM: tofu -chdir=terraform
 
 tasks:
   deploy:
     dir: observability
-    summary: Deploy the per-cluster observability stack (CLUSTER=mlops|application)
+    summary: Deploy observability via Helmfile stage 04 (CLUSTER=mlops|application)
+    requires:
+      vars: [CLUSTER]
     vars:
-      CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
-      OTEL_COLLECTOR: kubernetes/apps/opentelemetry/overlays/{{.CLUSTER}}/otel-collector.yaml
     preconditions:
-      - sh: test -d kubernetes/overlays/{{.CLUSTER}}
-        msg: "No observability overlay for cluster '{{.CLUSTER}}' — expected platform/observability/overlays/{{.CLUSTER}}/"
       - sh: test -f {{.KUBECONFIG_FILE}}
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."
-      - sh: test -f {{.OTEL_COLLECTOR}}
-        msg: "OpenTelemetryCollector CR missing at {{.OTEL_COLLECTOR}}"
     cmds:
-      # Operator + the rest of the stack first. Collector CR is separate: its
-      # mutating webhook (failurePolicy=Fail) races if applied in the same stream.
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build \
-          --enable-helm \
-          --enable-exec \
-          --enable-alpha-plugins \
-          --load-restrictor LoadRestrictionsNone \
-          kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
-      - |-
-        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        echo "Waiting for OpenTelemetry operator webhook cert + Deployment..."
-        kubectl -n observability wait \
-          --for=condition=Ready \
-          certificate/open-telemetry-opentelemetry-operator-serving-cert \
-          --timeout=120s
-        kubectl -n observability rollout status \
-          deploy/open-telemetry-opentelemetry-operator \
-          --timeout=300s
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f '{{.OTEL_COLLECTOR}}'
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile \
+          -f '{{.ROOT_DIR}}/kubernetes/clusters/{{.CLUSTER}}/helmfile.yaml' \
+          sync --selector tier=platform,stack=observability
 
   destroy:
     dir: observability
+    summary: Destroy disposable observability releases only (keeps stateful)
+    requires:
+      vars: [CLUSTER]
     vars:
-      CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
-      OTEL_COLLECTOR: kubernetes/apps/opentelemetry/overlays/{{.CLUSTER}}/otel-collector.yaml
     cmds:
-      # Collector CR first (depends on operator webhook while deleting too).
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f '{{.OTEL_COLLECTOR}}' --ignore-not-found
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build \
-          --enable-helm \
-          --enable-exec \
-          --enable-alpha-plugins \
-          --load-restrictor LoadRestrictionsNone \
-          kubernetes/overlays/{{.CLUSTER}} \
-          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f - --ignore-not-found
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile \
+          -f '{{.ROOT_DIR}}/kubernetes/clusters/{{.CLUSTER}}/helmfile.yaml' \
+          destroy --selector tier=platform,stack=observability,lifecycle=stateless
 
   provision:
     dir: observability
     summary: Provision observability stack via OpenTofu (requires .env or direnv)
-    # preconditions:
-    #   - sh: 'test -n "$PORTAINER_IP" && test -n "$PORTAINER_API_KEY"'
-    #     msg: "Set PORTAINER_IP and PORTAINER_API_KEY in .env (see downloads stack) or export via direnv"
     cmds:
       - |-
         {{.TERRAFORM}} init

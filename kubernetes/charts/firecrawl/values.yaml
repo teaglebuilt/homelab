@@ -1,0 +1,104 @@
+replicaCount: 1
+
+nuqWorker:
+  replicaCount: 5
+  resources:
+    requests:
+      memory: "3G"
+      cpu: "1000m"
+    limits:
+      memory: "4G"
+      cpu: "1000m"
+
+nuqPostgres:
+  # Toggle the bundled NuQ Postgres. Set false to use an external Postgres via
+  # config.NUQ_DATABASE_URL (must have the NuQ schema/pg_cron; see chart README).
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/firecrawl/nuq-postgres
+    tag: "v2.11.0"
+    pullPolicy: IfNotPresent
+  auth:
+    username: postgres
+    database: postgres
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  persistence:
+    enabled: false
+
+image:
+  repository: ghcr.io/firecrawl/firecrawl
+  tag: "v2.11.0"
+  pullPolicy: IfNotPresent
+  dockerSecretEnabled: true
+
+playwright:
+  repository: ghcr.io/firecrawl/playwright-service
+  tag: "v2.11.0"
+  pullPolicy: IfNotPresent
+  healthCheck:
+    enabled: false # The current playwright-service image doesn't support /health endpoints
+
+redis:
+  # Toggle the bundled Redis. Set false to use an external Redis via
+  # config.REDIS_URL / config.REDIS_RATE_LIMIT_URL.
+  enabled: true
+  image: redis:alpine
+  replicaCount: 1
+
+service:
+  api:
+    type: ClusterIP
+    port: 3002
+  playwright:
+    type: ClusterIP
+    port: 3000
+  redis:
+    type: ClusterIP
+    port: 6379
+
+config:
+  NUM_WORKERS_PER_QUEUE: "8"
+  PORT: "3002"
+  HOST: "0.0.0.0"
+  REDIS_URL: "redis://redis:6379"
+  REDIS_RATE_LIMIT_URL: "redis://redis:6379"
+  PLAYWRIGHT_MICROSERVICE_URL: "http://playwright-service:3000"
+  USE_DB_AUTHENTICATION: "false"
+  HDX_NODE_BETA_MODE: "1"
+  NUQ_DATABASE_URL: "postgresql://postgres:password@nuq-postgres:5432/postgres"
+
+playwrightConfig:
+  PORT: "3000"
+
+secret:
+  OPENAI_API_KEY: ""
+  SLACK_WEBHOOK_URL: ""
+  LLAMAPARSE_API_KEY: ""
+  BULL_AUTH_KEY: ""
+  TEST_API_KEY: ""
+  POSTHOG_API_KEY: ""
+  POSTHOG_HOST: ""
+  SCRAPING_BEE_API_KEY: ""
+  STRIPE_PRICE_ID_STANDARD: ""
+  STRIPE_PRICE_ID_SCALE: ""
+  FIRE_ENGINE_BETA_URL: ""
+  REDIS_PASSWORD: ""
+
+imagePullSecrets:
+  - name: docker-registry-secret
+
+# Ingress is disabled by default; this homelab exposes Firecrawl via Gateway API
+# (see firecrawl/internal-httproute.yaml), not a Kubernetes Ingress.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  tls: []
+  hosts: []

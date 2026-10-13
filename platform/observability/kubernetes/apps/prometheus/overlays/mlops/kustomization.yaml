@@ -1,47 +1,8 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: observability
+# Chart-free: spoke overlay has no extra PrometheusRules today.
+# kube-prometheus-stack (agentMode) is owned by Helmfile stage 04.
 resources:
   - ../../base
-helmCharts:
-  - name: kube-prometheus-stack
-    repo: https://prometheus-community.github.io/helm-charts
-    version: 61.7.1
-    namespace: observability
-    releaseName: prometheus-community
-    additionalValuesFiles:
-      - values.yaml               # agentMode + remoteWrite + scrape configs
-      - prometheus-operator.yaml  # lean operator (required to manage PrometheusAgent)
-    valuesInline:
-      # Spoke cluster: PrometheusAgent only. Scrape local GPU/vLLM targets and
-      # remote_write to the application hub. No local TSDB, rules, or exporters.
-      defaultRules:
-        create: false
-      alertmanager:
-        enabled: false
-      grafana:
-        enabled: false
-      nodeExporter:
-        enabled: false
-      kubeStateMetrics:
-        enabled: false
-      kubeApiServer:
-        enabled: false
-      kubelet:
-        enabled: false
-      kubeControllerManager:
-        enabled: false
-      kubeScheduler:
-        enabled: false
-      kubeProxy:
-        enabled: false
-      kubeEtcd:
-        enabled: false
-      coreDns:
-        enabled: false
-      kubeDns:
-        enabled: false
-      kubernetesServiceMonitors:
-        enabled: false
-      crds:
-        enabled: true

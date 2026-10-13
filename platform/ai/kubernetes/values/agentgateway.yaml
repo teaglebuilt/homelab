@@ -1,0 +1,16 @@
+---
+# Standalone agentgateway v1.6.0 — sole owner (not kgateway-dev).
+# Pin proxy image before cutover so a forced Helm sync cannot silently
+# upgrade data-plane proxies when adopting from prior Kustomize ownership.
+image:
+  registry: cr.agentgateway.dev
+  tag: v1.6.0
+  pullPolicy: IfNotPresent
+proxy:
+  image:
+    repository: agentgateway
+    tag: v1.6.0
+controller:
+  image:
+    repository: controller
+    tag: v1.6.0

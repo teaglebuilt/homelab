@@ -145,7 +145,7 @@ cluster runs Argo CD today. `enable.gitops` is `false` in both `environment.yaml
     An administration cluster for GitOps (Argo CD) is an open item in `.ai/ROADMAP.md`. There is no
     `kubernetes/clusters/admin/` directory and no Terraform for it yet.
 
-The seam for it already exists. Stage `05-gitops` (`kubernetes/helmfile.d/05-gitops.gotmpl.yaml`) is
+The seam for it already exists. Stage `06-gitops` (`kubernetes/helmfile.d/06-gitops.gotmpl.yaml`) is
 included from both clusters' `helmfile.yaml` and holds an `argocd` release guarded by
 `enable.gitops`. While the flag is `false` the stage renders nothing. According to the stage's own
 notes, the intent is to run Argo CD on the administration cluster and hand app delivery to an
@@ -196,7 +196,7 @@ its own `cluster` name down.
 |------|---------|
 | `cluster.yaml` | Immutable identity: `clusterId`, pod/service subnets, DNS IP, Proxmox host, LB pool, ClusterMesh apiserver IP |
 | `environment.yaml` | Feature toggles under `enable:`, plus node pinning and LoadBalancer IP overrides |
-| `helmfile.yaml` | Normal entrypoint — includes stages 00 through 05 |
+| `helmfile.yaml` | Normal entrypoint — includes stages 00 through 06 |
 | `mesh.yaml` | Targeted entrypoint including stage 01 only, used by `mesh-upgrade` for a fast Cilium-only upgrade |
 | `identity-values.yaml.gotmpl` | Cilium cluster name/ID and native-routing CIDR |
 | `clustermesh-values.yaml.gotmpl` | ClusterMesh apiserver, TLS SANs, and declarative peering to the other cluster |
@@ -214,8 +214,9 @@ Stages run in order. Dependencies within a stage use Helmfile `needs:`.
 | Bootstrap Network | `01-bootstrap` | Establish what is needed for networking to work - `reflector`, `reloader`, `cilium`, `coredns`, `spegel`, `csi-driver-nfs`, `metrics-server` |
 | Bootstrap Core | `02-core` | Setup all networking dependencies - `cloudflare-tunnel`, `internal-dns`, `external-dns`, `cert-manager`, `homelab-gateway`, `cnpg` |
 | Bootstrap Hardware | `03-hardware` | Deploy resources for hardware support - `nvidia-device-plugin`, `dcgm-exporter`, `node-problem-detector`, `kwasm-operator`, `spin-operator`, `netops-agent` |
-| Bootstrap Monitoring |  `04-monitoring` | `vector`, `grafana-operator` — the Prometheus/Grafana stack itself ships via `platform:deploy` |
-| Bootstrap Gitops | `05-gitops` | `argocd`, guarded by `enable.gitops`. The stage is included from both clusters but renders nothing while the flag is `false` (currently both). Planned, see [Admin Cluster](#admin-cluster-planned) |
+| Bootstrap Monitoring | `04-monitoring` | `vector`, `grafana-operator`, `kube-prometheus-stack`, OpenTelemetry operator, Loki, Tempo — chart-free overlays (rules, Grafana CRs, collectors) via postsync hooks |
+| Platform | `05-platform` | Data (qdrant/postgres/redis), AI (agentgateway, kagent, substrate, open-webui), automation (n8n, firecrawl), optional research — gated by `enable.*Stack` |
+| Bootstrap Gitops | `06-gitops` | `argocd`, guarded by `enable.gitops`. The stage is included from both clusters but renders nothing while the flag is `false` (currently both). Planned, see [Admin Cluster](#admin-cluster-planned) |
 
 Most releases are gated on an `enable.*` toggle, so a stage renders differently per cluster. For
 example `frontDoor` is true only on `application`, which is why the Cloudflare tunnel and the public
