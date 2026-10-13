@@ -6,6 +6,6 @@ metadata:
   namespace: ai
 spec:
   provider: Anthropic
-  model: anthropic-claude-sonnet-4-20250514
+  model: claude-sonnet-4-20250514
   apiKeySecret: anthropic-api-key
   apiKeySecretKey: Authorization
