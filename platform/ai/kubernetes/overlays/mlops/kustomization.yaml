@@ -10,6 +10,7 @@ resources:
   - ../../agents
   - ../../routes
   - ../../substrate
+  - ../../database
 helmCharts:
   - name: agentgateway
     repo: oci://ghcr.io/kgateway-dev/charts
@@ -36,6 +37,10 @@ helmCharts:
           drop:
             - ALL
         readOnlyRootFilesystem: true
+      database:
+        postgres:
+          role: kagent
+          vectorEnabled: false
       providers:
         default: openAI
         openAI:
@@ -64,6 +69,16 @@ helmCharts:
         sandboxClass: gvisor
         # Must match the separate substrate chart version (0.5.0-alpha1).
         workerImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.5.0-alpha1
+        # limits.memory is projected as the worker's actor capacity budget; the
+        # controller default of 1Gi is too small for a gVisor sandbox to boot.
+        template:
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "4"
+              memory: 4Gi
       otel:
         exporter:
           otlp:
