@@ -54,12 +54,12 @@ spec:
         server:
           kind: RemoteMCPServer
           name: firecrawl
-          tools:
-            - firecrawl_firecrawl_search
-            - firecrawl_firecrawl_agent
-            - firecrawl_firecrawl_agent_status
-            - firecrawl_firecrawl_research_search_github
-            - firecrawl_firecrawl_research_search_papers
+        tools:
+          - firecrawl_firecrawl_search
+          - firecrawl_firecrawl_agent
+          - firecrawl_firecrawl_agent_status
+          - firecrawl_firecrawl_research_search_github
+          - firecrawl_firecrawl_research_search_papers
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent

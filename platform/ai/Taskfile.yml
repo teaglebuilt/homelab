@@ -55,7 +55,7 @@ tasks:
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
-          --version 1.0.0-alpha9 \
+          --version 1.0.0-alpha10 \
           --namespace ai \
           --set kmcp.enabled=true \
           --set substrate.enabled=false \
