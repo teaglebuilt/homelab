@@ -8,14 +8,12 @@ metadata:
     app.kubernetes.io/name: solutions-architect
     app.kubernetes.io/part-of: homelab
 spec:
-  # v1alpha2 a2aConfig.skills has no v1alpha3 field; the Agent Card comes from
-  # this description.
   description: >-
     Homelab / platform solutions architect. Grounds answers in the knowledge
     tree (Qdrant collection `knowledge`) and live cluster state. Produces
     architecture plans for this repo — not generic cloud advice.
   modelConfig:
-    name: llmd-vllm-config
+    name: claude-opus-5-direct
   promptTemplate:
     dataSources:
       - name: kagent-builtin-prompts
@@ -93,19 +91,6 @@ spec:
           name: kb-retrieval
         tools:
           - kb_search
-    - mcp:
-        server:
-          kind: RemoteMCPServer
-          name: kagent-tool-server
-        tools:
-          - datetime_get_current_time
-          - k8s_get_resources
-          - k8s_get_resource_yaml
-          - k8s_describe_resource
-          - k8s_get_events
-          - k8s_get_pod_logs
-          - helm_list_releases
-          - helm_get_release
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent

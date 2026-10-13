@@ -19,7 +19,7 @@ helmCharts:
   - name: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     releaseName: kagent
-    version: 1.0.0-alpha9
+    version: 1.0.0-alpha10
     namespace: ai
     valuesInline:
       kmcp:
