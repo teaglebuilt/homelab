@@ -9,5 +9,7 @@ resources:
   - models/claude-3-5-sonnet.yaml
   - models/claude-4-sonnet.yaml
   - models/claude-opus-4-5.yaml
+  - models/claude-opus-5-gateway.yaml
+  - models/claude-opus-5-direct.yaml
 generators:
   - secrets-generator.yaml

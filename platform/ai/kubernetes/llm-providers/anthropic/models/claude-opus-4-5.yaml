@@ -6,6 +6,6 @@ metadata:
   namespace: ai
 spec:
   provider: Anthropic
-  model: anthropic-claude-opus-4-5-latest
+  model: claude-opus-4-5
   apiKeySecret: anthropic-api-key
   apiKeySecretKey: Authorization

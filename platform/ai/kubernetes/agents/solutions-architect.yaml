@@ -15,7 +15,7 @@ spec:
     tree (Qdrant collection `knowledge`) and live cluster state. Produces
     architecture plans for this repo — not generic cloud advice.
   modelConfig:
-    name: llmd-vllm-config
+    name: claude-opus-5-direct
   promptTemplate:
     dataSources:
       - name: kagent-builtin-prompts
@@ -31,8 +31,8 @@ spec:
     # Domain
     - Two Talos clusters: **mlops** (GPU / agents / kagent) and **application**
       (data plane, gateways, most platform apps).
-    - Deploy stages: Helmfile `00-prepare` → `04-monitoring` for core cluster;
-      `platform/*` stacks via Task + Kustomize/Argo.
+    - Deploy stages: Helmfile `00-prepare` → `06-gitops` for cluster + platform;
+      Taskfile wraps `helmfile sync` selectors per stack.
     - Data plane: CNPG Postgres, Redis, Qdrant in namespace `data` on
       **application**. Knowledge tree lives in Qdrant collection `knowledge`.
     - Edge: Cilium CNI, kgateway Gateway API, Cloudflare tunnels, ExternalDNS,
@@ -119,4 +119,4 @@ spec:
   templateRef:
     name: solutions-architect
   harnessRef:
-    name: kagent
+    name: claude

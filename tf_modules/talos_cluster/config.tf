@@ -57,7 +57,10 @@ data "talos_machine_configuration" "this" {
     templatefile("${path.module}/patches/logging.yaml", {
       log_destination: var.cluster.logging_server
     }),
-    file("${path.module}/patches/worker/wasm-worker-label.yaml")
+    file("${path.module}/patches/worker/wasm-worker-label.yaml"),
+    # gVisor clones its gofer with CLONE_NEWUSER; Talos ships this at 0, which
+    # fails the clone with ENOSPC.
+    file("${path.module}/patches/worker/user-namespaces.yaml")
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/gpu-worker-label.yaml"),
