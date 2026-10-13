@@ -10,14 +10,3 @@ resources:
   - kb-retrieval.yaml
 generators:
   - secrets-generator.yaml
-replacements:
-  - source:
-      kind: Secret
-      name: mcp-secrets
-      fieldPath: stringData.GITHUB_PERSONAL_ACCESS_TOKEN
-    targets:
-      - select:
-          kind: MCPServer
-          name: github-mcp-server
-        fieldPaths:
-          - spec.deployment.env.GITHUB_PERSONAL_ACCESS_TOKEN

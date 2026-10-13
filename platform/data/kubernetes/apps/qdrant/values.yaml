@@ -1,0 +1,20 @@
+---
+# TODO(secrets): move apiKey to SOPS secretKeyRef once chart supports it cleanly.
+apiKey: your-super-secret-api-key
+config:
+  api_key: your-super-secret-api-key
+  cluster:
+    enabled: "false"
+    p2p:
+      port: 6335
+      enable_tls: "false"
+    consensus:
+      tick_period_ms: 200
+service:
+  type: ClusterIP
+  annotations:
+    # ClusterMesh: share backends with the mlops front-door Service
+    # (apps/qdrant/mesh). DNS: qdrant.data.svc.cluster.local
+    service.cilium.io/global: "true"
+    service.cilium.io/shared: "true"
+    service.cilium.io/affinity: "local"

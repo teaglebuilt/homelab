@@ -8,14 +8,16 @@
 ## Where it runs
 
 Everything below runs on the `mlops` cluster in namespace `ai`. It is deployed by
-`task platform:ai:deploy` (`platform/ai/Taskfile.yml`), which runs only when `CLUSTER=mlops` and applies
-`kustomize build platform/ai/kubernetes`. The CRDs come first through the task's `install-crds` step.
+`task platform:ai:deploy` (`platform/ai/Taskfile.yml`), which syncs Helmfile stage
+`05-platform` (`stack=ai`). Chart-free manifests under
+`platform/ai/kubernetes/overlays/mlops` apply in the `ai-manifests` postsync hook
+after CRDs and operators are ready.
 
 | Component | Cluster | Namespace | Deployed from |
 |-----------|---------|-----------|---------------|
-| agentgateway controller (chart v2.2.1) | `mlops` | `ai` | `platform/ai/kubernetes/kustomization.yaml` |
+| agentgateway controller (chart v1.6.0) | `mlops` | `ai` | Helmfile `05-platform` (`agentgateway`) |
 | `ai-gateway` Gateway (`agentgateway` class, LB `192.168.2.203`) | `mlops` | `ai` | `platform/ai/kubernetes/aigateway/` |
-| kagent (chart 1.0.0-alpha10, `api.kagent.dev/v1alpha3`), Agent Substrate (subchart), kmcp | `mlops` | `ai` | `platform/ai/kubernetes/overlays/mlops/kustomization.yaml` (ADR-0009) |
+| kagent (chart 1.0.0-alpha10, `api.kagent.dev/v1alpha3`), Agent Substrate, kmcp | `mlops` | `ai` | Helmfile `05-platform` + chart-free overlay (ADR-0009) |
 | Harnesses (`kagent`, `claude`), AgentTemplates, Agents | `mlops` | `ai` | `platform/ai/kubernetes/harness/`, `platform/ai/kubernetes/agents/` |
 | LLM providers: OpenAI, Anthropic, self-hosted vLLM | `mlops` | `ai` | `platform/ai/kubernetes/llm-providers/` |
 | MCP servers (GitHub, Firecrawl, Context7, memory) and `/mcp` route | `mlops` | `ai` | `platform/ai/kubernetes/mcp/`, `mcp-backend.yaml`, `mcp-route.yaml` |

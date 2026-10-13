@@ -1,0 +1,76 @@
+---
+tempo:
+  updateStrategy: RollingUpdate
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  memBallastSizeMbs: 128
+  multitenancyEnabled: false
+  reportingEnabled: true
+  retention: 24h
+  metricsGenerator:
+    enabled: true
+    remoteWriteUrl: "http://prometheus-community-kube-prometheus.observability:9090/api/v1/write"
+    registry:
+      external_labels:
+        source: tempo
+        cluster: application
+    processor:
+      span_metrics:
+        dimensions:
+          - gen.ai.request.model
+          - gen.ai.system
+          - kagent.user_id
+        enable_target_info: true
+      local_blocks:
+        flush_to_storage: true
+  overrides:
+    defaults:
+      metrics_generator:
+        processors:
+          - service-graphs
+          - span-metrics
+          - local-blocks
+    per_tenant_override_config: /conf/overrides.yaml
+  per_tenant_overrides: {}
+  server:
+    http_listen_port: 3200
+  extraArgs:
+    config.expand-env: "true"
+  extraEnvFrom:
+    - secretRef:
+        name: s3-credentials
+  extraVolumeMounts:
+    - name: data
+      mountPath: /var/tempo
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: tempo-traces
+        endpoint: seaweedfs-s3.storage.svc.cluster.local:8333
+        region: us-east-1
+        access_key: ${AWS_ACCESS_KEY_ID}
+        secret_key: ${AWS_SECRET_ACCESS_KEY}
+        insecure: true
+        forcepathstyle: true
+      wal:
+        path: /var/tempo/wal
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+# Blocks are durable in SeaweedFS; /var/tempo is WAL scratch only.
+persistence:
+  enabled: false
+extraVolumes:
+  - name: data
+    emptyDir: {}
+tempoQuery:
+  enabled: false

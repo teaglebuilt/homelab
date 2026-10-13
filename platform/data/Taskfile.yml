@@ -6,20 +6,16 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      # KUBECONFIG belongs on the kubectl side of the pipe; on the kustomize side it
-      # is ignored and kubectl applies to the AMBIENT context (wrong cluster).
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile \
+          -f '{{.ROOT_DIR}}/kubernetes/clusters/{{.CLUSTER}}/helmfile.yaml' \
+          sync --selector tier=platform,stack=data
 
   destroy:
     requires:
       vars: [CLUSTER]
-    vars:
-      KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    summary: Data stack is stateful — destroy is a no-op by default
     cmds:
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./data/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+      - echo "Refusing to destroy data stack (lifecycle=stateful). Use an explicit helmfile destroy if intentional."

@@ -1,28 +1,29 @@
 ---
-{{- /* Cluster-local log shipping + the grafana-operator control plane.
-
-       METRICS (Prometheus / Grafana / parca) are NOT here — they live in
-       platform/observability/ as a kustomize stack with per-cluster overlays
-       (prometheus/overlays/<cluster>), deployed via `task platform:observability:deploy`.
-       That path owns the `observability` namespace with PRIVILEGED PodSecurity
-       (platform/observability/namespace.yaml), which a helmfile-created namespace does
-       not get — an earlier inline kube-prometheus-stack release here failed exactly
-       because its namespace defaulted to `restricted` and node-exporter was blocked.
-
-       grafana-operator IS here (gated by enable.grafanaOperator, application-only):
-       it installs the Grafana CRDs cluster-wide so the GrafanaDatasource/Grafana CRs
-       shipped in platform/observability apply cleanly on a single kustomize apply.
-       Grafana itself still ships with kube-prometheus-stack in the platform overlay. */ -}}
+{{- /* Stage 04 — Observability stack.
+       Vector + grafana-operator remain here. Prometheus, OTel operator, Loki,
+       and Tempo move from platform/observability Kustomize helmCharts into
+       Helmfile releases. Chart-free overlays (rules, Grafana CRs, mesh
+       Services, OpenTelemetryCollector) apply via postsync hooks. */ -}}
 {{- $cluster := .Values | get "cluster" "mlops" }}
 {{- $env := readFile (printf "../clusters/%s/environment.yaml" $cluster) | fromYaml }}
 {{- $enable := $env | get "enable" dict }}
 {{- $grafanaOperator := $enable | get "grafanaOperator" false }}
+{{- $obsStack := $enable | get "observabilityStack" true }}
+{{- $isApp := eq $cluster "application" }}
+{{- $platformRoot := "../../platform/observability/kubernetes" }}
+{{- $scripts := "../scripts" }}
 bases:
   - ../defaults.yaml
 
 repositories:
   - name: vector
     url: https://helm.vector.dev
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: open-telemetry
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
 
 releases:
   - name: vector
@@ -30,6 +31,11 @@ releases:
     createNamespace: true
     chart: vector/vector
     version: 0.44.0
+    installed: {{ $obsStack }}
+    labels:
+      tier: platform
+      stack: observability
+      lifecycle: stateless
     values:
       - ../apps/monitoring/vector.yaml.gotmpl
 
@@ -38,7 +44,128 @@ releases:
     createNamespace: true
     chart: oci://ghcr.io/grafana/helm-charts/grafana-operator
     version: 5.24.0
-    installed: {{ $grafanaOperator }}
+    installed: {{ and $obsStack $grafanaOperator }}
+    labels:
+      tier: platform
+      stack: observability
+      lifecycle: stateless
     values:
       - crds:
           immutable: false
+
+  - name: prometheus-community
+    namespace: observability
+    createNamespace: true
+    chart: prometheus-community/kube-prometheus-stack
+    version: 61.7.1
+    installed: {{ $obsStack }}
+    labels:
+      tier: platform
+      stack: observability
+      lifecycle: stateful
+    needs:
+      {{- if $grafanaOperator }}
+      - observability/grafana-operator
+      {{- end }}
+    values:
+      - {{ $platformRoot }}/apps/prometheus/overlays/{{ $cluster }}/values.yaml
+      - {{ $platformRoot }}/apps/prometheus/overlays/{{ $cluster }}/prometheus-operator.yaml
+      - {{ $platformRoot }}/apps/prometheus/overlays/{{ $cluster }}/chart-values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh \
+              {{ $platformRoot }}/apps/prometheus/overlays/{{ $cluster }} \
+              --kustomize-flags "--enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone"
+            {{ $scripts }}/apply-kustomization.sh \
+              {{ $platformRoot }}/overlays/{{ $cluster }}/manifests \
+              --kustomize-flags "--enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone"
+
+  - name: open-telemetry
+    namespace: observability
+    createNamespace: true
+    chart: open-telemetry/opentelemetry-operator
+    version: 0.114.1
+    installed: {{ $obsStack }}
+    needs:
+      - observability/prometheus-community
+    labels:
+      tier: platform
+      stack: observability
+      lifecycle: stateless
+    values:
+      - {{ $platformRoot }}/apps/opentelemetry/values.yaml
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/wait-for-crds.sh \
+              opentelemetrycollectors.opentelemetry.io \
+              instrumentations.opentelemetry.io
+            {{ $scripts }}/wait-for-webhook.sh \
+              --deployment observability/open-telemetry-opentelemetry-operator \
+              --service observability/open-telemetry-opentelemetry-operator-webhook \
+              --certificate observability/open-telemetry-opentelemetry-operator-serving-cert \
+              --mutating-webhook open-telemetry-opentelemetry-operator-mutation \
+              --validating-webhook open-telemetry-opentelemetry-operator-validation
+            {{ $scripts }}/apply-kustomization.sh \
+              {{ $platformRoot }}/apps/opentelemetry/overlays/{{ $cluster }} \
+              --dry-run-file {{ $platformRoot }}/apps/opentelemetry/overlays/{{ $cluster }}/otel-collector.yaml \
+              --kustomize-flags "--enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone"
+            kubectl apply -f {{ $platformRoot }}/apps/opentelemetry/overlays/{{ $cluster }}/otel-collector.yaml
+
+{{- if $isApp }}
+  - name: loki
+    namespace: observability
+    createNamespace: true
+    chart: grafana/loki
+    version: 7.0.0
+    installed: {{ $obsStack }}
+    needs:
+      - observability/prometheus-community
+    labels:
+      tier: platform
+      stack: observability
+      lifecycle: stateful
+    values:
+      - {{ $platformRoot }}/apps/loki/values.yaml
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            export CLUSTER={{ $cluster | quote }}
+            {{ $scripts }}/apply-kustomization.sh \
+              {{ $platformRoot }}/apps/loki \
+              --kustomize-flags "--enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone"
+
+  - name: tempo
+    namespace: observability
+    createNamespace: true
+    chart: grafana/tempo
+    version: 1.24.4
+    installed: {{ $obsStack }}
+    needs:
+      - observability/loki
+      - observability/prometheus-community
+    labels:
+      tier: platform
+      stack: observability
+      lifecycle: stateful
+    values:
+      - {{ $platformRoot }}/apps/tempo/values.yaml
+{{- end }}

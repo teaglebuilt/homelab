@@ -11,6 +11,11 @@ enable:
   grafanaOperator: true   # grafana-operator: manages Grafana datasources/dashboards via CRDs (Grafana itself ships with kube-prometheus-stack)
   hubbleRoute: true       # application owns hubble.homelab.internal
   clusterMesh: true       # include clustermesh overlay in normal helmfile syncs (not only mesh-upgrade path)
+  observabilityStack: true  # Helmfile 04 — prometheus hub, loki, tempo, otel, grafana CRs
+  dataStack: true           # Helmfile 05 — postgres, qdrant, redis
+  aiStack: true             # Helmfile 05 — open-webui + mesh integrations
+  automationStack: true     # Helmfile 05 — n8n, firecrawl
+  researchStack: false      # Helmfile 05 — searxng (optional)
 
 nodeSelector:
   certManager: {}

@@ -54,8 +54,8 @@ flowchart TB
 | Hardware | 2 Proxmox hosts, UniFi switching, RTX 4070 Super eGPU | — | [Hardware](hardware.md) |
 | Network | UDM Pro, VLANs, zone firewall | UniFi controller (not in repo) | [Network](network.md) |
 | VMs | Talos VMs per cluster | `kubernetes/terraform/<cluster>/main.tf`, `tf_modules/talos_cluster` | [Kubernetes](kubernetes.md) |
-| Cluster bootstrap | Helmfile stages `00`–`05` | `kubernetes/clusters/`, `kubernetes/helmfile.d/` | [Kubernetes → Bootstrapping](kubernetes.md#bootstrapping) |
-| Platform on Kubernetes | ai, automation, data, observability | `platform/<stack>/kubernetes/`, deployed by `task platform:deploy` | [Platform](#platform) |
+| Cluster bootstrap | Helmfile stages `00`–`06` | `kubernetes/clusters/`, `kubernetes/helmfile.d/` | [Kubernetes → Bootstrapping](kubernetes.md#bootstrapping) |
+| Platform on Kubernetes | ai, automation, data, observability | Helmfile stages `04`–`05` (+ chart-free overlays under `platform/<stack>/kubernetes/`), deployed by `task platform:deploy` | [Platform](#platform) |
 | Platform on Docker | media, downloads, news, observability (UniFi metrics) | `platform/<stack>/compose.yaml`, pushed as Portainer stacks by `platform/<stack>/terraform/` | [Platform](#platform) |
 | Public edge | Cloudflare tunnel routes and DNS | `terraform/cloudflare_tunnel.tf` | [Kubernetes → Gateways](kubernetes.md#gateways) |
 
@@ -71,10 +71,10 @@ flowchart TB
 
 | Stack | Runs on | Deployed by | Docs |
 |-------|---------|-------------|------|
-| AI (kagent, agentgateway, LLM providers, MCP) | `mlops`, ns `ai` | `task platform:ai:deploy` (`platform/ai/kubernetes/`) | [AI Platform](platform/ai/index.md) |
-| Automation (n8n, Firecrawl) | `mlops`, ns `automation` | `task platform:automation:deploy` (`platform/automation/kubernetes/`) | [Automation](platform/workflows.md) |
-| Data (CNPG Postgres, Qdrant, Redis) | `mlops`, ns `data` (Qdrant is declared in `data` but currently runs in `default`) | `task platform:data:deploy` (`platform/data/kubernetes/overlays/mlops`) | — |
-| Observability (Prometheus, Grafana, Loki, Tempo, OTel) | hub on `application`, agents on `mlops` | `task platform:observability:deploy` + stage `04-monitoring` | [Observability](platform/observability.md) |
+| AI (kagent, agentgateway, LLM providers, MCP) | `mlops`, ns `ai` | Helmfile `05-platform` (`stack=ai`) via `task platform:ai:deploy` | [AI Platform](platform/ai/index.md) |
+| Automation (n8n, Firecrawl) | `application` (+ MCP on `mlops`) | Helmfile `05-platform` (`stack=automation`) via `task platform:automation:deploy` | [Automation](platform/workflows.md) |
+| Data (CNPG Postgres, Qdrant, Redis) | `application` (+ mesh front doors on `mlops`) | Helmfile `05-platform` (`stack=data`) via `task platform:data:deploy` | — |
+| Observability (Prometheus, Grafana, Loki, Tempo, OTel) | hub on `application`, agents on `mlops` | Helmfile `04-monitoring` via `task platform:observability:deploy` | [Observability](platform/observability.md) |
 | Media (Plex, *arr) | Portainer LXC | `platform/media/terraform/` | [Media](platform/media.md) |
 | Downloads (Gluetun, qBittorrent) | Portainer LXC | `platform/downloads/terraform/` | [Media](platform/media.md) |
 | News (FreshRSS) | Portainer LXC | `platform/news/terraform/` | — |

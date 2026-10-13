@@ -1,35 +1,10 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# application: OTel operator + mesh Service + ServiceMonitor.
-# OpenTelemetryCollector CR (otel-collector.yaml) is applied by
-# platform/observability/Taskfile.yml after the operator webhook is Ready —
-# same apply stream races the mutating webhook (failurePolicy=Fail).
+# Chart-free: mesh Service + ServiceMonitor. Operator is Helmfile stage 04.
+# OpenTelemetryCollector CR (otel-collector.yaml) is applied by the
+# open-telemetry postsync hook after webhook readiness — same apply stream
+# races the mutating webhook (failurePolicy=Fail).
 resources:
   - ../../base
   - servicemonitor.yaml
-helmCharts:
-  - name: opentelemetry-operator
-    releaseName: open-telemetry
-    repo: https://open-telemetry.github.io/opentelemetry-helm-charts
-    version: 0.114.1
-    namespace: observability
-    includeCRDs: true
-    valuesInline:
-      manager:
-        collectorImage:
-          repository: otel/opentelemetry-collector-k8s
-        resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
-          limits:
-            memory: 256Mi
-      # cert-manager (not autoGenerateCert): kustomize helmCharts has no live
-      # secret lookup, so autoGenerateCert mints a new CA every build and breaks
-      # the mutating webhook until the operator reloads.
-      admissionWebhooks:
-        certManager:
-          enabled: true
-        autoGenerateCert:
-          enabled: false
