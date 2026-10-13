@@ -13,11 +13,13 @@ data "talos_machine_configuration" "this" {
   for_each            = var.nodes
   cluster_name        = var.cluster.name
   cluster_endpoint    = "https://${var.cluster.endpoint}:6443"
-  talos_version       = var.cluster.talos_version
+  # config_version pins the generated document contract; talos_version remains
+  # the OS/image version used for secrets and node identity.
+  talos_version       = coalesce(var.cluster.config_version, var.cluster.talos_version)
   kubernetes_version  = var.cluster.kubernetes_version
   machine_type        = each.value.machine_type
   machine_secrets     = talos_machine_secrets.this.machine_secrets
-  config_patches = each.value.machine_type == "controlplane" ? [
+  config_patches = each.value.machine_type == "controlplane" ? concat([
     templatefile("${path.module}/templates/controlplane.yaml.tftpl", {
       hostname        = each.key
       node_name       = each.value.host_node
@@ -34,7 +36,9 @@ data "talos_machine_configuration" "this" {
     templatefile("${path.module}/patches/logging.yaml", {
       log_destination: var.cluster.logging_server
     }),
-  ] : concat([
+  ], try(var.cluster.pod_certificates, false) ? [
+    file("${path.module}/patches/controlplane/pod-certificates.yaml"),
+  ] : []) : concat([
     templatefile("${path.module}/templates/worker.yaml.tftpl", {
       hostname        = each.key
       node_name       = each.value.host_node
@@ -53,7 +57,10 @@ data "talos_machine_configuration" "this" {
     templatefile("${path.module}/patches/logging.yaml", {
       log_destination: var.cluster.logging_server
     }),
-    file("${path.module}/patches/worker/wasm-worker-label.yaml")
+    file("${path.module}/patches/worker/wasm-worker-label.yaml"),
+    # gVisor clones its gofer with CLONE_NEWUSER; Talos ships this at 0, which
+    # fails the clone with ENOSPC.
+    file("${path.module}/patches/worker/user-namespaces.yaml")
   ], each.value.igpu ? [
     file("${path.module}/patches/worker/gpu-worker-patch.yaml"),
     file("${path.module}/patches/worker/gpu-worker-label.yaml"),

@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: substrate-identity-bootstrap
+  namespace: ate-system
+  labels:
+    app.kubernetes.io/name: substrate-identity-bootstrap
+    app.kubernetes.io/part-of: homelab
+---
+# Creates Substrate identity Secrets the chart mounts but does not generate
+# (upstream: kubectl ate admin make-ca-pool / make-jwt-pool).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: substrate-identity-bootstrap
+  labels:
+    app.kubernetes.io/name: substrate-identity-bootstrap
+    app.kubernetes.io/part-of: homelab
+rules:
+  - apiGroups: [""]
+    resources: [namespaces]
+    verbs: [get, create, patch, update]
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, create]
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, create]
+  # kubectl get --raw /.well-known/openid-configuration (ate-api-authentication)
+  - nonResourceURLs: ["/.well-known/openid-configuration"]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: substrate-identity-bootstrap
+  labels:
+    app.kubernetes.io/name: substrate-identity-bootstrap
+    app.kubernetes.io/part-of: homelab
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: substrate-identity-bootstrap
+subjects:
+  - kind: ServiceAccount
+    name: substrate-identity-bootstrap
+    namespace: ate-system

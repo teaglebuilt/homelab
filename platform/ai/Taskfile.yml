@@ -4,6 +4,7 @@ version: 3
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
   AI_NAMESPACE: ai
+  AGENTGATEWAY_VERSION: v1.6.0
 
 tasks:
   adopt-crds:
@@ -15,7 +16,7 @@ tasks:
     cmds:
       - |
         export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        for crd in $(kubectl get crds -o name | grep -E 'agentgateway\.dev|kgateway\.dev'); do
+        for crd in $(kubectl get crds -o name | grep 'agentgateway\.dev'); do
           kubectl label "$crd" app.kubernetes.io/managed-by=Helm --overwrite
           kubectl annotate "$crd" meta.helm.sh/release-name=agentgateway-crds meta.helm.sh/release-namespace=ai --overwrite
         done
@@ -40,17 +41,62 @@ tasks:
       - echo "Installing agentgateway-crds..."
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install agentgateway-crds \
-          oci://ghcr.io/kgateway-dev/charts/agentgateway-crds \
-          --version v2.2.1 \
+          oci://ghcr.io/agentgateway/charts/agentgateway-crds \
+          --version '{{.AGENTGATEWAY_VERSION}}' \
           --namespace ai \
           --create-namespace \
           --wait
       - echo "Installing kagent-crds..."
+      # 1.0 serves api.kagent.dev/v1alpha3 only. Upgrading this release from 0.10.x
+      # removes the legacy kagent.dev Agent/ModelConfig/RemoteMCPServer/AgentHarness
+      # CRDs, which deletes every resource of those kinds (docs/adr/0009).
+      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.5.0-alpha1),
+      # not from this chart — keep substrate.enabled=false to avoid double-manage.
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
+          --version 1.0.0-alpha10 \
           --namespace ai \
+          --set kmcp.enabled=true \
+          --set substrate.enabled=false \
           --wait
+
+  install-agentgateway:
+    desc: Install the agentgateway controller (creates the agentgateway GatewayClass)
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    status:
+      - '[ "{{.CLUSTER}}" != "mlops" ]'
+    cmds:
+      - echo "Installing agentgateway controller..."
+      - |
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install agentgateway \
+          oci://ghcr.io/agentgateway/charts/agentgateway \
+          --version '{{.AGENTGATEWAY_VERSION}}' \
+          --namespace ai \
+          --create-namespace \
+          --wait
+
+  install-substrate-crds:
+    dir: ai
+    desc: Apply ate.dev CRDs and wait until Established (before SandboxConfig)
+    internal: true
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    # Substrate (ate-system) is only in the mlops overlay.
+    status:
+      - '[ "{{.CLUSTER}}" != "mlops" ]'
+    cmds:
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/substrate/crds | kubectl apply -f -
+        kubectl wait --for=condition=Established \
+          crd/csidriverconfigs.ate.dev \
+          crd/sandboxconfigs.ate.dev \
+          crd/workerpools.ate.dev \
+          --timeout=60s
 
   deploy:
     dir: ai
@@ -62,8 +108,14 @@ tasks:
     cmds:
       - task: install-crds
         vars: { CLUSTER: '{{.CLUSTER}}' }
+      - task: install-agentgateway
+        vars: { CLUSTER: '{{.CLUSTER}}' }
+      # kubectl apply of CRDs + CRs in one stream races; SandboxConfig needs
+      # ate.dev CRDs Established first (overlay also re-applies them, which is fine).
+      - task: install-substrate-crds
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
   destroy:
     dir: ai
@@ -73,7 +125,7 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -n {{.AI_NAMESPACE}} -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
 
   test:
     cmds:
@@ -94,3 +146,24 @@ tasks:
           --docker-server=nvcr.io \
           --docker-username='$oauthtoken' \
           --docker-password='{{.NGC_API_KEY}}'
+
+  build-claude-harness:
+    desc: Build and push the Claude harness with a newer Claude Code (VERSION=latest by default)
+    vars:
+      VERSION: '{{.VERSION | default "latest"}}'
+      REGISTRY: '{{.REGISTRY | default "ghcr.io/nextgensolutions-llc"}}'
+      PLATFORMS: '{{.PLATFORMS | default "linux/amd64"}}'
+      CLAUDE_CODE_VERSION:
+        sh: |
+          v='{{.VERSION}}'
+          [ "$v" = latest ] && v="$(curl -fsS https://downloads.claude.ai/claude-code-releases/latest)"
+          echo "$v"
+    cmds:
+      - |-
+        docker buildx build \
+          --platform '{{.PLATFORMS}}' \
+          --build-arg CLAUDE_CODE_VERSION='{{.CLAUDE_CODE_VERSION}}' \
+          -f '{{.TASKFILE_DIR}}/kubernetes/harness/Dockerfile.claude' \
+          -t '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' \
+          --push '{{.TASKFILE_DIR}}/kubernetes/harness'
+      - docker buildx imagetools inspect '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}'

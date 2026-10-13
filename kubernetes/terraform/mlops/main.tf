@@ -5,22 +5,28 @@ module "talos_cluster" {
   proxmox_ssh_private_key = var.proxmox_ssh_private_key
 
   image = {
-    version = "v1.11.5"
-    update_version = "v1.11.5" # renovate: github-releases=siderolabs/talos
+    version = "v1.14.2"
+    update_version = "v1.14.2" # renovate: github-releases=siderolabs/talos
   }
 
   cluster = {
     name                = "mlops"
     endpoint            = var.k8s_api_server_ip
     gateway             = var.network_gateway
-    talos_version       = "v1.11.5"
-    kubernetes_version  = "1.32.2"
+    talos_version       = "v1.14.2"
+    # Keep the v1alpha1 config contract until templates/patches migrate to
+    # Talos 1.14 multi-document Kube* kinds. OS image stays on v1.14.2.
+    config_version      = "v1.11.5"
+    # kagent 1.0 / Agent Substrate requires Kubernetes 1.37+.
+    kubernetes_version  = "1.37.1"
     cluster_name        = "mlops"
     logging_server      = var.graylog_ip
     # Explicit (matches the prior Talos default). application uses 10.245.0.0/16
     # so pod CIDRs stay non-overlapping for ClusterMesh.
     pod_subnet          = "10.244.0.0/16"
     service_subnet      = "10.96.0.0/12"
+    # Substrate needs the certificates.k8s.io/v1beta1 compatibility API enabled.
+    pod_certificates    = true
   }
 
   nodes = {

@@ -7,9 +7,11 @@ kind: Kustomization
 # LOCAL collector with real endpoints; this agent then forwards (OTLP) to the
 # gateway collector on `application` via the otel-collector-mesh global Service
 # (a plain ClusterIP dial, which does route cross-cluster).
+# OpenTelemetryCollector CR (otel-collector.yaml) is applied by
+# platform/observability/Taskfile.yml after the operator webhook is Ready —
+# same apply stream races the mutating webhook (failurePolicy=Fail).
 resources:
   - ../../base
-  - otel-collector.yaml
 helmCharts:
   - name: opentelemetry-operator
     releaseName: open-telemetry
@@ -27,8 +29,11 @@ helmCharts:
             memory: 128Mi
           limits:
             memory: 256Mi
+      # cert-manager (not autoGenerateCert): kustomize helmCharts has no live
+      # secret lookup, so autoGenerateCert mints a new CA every build and breaks
+      # the mutating webhook until the operator reloads.
       admissionWebhooks:
         certManager:
-          enabled: false
-        autoGenerateCert:
           enabled: true
+        autoGenerateCert:
+          enabled: false

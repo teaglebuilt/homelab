@@ -18,8 +18,8 @@ Helmfile stages deploy in order:
 ## homelab-gateway Chart
 
 Custom umbrella chart at `kubernetes/charts/homelab-gateway/`. Wraps:
-- `kgateway-crds` v2.2.1 (CRDs for Gateway API)
-- `kgateway` v2.2.1 (control plane)
+- `kgateway-crds` v2.4.4 (CRDs for Gateway API)
+- `kgateway` v2.4.4 (control plane)
 
 Templates provide two Gateways:
 - `external-gateway.yaml` -- internet-facing via Cloudflare tunnel

@@ -1,0 +1,17 @@
+---
+# Development PostgreSQL for Substrate (cert-only auth, no passwords).
+# Upstream deploys this via hack/install-postgres.sh, which is not a chart.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ate-system
+resources:
+  - resources/postgres.yaml
+  - rbac.yaml
+  - setup-job.yaml
+configMapGenerator:
+  - name: substrate-postgres-setup-sql
+    files:
+      - setup.sql=resources/setup.sql
+generatorOptions:
+  # Job pod specs are immutable; a hashed name would change the volume ref.
+  disableNameSuffixHash: true

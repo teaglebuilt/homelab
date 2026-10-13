@@ -19,6 +19,10 @@ variable "cluster" {
     endpoint            = string
     gateway             = string
     talos_version       = string
+    # Pin the machine-config document contract independently of the OS image.
+    # Talos 1.14+ generates multi-document Kube* configs that conflict with our
+    # legacy v1alpha1 patches. Omit to use talos_version.
+    config_version      = optional(string)
     kubernetes_version  = string
     cluster_name        = string
     logging_server      = string
@@ -30,6 +34,9 @@ variable "cluster" {
     # image. Default true. Set false only for a host whose Proxmox Perl HTTP client
     # (LWP) fails verification even though the OS (curl) trusts the cert.
     verify_image_download = optional(bool, true)
+    # Serve the certificates.k8s.io/v1beta1 compatibility API required by
+    # Agent Substrate / kagent 1.0 on Kubernetes 1.37+. Off by default.
+    pod_certificates = optional(bool, false)
   })
 }
 

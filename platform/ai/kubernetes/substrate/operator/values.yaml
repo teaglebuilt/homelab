@@ -1,0 +1,18 @@
+---
+# Substrate chart values (not kagent). See:
+# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.5.0-alpha1
+credentialProvider:
+  # Lets actors in atespace `ai` read ModelConfig Secrets in namespace `ai`.
+  namespacePolicies:
+    - atespace: ai
+      allowedNamespaces: [ai]
+
+postgres:
+  # Connection strings reference /run/postgres.podcert.ate.dev/*.pem, which
+  # ate-api-server only mounts when this is on.
+  clientCertificates:
+    enabled: true
+
+rustfs:
+  enabled: true
+  storageSize: 1Gi

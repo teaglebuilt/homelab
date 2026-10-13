@@ -10,5 +10,8 @@ configMapGenerator:
   - name: searxng-settings
     files:
       - settings.yml
+  - name: private-searxng-settings
+    files:
+      - private-settings.yaml
 generators:
   - secrets-generator.yaml

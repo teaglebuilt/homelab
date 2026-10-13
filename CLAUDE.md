@@ -10,7 +10,7 @@ homelab and developer platform built on kubernetes.
 kubernetes/           # K8s cluster management
   clusters/           # Cluster definitions: mlops, application
   helmfile.d/         # Staged Helmfile deploys: 00-prepare -> 01-bootstrap -> 02-core -> 03-hardware -> 04-monitoring
-  charts/             # Custom charts (homelab-gateway wraps kgateway v2.2.1)
+  charts/             # Custom charts (homelab-gateway wraps kgateway v2.4.4)
   apps/               # Per-app configs: networking/, security/, storage/, gitops/, hardware/, monitoring/
   terraform/          # Cluster-level Terraform (Talos provisioning)
   generated/          # Helmfile-generated output (do not edit)
@@ -33,7 +33,7 @@ docs/                 # MkDocs documentation site
 ## Key Technologies and Versions
 
 - **Kubernetes**: Talos Linux clusters on Proxmox VMs
-- **Networking**: Cilium CNI, kgateway v2.2.1 (Gateway API implementation), Cloudflare Tunnels
+- **Networking**: Cilium CNI, kgateway v2.4.4 (Gateway API implementation), Cloudflare Tunnels
 - **GitOps**: ArgoCD with ApplicationSets, Helmfile for staged deploys
 - **Secrets**: SOPS with AWS KMS encryption
 - **DNS**: ExternalDNS (internal + external), CoreDNS

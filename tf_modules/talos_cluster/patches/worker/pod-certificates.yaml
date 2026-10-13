@@ -1,0 +1,5 @@
+---
+machine:
+  kubelet:
+    extraArgs:
+      feature-gates: ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true

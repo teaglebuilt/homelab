@@ -1,0 +1,13 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: kb-retrieval
+  namespace: ai
+spec:
+  description: >-
+    Knowledge-tree read plane (kb_search → Qdrant collection knowledge).
+    Server is owned by teaglebuilt/knowledge.
+  protocol: STREAMABLE_HTTP
+  url: http://kb-retrieval.ai.svc.cluster.local:3000/mcp
+  timeout: 120s

@@ -1,0 +1,104 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: substrate-postgres-setup
+  namespace: ate-system
+  labels:
+    app.kubernetes.io/name: substrate-postgres-setup
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    # Bump when the script or setup.sql changes so a Completed Job is replaced after TTL.
+    homelab.teaglebuilt/substrate-postgres-version: v0.5.0-alpha1-1
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: substrate-postgres-setup
+        app.kubernetes.io/part-of: homelab
+    spec:
+      serviceAccountName: substrate-postgres-setup
+      restartPolicy: OnFailure
+      containers:
+        - name: setup
+          # alpine:3.21.3
+          image: alpine@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: ATE_NS
+              value: ate-system
+            - name: KUBECTL_VERSION
+              value: v1.37.1
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              apk add --no-cache curl >/dev/null
+
+              arch="$(uname -m)"
+              case "$arch" in
+                x86_64|amd64) arch=amd64 ;;
+                aarch64|arm64) arch=arm64 ;;
+                *) echo "unsupported arch: $arch" >&2; exit 1 ;;
+              esac
+
+              curl -fsSL -o /tmp/kubectl \
+                "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${arch}/kubectl"
+              chmod +x /tmp/kubectl
+              export PATH="/tmp:${PATH}"
+
+              kubectl -n "$ATE_NS" rollout status statefulset/postgres --timeout=5m
+
+              # Idempotent: advisory-locked, and every object is created only if absent.
+              kubectl -n "$ATE_NS" exec -i postgres-0 -c postgres -- \
+                psql --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
+                --username=postgres --dbname=atepg \
+                --set=substrate_schema=substrate \
+                --set=substrate_owner_role=substrate_owner \
+                --set=substrate_owner_user=substrate_owner_user \
+                --set=substrate_owner_password= \
+                --set=substrate_readwrite_role=substrate_readwrite \
+                --set=substrate_readwrite_user=substrate_readwrite_user \
+                --set=substrate_readwrite_password= < /sql/setup.sql
+
+              # Certificate auth: no passwords. sslrootcert verifies the server's
+              # servicedns cert; sslcert/sslkey are the postgres-signed client pair.
+              tls='sslmode=verify-full&sslrootcert=/run/servicedns.podcert.ate.dev/trust-bundle.pem'
+              client_certs() {
+                printf 'sslcert=/run/postgres.podcert.ate.dev/%s.pem&sslkey=/run/postgres.podcert.ate.dev/%s.pem' "$1" "$1"
+              }
+
+              make_conn_secret() {
+                secret="$1"; key="$2"; user="$3"
+                kubectl -n "$ATE_NS" create secret generic "$secret" \
+                  --from-literal="${key}=postgresql://${user}@postgres.${ATE_NS}.svc:5432/atepg?${tls}&$(client_certs "$user")" \
+                  --dry-run=client -o yaml | kubectl apply -f -
+              }
+
+              make_conn_secret substrate-postgres-readwrite \
+                readWriteConnectionString substrate_readwrite_user
+              make_conn_secret substrate-postgres-owner \
+                ownerConnectionString substrate_owner_user
+
+              echo "substrate postgres setup complete"
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: sql
+          configMap:
+            name: substrate-postgres-setup-sql

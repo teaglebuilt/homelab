@@ -12,12 +12,17 @@ tasks:
     vars:
       CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      OTEL_COLLECTOR: kubernetes/apps/opentelemetry/overlays/{{.CLUSTER}}/otel-collector.yaml
     preconditions:
       - sh: test -d kubernetes/overlays/{{.CLUSTER}}
         msg: "No observability overlay for cluster '{{.CLUSTER}}' — expected platform/observability/overlays/{{.CLUSTER}}/"
       - sh: test -f {{.KUBECONFIG_FILE}}
         msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — bootstrap {{.CLUSTER}} first."
+      - sh: test -f {{.OTEL_COLLECTOR}}
+        msg: "OpenTelemetryCollector CR missing at {{.OTEL_COLLECTOR}}"
     cmds:
+      # Operator + the rest of the stack first. Collector CR is separate: its
+      # mutating webhook (failurePolicy=Fail) races if applied in the same stream.
       - |-
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build \
           --enable-helm \
@@ -25,11 +30,29 @@ tasks:
           --enable-alpha-plugins \
           --load-restrictor LoadRestrictionsNone \
           kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
-
+      - |-
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        echo "Waiting for OpenTelemetry operator webhook cert + Deployment..."
+        kubectl -n observability wait \
+          --for=condition=Ready \
+          certificate/open-telemetry-opentelemetry-operator-serving-cert \
+          --timeout=120s
+        kubectl -n observability rollout status \
+          deploy/open-telemetry-opentelemetry-operator \
+          --timeout=300s
+      - |-
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f '{{.OTEL_COLLECTOR}}'
 
   destroy:
     dir: observability
+    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      OTEL_COLLECTOR: kubernetes/apps/opentelemetry/overlays/{{.CLUSTER}}/otel-collector.yaml
     cmds:
+      # Collector CR first (depends on operator webhook while deleting too).
+      - |-
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f '{{.OTEL_COLLECTOR}}' --ignore-not-found
       - |-
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build \
           --enable-helm \
@@ -37,7 +60,7 @@ tasks:
           --enable-alpha-plugins \
           --load-restrictor LoadRestrictionsNone \
           kubernetes/overlays/{{.CLUSTER}} \
-          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f - --ignore-not-found
 
   provision:
     dir: observability
@@ -75,8 +98,9 @@ tasks:
           -var graylog_password_secret="$GRAYLOG_PASSWORD_SECRET" \
           -var graylog_root_password_sha="$GRAYLOG_ROOT_PASSWORD_SHA"
 
-  destroy:
+  destroy-infra:
     dir: observability
+    summary: Destroy observability OpenTofu resources (Portainer stack)
     cmds:
       - |-
         {{.TERRAFORM}} destroy -auto-approve \

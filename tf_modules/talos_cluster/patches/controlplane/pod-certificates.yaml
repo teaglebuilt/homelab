@@ -1,0 +1,7 @@
+# Agent Substrate / kagent 1.0 requires the beta certificates API
+# compatibility endpoint to be served on Kubernetes 1.37+.
+---
+cluster:
+  apiServer:
+    extraArgs:
+      runtime-config: certificates.k8s.io/v1beta1=true
