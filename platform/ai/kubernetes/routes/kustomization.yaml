@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: ai
 resources:
   - ui-http-route.yaml
+  - controller-grpc-service.yaml
   - mcp-backend.yaml
   - mcp-route.yaml
   - referencegrant-automation-to-mcp.yaml

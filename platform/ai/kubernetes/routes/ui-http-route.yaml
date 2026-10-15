@@ -17,6 +17,20 @@ spec:
   - matches:
     - path:
         type: PathPrefix
+        value: /api
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: kagent-controller-h2c
+      kind: Service
+      port: 8083
+  - matches:
+    - path:
+        type: PathPrefix
         value: /
     backendRefs:
     - name: kagent-ui
