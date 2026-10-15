@@ -5,7 +5,10 @@ metadata:
   name: kagent
   namespace: ai
 spec:
-  kagent: {}
+  kagent:
+    memory:
+      modelConfigRef:
+        name: openai-embeddings
   workload:
     image: ghcr.io/kagent-dev/kagent/golang-adk@sha256:26ae5c772d4a59b24ecb3619c3499e106e3b28abbc239de25b4ff8d746f97e69
   substrate:

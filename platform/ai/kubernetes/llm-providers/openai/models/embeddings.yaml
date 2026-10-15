@@ -1,0 +1,14 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: ModelConfig
+metadata:
+  name: openai-embeddings
+  namespace: ai
+  labels:
+    app: kagent
+    component: model-config
+spec:
+  provider: OpenAI
+  model: text-embedding-3-small
+  apiKeySecret: openai-api-key-secret
+  apiKeySecretKey: Authorization

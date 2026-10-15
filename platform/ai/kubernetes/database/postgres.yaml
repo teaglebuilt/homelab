@@ -1,0 +1,153 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kagent-postgresql
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kagent-postgresql
+    app.kubernetes.io/part-of: homelab
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kagent-postgresql-initdb
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kagent-postgresql
+    app.kubernetes.io/part-of: homelab
+data:
+  001-vector.sql: |
+    CREATE EXTENSION IF NOT EXISTS vector;
+---
+# Fresh claim: the previous data dir was initialised by the musl-based alpine
+# image, and its text collations are not safe to reuse under this glibc image.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kagent-postgresql-data
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kagent-postgresql
+    app.kubernetes.io/part-of: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kagent-postgresql
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kagent-postgresql
+    app.kubernetes.io/part-of: homelab
+spec:
+  replicas: 1
+  # Immutable; kept identical to the selector the kagent alpha9 chart created.
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: database
+      app.kubernetes.io/instance: kagent
+      app.kubernetes.io/name: kagent
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: database
+        app.kubernetes.io/instance: kagent
+        app.kubernetes.io/name: kagent
+        app.kubernetes.io/part-of: homelab
+    spec:
+      serviceAccountName: kagent-postgresql
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgresql
+          image: docker.io/pgvector/pgvector:0.8.7-pg18-trixie@sha256:9d9c930220cb9bf2f956d10a8f909cf9973d9672ca0278aef2c1e6facccad2e0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: kagent
+            - name: POSTGRES_USER
+              value: kagent
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kagent-postgres
+                  key: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "kagent", "-d", "kagent"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "kagent", "-d", "kagent"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kagent-postgresql-data
+        - name: initdb
+          configMap:
+            name: kagent-postgresql-initdb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kagent-postgresql
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kagent-postgresql
+    app.kubernetes.io/part-of: homelab
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: kagent
+    app.kubernetes.io/name: kagent
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: postgresql
+      protocol: TCP

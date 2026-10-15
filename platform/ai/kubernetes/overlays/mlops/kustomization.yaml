@@ -40,7 +40,7 @@ helmCharts:
       database:
         postgres:
           role: kagent
-          vectorEnabled: false
+          vectorEnabled: true
       providers:
         default: openAI
         openAI:
