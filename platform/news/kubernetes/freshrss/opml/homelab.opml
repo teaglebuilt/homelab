@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml xmlns:frss="https://freshrss.org/opml" version="2.0">
+  <head>
+    <title>FreshRSS</title>
+  </head>
+  <body>
+    <outline text="Homelab">
+      <outline text="FreshRSS releases" type="rss"
+               xmlUrl="https://github.com/FreshRSS/FreshRSS/releases.atom"
+               htmlUrl="https://github.com/FreshRSS/FreshRSS/"
+               description="FreshRSS releases @ GitHub"/>
+    </outline>
+  </body>
+</opml>

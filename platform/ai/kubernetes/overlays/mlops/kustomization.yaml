@@ -11,6 +11,7 @@ resources:
   - ../../routes
   - ../../substrate
   - ../../database
+  - ../../apps/youtube-transcript
 helmCharts:
   - name: agentgateway
     repo: oci://ghcr.io/kgateway-dev/charts

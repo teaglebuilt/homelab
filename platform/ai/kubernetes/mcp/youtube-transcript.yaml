@@ -1,0 +1,35 @@
+# NOT yet wired into kustomization.yaml — the backend service below does not
+# exist yet. Build it on top of the existing OSS server
+# github.com/jkawamoto/mcp-youtube-transcript (MIT, youtube_transcript_api +
+# yt-dlp metadata, built-in Webshare/ScrapingAnt/generic proxy support — a
+# real plus running from an in-cluster IP YouTube is more likely to rate
+# limit). Its packaged CLI is stdio-only; wrap its `server()` factory the
+# same way `knowledge/kb/mcp_retrieval/__main__.py` wraps kb-retrieval's —
+# `mcp.run(transport="streamable-http", host=..., port=...)` — same
+# Dockerfile shape as `knowledge/Dockerfile`. No fork of its logic needed.
+#
+# Known gaps vs. the original ingest-youtube skill, accepted for v1:
+# - No Whisper/ASR fallback — captions-only. Abstain ("no transcript
+#   available") rather than fabricate when a video has none. Add an ASR tool
+#   later only if this actually blocks a real video.
+# - Its Pydantic models drop youtube_transcript_api's is_generated flag, so
+#   captions_source in the youtube-knowledge skill's output contract should
+#   be "unknown" for v1, not guessed.
+#
+# Tools to bind on the agent: `get_timed_transcript` (start/duration per
+# snippet -> synthetic timestamp headings) + `get_video_info` (title/
+# uploader/upload_date -> frontmatter). Add to kustomization.yaml once the
+# wrapper image is built and deployed to the `ai` namespace.
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: youtube-transcript
+  namespace: ai
+spec:
+  description: >-
+    YouTube transcript extraction (captions first, Whisper ASR fallback).
+    Read-only; returns transcript text + metadata, never writes anywhere.
+  protocol: STREAMABLE_HTTP
+  url: http://youtube-transcript.ai.svc.cluster.local:3000/mcp
+  timeout: 120s

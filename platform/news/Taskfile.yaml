@@ -3,8 +3,45 @@ version: 3
 
 vars:
   TERRAFORM: tofu -chdir=terraform
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
 
 tasks:
+  gen-opml:
+    dir: news
+    desc: Generate FreshRSS OPML seeds from the YouTube subscriptions source of truth
+    cmds:
+      - |-
+        python3 .claude/skills/youtube/scripts/generate_opml.py \
+          --input youtube-subscriptions.yaml \
+          --output kubernetes/freshrss/opml/youtube-subscriptions.opml
+      - |-
+        {
+          sha256sum kubernetes/freshrss/opml/*.opml
+          sha256sum kubernetes/freshrss/scripts/provision.sh
+        } | sha256sum | awk '{print $1}' > kubernetes/freshrss/opml/.checksum
+
+  deploy:
+    dir: news
+    desc: Deploy FreshRSS to kubernetes (requires CLUSTER=application for postgres-rw)
+    deps: [gen-opml]
+    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+      - |-
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl rollout status deployment/freshrss -n feeds --timeout=180s
+
+  kdestroy:
+    dir: news
+    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - |-
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+
   provision:
     dir: news
     cmds:

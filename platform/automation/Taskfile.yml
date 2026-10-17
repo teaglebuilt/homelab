@@ -29,6 +29,6 @@ tasks:
     desc: Run n8n workflow/credential export to S3 now
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/application/kubeconfig'
     cmds:
       - KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl -n automation create job --from=cronjob/n8n-workflow-backup n8n-workflow-backup-manual-$(date +%s)

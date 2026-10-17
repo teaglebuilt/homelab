@@ -27,11 +27,6 @@ spec:
           host: kagent-tools.ai.svc.cluster.local
           port: 8084
           path: /mcp
-      - name: kagent-querydoc
-        static:
-          host: kagent-querydoc.ai.svc.cluster.local
-          port: 8080
-          path: /mcp
       - name: kagent-controller
         static:
           host: kagent-controller.ai.svc.cluster.local

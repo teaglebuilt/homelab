@@ -73,6 +73,7 @@ helmCharts:
       playwrightConfig:
         PORT: "3000"
       secret:
+        TEST_API_KEY: "your-doing-it-peter"
         OPENAI_API_KEY: ""
         SLACK_WEBHOOK_URL: ""
         LLAMAPARSE_API_KEY: ""

@@ -16,6 +16,8 @@ includes:
     taskfile: observability/Taskfile.yml
   research:
     taskfile: research/Taskfile.yml
+  news:
+    taskfile: news/Taskfile.yaml
 
 tasks:
   deploy:
@@ -35,6 +37,8 @@ tasks:
       - task: observability:deploy
         vars: { CLUSTER: '{{.CLUSTER}}' }
       # - task: research:deploy
+      #   vars: { CLUSTER: '{{.CLUSTER}}' }
+      # - task: news:deploy
       #   vars: { CLUSTER: '{{.CLUSTER}}' }
       - kubectl rollout restart deployment reflector -n kube-system
 

@@ -1,0 +1,23 @@
+---
+# Cilium ClusterMesh front door. Real backends run on mlops; application n8n
+# dials this ClusterIP and Cilium routes cross-cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: youtube-transcript
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: youtube-transcript
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    service.cilium.io/global: "true"
+    service.cilium.io/shared: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: youtube-transcript
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP

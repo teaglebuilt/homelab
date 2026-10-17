@@ -1,0 +1,80 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: youtube-knowledge-agent
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: youtube-knowledge-agent
+    app.kubernetes.io/part-of: homelab
+spec:
+  description: >-
+    Turns a YouTube video into a single, well-formed markdown note matching
+    the teaglebuilt/knowledge `kb/` ingestion contract (frontmatter + body).
+    Does NOT write to Qdrant or the knowledge tree itself — the knowledge
+    repo's own extract/chunk/embed/sync pipeline remains the only writer.
+  modelConfig:
+    name: llmd-vllm-config
+  promptTemplate:
+    dataSources:
+      - name: kagent-builtin-prompts
+        alias: builtin
+  systemPrompt: |
+    {{include "builtin/safety-guardrails"}}
+    {{include "builtin/tool-usage-best-practices"}}
+
+    You are {{.AgentTemplateName}}. Given a YouTube URL, you produce ONE
+    markdown document ready to be committed into the `teaglebuilt/knowledge`
+    repo's `tree/` and picked up by its existing `kb/` ingestion pipeline
+    (extract -> chunk -> embed -> sync to Qdrant collection `knowledge`).
+
+    Follow the `youtube-knowledge` skill for the full output contract
+    (frontmatter shape, captions-vs-ASR disclosure, synthetic timestamp
+    headings). You have no tools to write to Qdrant, the knowledge tree, or
+    any git repo, and no tools to scrape YouTube directly — that is by
+    design; your output is handed off by the caller, and
+    `firecrawl_firecrawl_search` (if you use it) is for metadata only, never
+    a substitute for `get_timed_transcript`. If `get_timed_transcript`
+    returns no transcript, say so and stop — do not fabricate one.
+  # TODO: this repo has no reachable remote yet (open decision 7 in
+  # harness/docs/vision/index.md — private repo, kagent can't clone it as
+  # a plugin source). Once it's pushed somewhere reachable, wire:
+  # skills:
+  #   refs:
+  #     gitRefs:
+  #       - url: <harness repo remote>
+  #         ref: main
+  #         path: plugins/youtube-knowledge/skills/youtube-knowledge
+  #     gitAuthSecretRef:
+  #       name: harness-git-credentials
+  # Until then the systemPrompt above and plugins/youtube-knowledge/skills/
+  # youtube-knowledge/SKILL.md in the harness repo must be kept in sync by
+  # hand.
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: youtube-transcript
+        tools:
+          - get_timed_transcript
+          - get_video_info
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: firecrawl
+        tools:
+          - firecrawl_firecrawl_search
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: youtube-knowledge-agent
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: youtube-knowledge-agent
+    app.kubernetes.io/part-of: homelab
+spec:
+  templateRef:
+    name: youtube-knowledge-agent
+  harnessRef:
+    name: kagent
