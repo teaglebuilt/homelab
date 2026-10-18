@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: automation
 resources:
   - deployment.yaml
+  - serviceaccount.yaml
   - service.yaml
   - configmap.yaml
   - pvc.yaml
@@ -17,3 +18,4 @@ configMapGenerator:
       - scripts/import-workflows.sh
       - scripts/export-workflows.sh
       - scripts/upload-workflows.sh
+      - scripts/mint-mcp-token.sh

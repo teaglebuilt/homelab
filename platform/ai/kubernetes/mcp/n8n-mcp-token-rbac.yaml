@@ -1,0 +1,30 @@
+# Sidecar in the automation namespace mints the token once and writes it here.
+# This Secret is not in secret.enc.yaml: a ksops apply would replace it, and
+# n8n will not reveal the JWT again after the first GET.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: n8n-mcp-token
+  namespace: ai
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["n8n-mcp-token"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: n8n-mcp-token
+  namespace: ai
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: n8n-mcp-token
+subjects:
+  - kind: ServiceAccount
+    name: n8n
+    namespace: automation

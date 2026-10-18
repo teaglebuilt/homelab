@@ -20,6 +20,7 @@ spec:
         app: n8n
         version: v1.0
     spec:
+      serviceAccountName: n8n
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -251,6 +252,42 @@ spec:
               mountPath: /home/node/.n8n
             - name: shared-data
               mountPath: /data/shared
+        - name: mint-mcp-token
+          image: curlimages/curl:8.10.1
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "/scripts/mint-mcp-token.sh"]
+          env:
+            - name: N8N_OWNER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_OWNER_EMAIL
+                  optional: true
+            - name: N8N_OWNER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_OWNER_PASSWORD
+                  optional: true
+          volumeMounts:
+            - name: n8n-scripts
+              mountPath: /scripts
+              readOnly: true
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
       volumes:
         - name: n8n-storage
           persistentVolumeClaim:

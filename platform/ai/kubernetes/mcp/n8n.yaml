@@ -13,5 +13,5 @@ spec:
     - name: Authorization
       valueFrom:
         type: Secret
-        name: mcp-secrets
-        key: N8N_MCP_TOKEN
+        name: n8n-mcp-token
+        key: token

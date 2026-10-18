@@ -10,6 +10,7 @@ resources:
   - kb-retrieval.yaml
   - youtube-transcript.yaml
   - n8n.yaml
+  - n8n-mcp-token-rbac.yaml
 generators:
   - secrets-generator.yaml
 replacements:
