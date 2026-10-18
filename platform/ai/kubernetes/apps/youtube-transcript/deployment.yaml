@@ -28,7 +28,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: youtube-transcript
-          image: ghcr.io/teaglebuilt/youtube-transcript:0.1.0
+          image: ghcr.io/teaglebuilt/youtube-transcript:0.2.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -37,6 +37,14 @@ spec:
           env:
             - name: YT_LANGUAGES
               value: "en"
+            - name: KB_INGEST_URL
+              value: http://kb-ingest.ai.svc.cluster.local:3000
+            - name: KB_INGEST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: kb-ingest-token
+                  key: KB_INGEST_TOKEN
+                  optional: true
           envFrom:
             - secretRef:
                 name: youtube-transcript-proxy

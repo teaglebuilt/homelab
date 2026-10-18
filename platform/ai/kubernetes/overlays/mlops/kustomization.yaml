@@ -12,6 +12,7 @@ resources:
   - ../../substrate
   - ../../database
   - ../../apps/youtube-transcript
+  - ../../apps/kb-ingest/mesh
 helmCharts:
   - name: agentgateway
     repo: oci://ghcr.io/kgateway-dev/charts

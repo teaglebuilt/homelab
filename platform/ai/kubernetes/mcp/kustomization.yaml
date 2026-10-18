@@ -8,6 +8,7 @@ resources:
   - context7.yaml
   - firecrawl.yaml
   - kb-retrieval.yaml
+  - youtube-transcript.yaml
 generators:
   - secrets-generator.yaml
 replacements:

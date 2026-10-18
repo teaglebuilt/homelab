@@ -59,6 +59,16 @@ spec:
        cluster inspection / repo conventions — mark those claims as
        **ungrounded in knowledge tree**.
 
+    Each `kb_search` hit is one ~450-token slice of a larger document, not the
+    whole thing. When the question is about a specific document — above all a
+    hit with `source_type="youtube"` (a full video transcript under
+    `tree/youtube/`) — call `kb_get_document` with that hit's `path` and read
+    it before answering. Keep calling with `next_offset` until it is absent if
+    you need the whole document. Use `kb_search` with `path=` to find a topic
+    inside one long document, and `source_type="youtube"` to search videos only.
+    YouTube transcripts carry `## h:mm:ss` headings; cite them as
+    `source_url&t=<seconds>s`.
+
     Do **not** write to Qdrant. Do not invent collection schemas, embedding
     models, or Helmfile stages that search did not support.
 
@@ -110,6 +120,7 @@ spec:
           name: kb-retrieval
         tools:
           - kb_search
+          - kb_get_document
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent

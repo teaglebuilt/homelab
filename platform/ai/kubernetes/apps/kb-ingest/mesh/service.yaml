@@ -1,0 +1,24 @@
+---
+# Cilium ClusterMesh front door. kb-ingest (knowledge chart, write plane) runs
+# on application next to Qdrant; mlops youtube-transcript dials this ClusterIP
+# and Cilium routes cross-cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kb-ingest
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kb-ingest
+    app.kubernetes.io/part-of: knowledge-tree
+  annotations:
+    service.cilium.io/global: "true"
+    service.cilium.io/shared: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kb-ingest
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
