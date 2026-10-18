@@ -1,266 +1,216 @@
-# Troubleshooting kagent
+# Debug
 
-## Contents
+Most kagent failures surface in one place: the readiness conditions on the Agent. This page explains where to read those conditions, how to tell the real failure from the ones that follow it, and how to work back from the symptoms that report nothing useful on their own.
 
-- Diagnostic commands
-- Reading agent status conditions
-- Agent not appearing in dashboard
-- Agent stuck in not-ready state
-- Agent not responding / timing out
-- Failed to create MCP session (intermittent)
-- MCP tools not available to agent
-- Session stuck waiting (HITL approvals)
-- Memory not working
-- Context compaction not working
-- SandboxAgent or AgentHarness not reconciling
-- Dashboard not accessible
-- CLI can't connect to controller
-- MCP IDE integration not working
-- Enabling debug logging
-- Getting help
+## Where kagent reports status
 
-## Diagnostic Commands
+Two habits from Kubernetes lead nowhere here, so it is worth knowing what reports nothing before you start.
+
+A Harness has a `READY` column, but because nothing writes the Harness status, the column is always empty.
 
 ```bash
-# Cluster state
-kubectl get agents.kagent.dev -n kagent          # all agents and their status
-kubectl get mcpserver -n kagent                   # MCP server resources
-kubectl get remotemcpserver -n kagent             # remote MCP server resources
-kubectl get pods -n kagent                        # pod health
-kubectl get events -n kagent --sort-by=.lastTimestamp
-
-# Agent status details
-kubectl get agent <name> -n kagent -o yaml        # full status including conditions
-
-# Logs
-kubectl logs -n kagent deployment/kagent-controller   # controller logs
-kubectl logs -n kagent deployment/kagent-ui            # UI logs
-kubectl logs -n kagent <agent-pod-name>                # specific agent logs
-
-# Bug report (collects diagnostics)
-kagent bug-report
+kubectl get harness -n kagent
 ```
 
-## Reading Agent Status Conditions
+Example output:
 
-The Agent status carries two conditions that split the problem space in half — always check them first:
+```console
+NAME     READY   AGE
+kagent           30h
+```
 
-- **`Accepted`** — the controller validated and translated the spec. `Accepted=False` means a *configuration* problem (bad modelConfig/tool reference, mutually exclusive fields, template error, validation failure); the condition `message` states the reason. The pod is irrelevant at this stage.
-- **`Ready`** (called `DeploymentReady` in some versions) — the agent's pod is running and healthy. `Accepted=True` but not ready means a *runtime* problem: look at the Deployment/pod, not the YAML.
+An AgentTemplate has **no status at all**, and its list view has no status column, so a healthy template and a broken one look identical.
 
 ```bash
-kubectl get agent <name> -n kagent -o jsonpath='{.status.conditions}' | jq
+kubectl get agenttemplate -n kagent
 ```
 
-## Common Issues
+Example output:
 
-### Agent not appearing in dashboard
+```console
+NAME        AGE
+assistant   30h
+```
 
-**Symptoms:** Applied agent YAML but it doesn't show in the UI.
-
-**Diagnosis:**
+The diagnostic surface is the Agent. An Agent pairs one AgentTemplate with one Harness, and its conditions cover that pairing.
 
 ```bash
-kubectl get agent <name> -n kagent -o yaml
+kubectl get agent -n kagent
 ```
 
-Check `.status.conditions` — this is almost always `Accepted=False`.
+Example output:
 
-**Common causes:**
+```console
+NAME        READY   AGE
+assistant   True    30h
+```
 
-- Missing or invalid `modelConfig` reference
-- Invalid tool reference (MCPServer doesn't exist, or missing `apiGroup: kagent.dev`)
-- Namespace mismatch between agent and referenced resources
-- CRD version mismatch (using v1alpha1 fields in v1alpha2)
-- Both `systemMessage` and `systemMessageFrom` set (mutually exclusive)
-- `requireApproval` entry not present in `toolNames` (must be a subset)
-
-### Agent stuck in not-ready state
-
-**Diagnosis:**
+The `READY` column reports the status of the `Ready` condition and nothing else. To find the condition's reason and message, read the Agent's conditions directly.
 
 ```bash
-kubectl get agent <name> -n kagent -o jsonpath='{.status.conditions}' | jq
-kubectl describe pod -n kagent -l app.kubernetes.io/name=<name>,app.kubernetes.io/managed-by=kagent
+kubectl get agent <name> -n kagent \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"="}{.status}{"  "}{.reason}{": "}{.message}{"\n"}{end}'
 ```
 
-**Common causes:**
+Example output for a healthy Agent:
 
-- Image pull failures (check imagePullSecrets)
-- Insufficient resources (CPU/memory limits too low)
-- MCP server pod not ready
-- LLM API key secret missing or incorrect
+```console
+Accepted=True  Accepted: Agent explicitly selects its template and harness
+ResolvedRefs=True  Resolved: All runtime references resolved
+Compatible=True  Compatible: Resolved configuration is compatible with the Harness
+Ready=True  Ready: ActorTemplate golden snapshot is ready
+```
 
-### Agent not responding / timing out
+## Read the readiness conditions
 
-**Diagnosis:**
+The four conditions form a pipeline rather than an unordered set, so their order tells you how far preparation reached before it stopped.
+
+Each condition covers one stage, and a stage runs only when the stage before it succeeded.
+
+| Condition | Stage it covers | A failure here means |
+| --- | --- | --- |
+| `Accepted` | The Agent selects a template and a Harness. | Nothing. kagent writes this condition only as `True`, because an Agent references both resources explicitly. |
+| `ResolvedRefs` | Every resource that the Agent references was found, including its AgentTemplate, its Harness, its ModelConfig, and any tool servers. | A reference points at something that does not exist, or the controller cannot read it. |
+| `Compatible` | The resolved configuration is valid for the Harness. | The configuration asks for something that its Harness does not support. |
+| `Ready` | The ActorTemplate's golden snapshot exists, so Sessions can start from it. | Agent Substrate has not finished capturing the golden snapshot, or capture failed. |
+
+When a stage fails, kagent marks that stage `False` with the real reason and message, then marks **every later stage `False` with the reason `Blocked`** . Only the first failure describes an actual problem.
+
+**Read the first condition that is `False` and whose reason is not `Blocked`.** Everything after it is a consequence.
+
+In the following example, one missing ModelConfig is the whole problem, and the two conditions after it do not add independent information.
+
+```console
+Accepted=True  Accepted: Agent explicitly selects its template and harness
+ResolvedRefs=False  ReferenceResolutionFailed: resolve ModelConfig "does-not-exist": not found
+Compatible=False  Blocked: blocked by ResolvedRefs
+Ready=False  Blocked: blocked by ResolvedRefs
+```
+
+The Agent's status reports two revision fields that answer a different question. `desiredRevision` is the revision that the current spec should produce, and `latestSuccessfulRevision` is the newest revision that finished preparing. A missing `latestSuccessfulRevision` means that the Agent was never ready, and two differing values mean that the newest edit is not yet prepared.
+
+The status also reports a `warnings` list, which shows the compatibility decisions that kagent made without blocking the revision. A warning does not stop an Agent from becoming ready, and the conditions do not report it.
 
 ```bash
-kubectl logs -n kagent <agent-pod-name>
-kubectl logs -n kagent deployment/kagent-controller | grep <agent-name>
+kubectl get agent <name> -n kagent -o jsonpath='{.status.warnings}'
 ```
 
-**Common causes:**
+## A new AgentTemplate never runs
 
-- LLM API rate limiting or key expiration
-- MCP tool server crashed or unreachable
-- Agent pod OOMKilled (increase memory limits)
-- Network policy blocking outbound traffic to LLM provider
+When you create an AgentTemplate directly, nothing prepares it until an Agent references it. The template also has no status for a failure to appear on, so the problem surfaces only when you try to start a conversation.
 
-### Failed to create MCP session (intermittent)
+```console
+ERROR:
+  Code: FailedPrecondition
+  Message: Agent does not have a ready prepared revision
+```
 
-**Symptoms:** Agent intermittently logs "Failed to create MCP session" — it works sometimes but not always.
-
-**Diagnosis:**
+Check which Agents exist and what each one references.
 
 ```bash
-kubectl get mcpserver <name> -n kagent -o yaml
-kubectl get pods -n kagent -l app.kubernetes.io/name=<mcpserver-name>,app.kubernetes.io/managed-by=kagent
-kubectl logs -n kagent <mcpserver-pod-name>
-kubectl logs -n kagent <agent-pod-name>
+kubectl get agents -n kagent \
+  -o jsonpath='{range .items[*]}{.metadata.name}{" template="}{.spec.template.ref.name}{" harness="}{.spec.harnessRef.name}{"\n"}{end}'
 ```
 
-Check agent pod logs for context around the error — connection refused, timeout, DNS failure, etc.
+Example output:
 
-**Common causes:**
-
-1. **Timeout too short (most common for intermittent failures):** The default MCP session creation timeout may be too short for servers that take time to initialize. Increase the `timeout` field on the MCPServer or RemoteMCPServer resource:
-
-   ```yaml
-   # RemoteMCPServer example
-   spec:
-     url: http://my-mcp-server:3000/sse
-     timeout: 60s           # increase from default
-     sseReadTimeout: 120s   # for long-running SSE connections
-   ```
-
-2. **MCP server pod instability:** Pod restarts, OOMKills, or readiness probe flapping. Check restart count with `kubectl get pods` and previous logs with `kubectl logs --previous`.
-
-3. **Startup race condition:** Agent attempts to connect before the MCP server is fully ready. Ensure proper readiness probes on the MCP server pod.
-
-4. **Namespace mismatch:** MCPServer must be in the same namespace as the Agent (or explicitly allowed via `allowedNamespaces`).
-
-5. **Missing `apiGroup: kagent.dev`** in the agent's tool reference — required for both MCPServer and RemoteMCPServer kinds.
-
-### MCP tools not available to agent
-
-**Diagnosis:**
-
-```bash
-kubectl get remotemcpserver <name> -n kagent -o yaml   # check status.discoveredTools
-kubectl get pods -n kagent -l app.kubernetes.io/name=<name>,app.kubernetes.io/managed-by=kagent
+```console
+assistant template=assistant harness=kagent
 ```
 
-**Common causes:**
-
-- `status.discoveredTools` empty — the controller couldn't connect or list tools; check URL, protocol, and auth headers
-- Tool name mismatch in `toolNames` filter (compare against `discoveredTools` names exactly)
-- RemoteMCPServer/MCPServer not in the agent's namespace
-- MCP server binary not found (wrong `cmd` or `args`)
-
-### Session stuck waiting (HITL approvals)
-
-**Symptoms:** An agent appears hung mid-task; nothing in the logs looks wrong.
-
-If any of the agent's tools have `requireApproval` (or it called the built-in `ask_user` tool), the A2A task is in `input-required` state, waiting for a human decision. Check the session in the dashboard — there will be a pending approval card. The task resumes as soon as someone approves/rejects. If the approval card never appeared in a *custom* client, see the HITL wire protocol in `hitl-and-memory.md` (the client must handle `input-required` DataParts and reply with the matching `taskId`).
-
-### Memory not working
-
-**Symptoms:** `memory.enabled: true` but the agent never recalls anything, or memory tools error.
-
-**Checks:**
-
-- Does the installed version support memory? `kubectl explain agent.spec.declarative.memory` — if unknown, upgrade.
-- The embedding `modelConfig` referenced under `memory` must exist and be valid (it's a separate ModelConfig from the chat model).
-- On Postgres, pgvector must be enabled: `database.postgres.vectorEnabled=true` (Helm). Bundled SQLite works out of the box.
-- Memories have a default 15-day TTL and are pruned — old, rarely-used entries disappearing is by design.
-
-### Context compaction not working
-
-**Symptoms:** Long sessions still exceed model context limits, or older context disappears unexpectedly.
-
-**Checks:**
-
-- Does the installed version support compaction? `kubectl explain agent.spec.declarative.context.compaction`
-- If compacted content must be preserved, configure `summarizer.modelConfig`; otherwise compacted events may be discarded.
-- Confirm the compaction trigger is reachable: `compactionInterval` counts user invocations, while `tokenThreshold` triggers only after an invocation exceeds the threshold.
-- Check the Agent `Accepted` condition for template/schema errors and controller logs for summarizer failures.
-
-### SandboxAgent or AgentHarness not reconciling
-
-**Checks:**
-
-- Verify the CRDs exist: `kubectl api-resources | grep -i 'sandboxagent\|agentharness'`
-- For SandboxAgent, inspect `kubectl explain sandboxagent.spec` and confirm sandbox runtime dependencies are installed.
-- For AgentHarness, confirm OpenShell is deployed and the controller has `OPENSHELL_GATEWAY_URL` set.
-- Check `Accepted` first. If accepted but not ready, inspect the generated workload and controller logs.
-
-### Dashboard not accessible
-
-```bash
-# Check UI pod
-kubectl get pods -n kagent -l app=kagent-ui
-
-# Manual port-forward
-kubectl port-forward -n kagent svc/kagent-ui 8082:8080
-
-# Or use CLI
-kagent dashboard
-```
-
-### CLI can't connect to controller
-
-```bash
-# Verify controller is running
-kubectl get pods -n kagent -l app=kagent-controller
-
-# Check service
-kubectl get svc -n kagent kagent-controller
-
-# Test connectivity
-kubectl port-forward svc/kagent-controller 8083:8083 -n kagent
-curl http://localhost:8083/healthz
-curl http://localhost:8083/version
-```
-
-### MCP IDE integration not working
-
-See `mcp-ide-setup.md` for detailed troubleshooting. Quick checks:
-
-```bash
-# Verify agents are eligible (must be Accepted + Ready)
-kagent get agent
-
-# Test controller MCP endpoint
-curl http://localhost:8083/mcp -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.0.0"}}}'
-```
-
-## Enabling Debug Logging
-
-### On an agent pod
+An Agent that defines its behavior inline prints an empty `template=`, because it has no `spec.template.ref` to read. If no Agent references your template, create one.
 
 ```yaml
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: assistant
+  namespace: kagent
 spec:
-  declarative:
-    deployment:
-      env:
-      - name: LOG_LEVEL
-        value: debug
+  template:
+    ref:
+      name: assistant
+  harnessRef:
+    name: kagent
 ```
 
-### On the controller
+> [!NOTE]
+> An Agent with no conditions at all means that the controller has not reconciled it yet. An Agent with a failing condition means that reconciliation reached that stage and stopped.
+
+## An agent turn times out
+
+A turn that fails with a timeout reports the same error regardless of the underlying cause, so this symptom needs elimination rather than reading.
+
+```console
+ERROR:
+  Code: Internal
+  Message: actor "ai-01a087c0-1d72-775a-9a32-566acac7b685" request timed out
+```
+
+Work through the causes in this order.
+
+1. **Check that the WorkerPool has ready Workers.** A pool with too few Workers produces exactly this error and does not log a capacity message anywhere. To learn how to recognize this problem and size the pool, see [Tune Agent Substrate](https://kagent.dev/docs/kagent/1.x/operations/tune-agent-substrate/).
+
+   ```bash
+   kubectl get workerpools -n kagent
+   ```
+2. **Check the model provider.** A turn that reaches the model and waits on a slow or unreachable provider also times out. The agent's own logs name the provider error.
+3. **Check the Actor state.** An Actor stuck in `RESUMING`, or sitting in `CRASHED`, never answers.
+
+   - To review the list of states, see [Suspend and resume](https://kagent.dev/docs/kagent/1.x/about/substrate-runtime/suspend-and-resume/#actor-lifecycle-operations).
+   - To get the current state for every actor, [call `GetSubstrateStatus`](https://kagent.dev/docs/kagent/1.x/operations/tune-agent-substrate#inspect-the-runtime).
+
+## An edit to an AgentTemplate has no effect
+
+An edit that appears to do nothing has two possible causes, and the Agent's conditions distinguish them.
+
+One cause is a revision that never prepared. Compare the two revision fields on the Agent that references the template. When `desiredRevision` and `latestSuccessfulRevision` differ, the edit produces a new revision that is not ready, and the conditions say why.
 
 ```bash
-helm upgrade kagent oci://ghcr.io/kagent-dev/kagent/helm/kagent \
-  --namespace kagent \
-  --reuse-values \
-  --set controller.loglevel=debug
+kubectl get agent <name> -n kagent \
+  -o jsonpath='{"desired="}{.status.desiredRevision}{" latestSuccessful="}{.status.latestSuccessfulRevision}{"\n"}'
 ```
 
-## Getting Help
+The other cause is deliberate. A Session runs the revision that it was created from for its whole life, so editing an AgentTemplate never changes a conversation that already exists. Create a new Session to pick up the edit.
 
-- **Discord:** <https://discord.gg/Fu3k65f2k3>
-- **GitHub Issues:** <https://github.com/kagent-dev/kagent/issues>
-- **Bug report:** `kagent bug-report` (review for sensitive data before sharing)
+## Collect logs
+
+Once the resource status is exhausted, kagent offers two ways to gather evidence. Read the controller log to locate a single failing call, or collect a bug report to hand somebody else everything at once.
+
+### Read the controller log
+
+The controller records every API call with its gRPC status code.
+
+```bash
+kubectl logs -n kagent deployment/kagent-controller
+```
+
+A failing call appears as an `rpc completed` line whose `grpc_code` is not `OK`, which locates the failure without reading the whole log.
+
+```console
+{"time":"2026-09-09T19:23:47.112233381Z","level":"INFO","msg":"rpc completed","component":"grpc","grpc_method":"/lf.a2a.v1.A2AService/SendMessage","rpc_type":"unary","peer":"127.0.0.1:49588","grpc_code":"Internal","duration_ms":5033}
+```
+
+If the default log level does not have enough information, raise the controller's log level.
+
+```yaml
+controller:
+  loglevel: debug
+```
+
+### Collect a bug report
+
+`kagent bug-report` gathers the whole picture in one command. It writes the kagent resources in a namespace, the names of its secrets, and the logs of every pod into a timestamped directory.
+
+```bash
+kagent bug-report -n kagent
+```
+
+> [!WARNING]
+> A bug report contains your resource definitions and pod logs, which can hold prompts, tool output, and other sensitive material. Review the directory before you attach it to an issue.
+
+The report covers kagent's own resources rather than the Agent Substrate installation underneath it, so add the WorkerPool and the runtime status when a problem looks like a capacity or sandbox issue.
+
+```bash
+kubectl get workerpools,sandboxconfigs -n kagent -o yaml
+```

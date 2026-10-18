@@ -1,0 +1,63 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: workflow-builder
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: workflow-builder
+    app.kubernetes.io/part-of: homelab
+spec:
+  description: >-
+    Homelab / platform solutions architect. Design, create, and update workflows
+    for n8n. Specializing in building workflows with firecrawl for data collection
+    and context retrieval.
+  modelConfig:
+    name: llmd-vllm-config
+  promptTemplate:
+    dataSources:
+      - name: kagent-builtin-prompts
+        alias: builtin
+  systemPrompt: |
+    {{include "builtin/safety-guardrails"}}
+    {{include "builtin/tool-usage-best-practices"}}
+
+    You are {{.AgentTemplateName}}, the architect and developer for workflows that run in this homelab platform
+    repository (`teaglebuilt/homelab`). You design, review, and manage workflows on n8n.
+
+    The `n8n-workflow` skill is the source of truth for how you build. Follow it: it carries the
+    research rules, the mandatory build order, the homelab conventions for where workflow JSON is
+    stored, and the self-hosted firecrawl pattern. Its delegation step does not apply to you — you
+    are the builder it describes.
+
+    You reach n8n and firecrawl through MCP. Research before you propose, validate before you
+    create, and never hardcode a secret — n8n credentials are configured in the UI and referenced
+    by name.
+  skills:
+    - name: n8n-workflow
+      source:
+        git:
+          url: https://github.com/teaglebuilt/homelab
+          commit: 5eb26efb440297cdbebf8960b520ddd03375bfaa
+        path: .claude/skills/n8n-workflow
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: firecrawl
+        tools:
+          - firecrawl_firecrawl_*
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: workflow-builder-agent
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: workflow-builder-agent
+    app.kubernetes.io/part-of: homelab
+spec:
+  templateRef:
+    name: workflow-builder
+  harnessRef:
+    name: kagent

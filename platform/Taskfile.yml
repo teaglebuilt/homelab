@@ -2,6 +2,8 @@
 version: 3
 
 includes:
+  kubectl:
+    taskfile: ../kubernetes/.taskfiles/kubectl/Taskfile.yml
   data:
     taskfile: data/Taskfile.yml
   ai:
@@ -28,6 +30,8 @@ tasks:
     vars:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
+      - task: kubectl:switch-cluster
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: data:deploy
         vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: ai:deploy
@@ -36,10 +40,10 @@ tasks:
         vars: { CLUSTER: '{{.CLUSTER}}' }
       - task: observability:deploy
         vars: { CLUSTER: '{{.CLUSTER}}' }
-      # - task: research:deploy
-      #   vars: { CLUSTER: '{{.CLUSTER}}' }
-      # - task: news:deploy
-      #   vars: { CLUSTER: '{{.CLUSTER}}' }
+      - task: research:deploy
+        vars: { CLUSTER: '{{.CLUSTER}}' }
+      - task: news:deploy
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - kubectl rollout restart deployment reflector -n kube-system
 
   destroy:

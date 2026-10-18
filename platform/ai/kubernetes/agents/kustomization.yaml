@@ -5,3 +5,4 @@ namespace: ai
 resources:
   - solutions-architect.yaml
   - scraping-service-agent.yaml
+  - workflow-builder-agent.yaml

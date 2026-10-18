@@ -48,7 +48,7 @@ If you cannot verify (e.g., no cluster access), use this skill's examples but fl
 | Verify CRD fields | `kubectl explain agent.spec.declarative` |
 | Bug report | `kagent bug-report` |
 
-**Tip:** Run `kagent <command> --help` for full flag details. See `references/cli-reference.md` for a conceptual overview of all command groups.
+**Tip:** Run `kagent <command> --help` for flags. Product shape and entry points (CLI, UI, declarative): `references/kagent-overview.md`. kagent 1.0 vocabulary (Harness, AgentTemplate, Agent, Session, Actor): `references/core-concepts.md`.
 
 ## Installation
 
@@ -64,7 +64,7 @@ For Helm install, other LLM providers, and provider-specific configuration, see 
 
 ## Core Concepts
 
-kagent uses Kubernetes CRDs (API version `kagent.dev/v1alpha2`) to manage agents, models, and tools:
+kagent uses Kubernetes CRDs (API version `kagent.dev/v1alpha3`) to manage agents, models, and tools:
 
 - **Agent** — Defines an AI agent. Two types: **Declarative** (YAML-defined, controller-managed; the controller generates a Deployment + Service per agent) and **BYO** (custom container image with any framework: Google ADK, OpenAI Agents SDK, LangGraph, CrewAI).
 - **SandboxAgent** — Uses the Agent spec shape but runs through an isolated sandbox backend for stricter process, network, and filesystem controls.
@@ -81,31 +81,31 @@ kagent uses Kubernetes CRDs (API version `kagent.dev/v1alpha2`) to manage agents
 - `systemMessage` and `systemMessageFrom` are mutually exclusive.
 - Agent status has two conditions: `Accepted` (spec is valid) and `Ready`/`DeploymentReady` (pod running) — an agent must have both to serve traffic.
 
-For full CRD examples, system prompt design, prompt templates, and deployment options, see `references/agent-configuration.md`.
+For the 1.0 resource model, see `references/core-concepts.md`. Harness schema and the kagent, Codex, Claude, and BYO harnesses: `references/agent-harness.md`. Constraining the final answer to a JSON schema: `references/structured-output.md`.
 
 ## Adding Tools to Agents
 
 Agents gain capabilities through MCP (Model Context Protocol) tools. Create a `RemoteMCPServer` to connect to an existing server, or use KMCP `MCPServer` to deploy one in-cluster. Then reference it in the Agent's `tools` list, optionally filtering with `toolNames`, passing per-call headers with `headersFrom`, or setting `namespace` for cross-namespace references.
 
-kagent also supports HTTP tool discovery for OpenAPI-compliant services and can develop/deploy MCP servers through KMCP. For RemoteMCPServer YAML, auth headers, cross-namespace references, tool filtering, and complete examples, see `references/agent-configuration.md`.
+kagent also supports HTTP tool discovery for OpenAPI-compliant services and can develop/deploy MCP servers through KMCP. For MCP and subagent bindings, tool filtering, and `requireApproval`, see `references/agent-tools.md`.
 
 ## Subagents — Agents as Tools (A2A)
 
 An agent can delegate to other agents by listing them as tools (`type: Agent`). The parent calls the subagent over the A2A protocol; the subagent's session is tagged and hidden from the normal session list, and the dashboard shows the subagent's live activity as a nested thread. Within one parent request, repeated calls to the same subagent share a conversation context. Deeply nested subagent chains are technically possible but discouraged — prefer one level of delegation.
 
-YAML and behavior details: `references/agent-configuration.md` (Subagents section).
+YAML and behavior details: `references/agent-tools.md` (`subAgent` bindings).
 
 ## Human-in-the-Loop (Tool Approval)
 
 Mark specific tools with `requireApproval` (a subset of `toolNames`) to pause the agent and ask the user to approve or reject each call from the dashboard before it executes. Approvals cascade correctly through A2A subagents — the user approves the *inner* tool call from the parent's chat. kagent also ships a built-in `ask_user` tool that lets agents pose structured questions (with choices, multi-select, free text) through the same mechanism.
 
-Configuration, UI flow, and the wire protocol (for custom clients): `references/hitl-and-memory.md`.
+Configuration, client support, and the wire protocol: `references/human-in-the-loop.md`.
 
 ## Long-Term Memory
 
 Enable per-agent memory under `spec.declarative.memory`. Agents get `save_memory`, `load_memory`, and `prefetch_memory` tools plus automatic prefetch of relevant memories on the first message of a session; sessions are auto-summarized into memory every 5 user messages. Memories are vector-embedded, TTL'd (default 15 days), and pruned by popularity. Requires a vector-capable database (bundled SQLite supports it; for Postgres set `database.postgres.vectorEnabled=true`).
 
-Setup and mechanics: `references/hitl-and-memory.md`.
+Setup and mechanics: `references/agent-memory.md`.
 
 ## Runtime, Skills, and Context Management
 
@@ -113,7 +113,7 @@ Declarative agents can choose `runtime: python` (default) or `runtime: go`. Use 
 
 kagent skills are separate from Codex skills: they are runtime capabilities loaded into kagent agents from OCI image refs (`spec.skills.refs`) or Git refs (`spec.skills.gitRefs`). Use them to package reusable agent behavior and align them with the tools available to that agent.
 
-For long conversations or large tool outputs, enable `spec.declarative.context.compaction` to compact older events. Use `tokenThreshold` or `compactionInterval` for automatic compaction, and configure a summarizer when older context must be preserved instead of discarded.
+For long conversations or large tool outputs, compact older events. Sliding window and tail retention are both configured on the Harness (`spec.kagent.compaction`), not on the AgentTemplate. Field-level setup: `references/context-management.md`.
 
 ## Exposing Agents as MCP Servers (IDE Integration)
 
@@ -129,7 +129,7 @@ Every kagent agent implements A2A (Agent-to-Agent): a `.well-known/agent.json` d
 
 - **Helm values** — providers, controller (log level, watched namespaces, service type), database (bundled Postgres or external, pgvector), UI.
 - **Authentication** — optional OIDC via the bundled oauth2-proxy subchart (`oauth2-proxy.enabled=true`) with the controller in `trusted-proxy` auth mode; default mode is `unsecure`.
-- **Tracing** — OpenTelemetry export via `otel.tracing.enabled=true` plus an OTLP endpoint.
+- **Tracing** — OpenTelemetry export via `otel.tracing.enabled=true` plus an OTLP endpoint. Controller metrics, OTLP traces and logs, and the metric catalog: `references/telemetry.md`.
 
 Full values tables, architecture overview (components, ports, API endpoints), and OIDC setup: `references/operations.md`.
 
@@ -149,11 +149,17 @@ For systematic debugging (agent rejected vs not-ready, MCP session failures, stu
 
 | File | Read when the task involves |
 |---|---|
-| `references/agent-configuration.md` | Agent CRD fields (declarative + BYO), RemoteMCPServer, ModelConfig basics, tool references, subagents, prompt templates and the built-in prompt library, system prompt design, built-in demo agents |
+| `references/kagent-overview.md` | What kagent is, tools/agents/framework, architecture, CLI and UI entry points |
+| `references/core-concepts.md` | kagent 1.0 model: Harness, AgentTemplate, Agent, Session, Actor, ActorTemplate; how a conversation is placed |
+| `references/agent-harness.md` | Harness schema; kagent, Codex, Claude, and BYO harnesses; workload image, Substrate worker pool, snapshots |
+| `references/agent-tools.md` | AgentTemplate `spec.tools`: MCP bindings, tool allowlists, `requireApproval`, `subAgent` bindings |
+| `references/structured-output.md` | `outputSchema` / `outputSchemaFrom` on an AgentTemplate; which harnesses accept a schema |
+| `references/context-management.md` | Context compaction on the kagent Harness: sliding window (`compactionInterval`) and tail retention (`tokenThreshold`) |
+| `references/human-in-the-loop.md` | `requireApproval`, `ask_user`, A2A HITL extension, which clients can answer a pause |
+| `references/agent-memory.md` | Long-term memory on the Harness, pgvector, `save_memory` / `load_memory` / `prefetch_memory` |
 | `references/providers.md` | LLM provider setup (OpenAI, Anthropic, Azure, Gemini, Vertex, Bedrock, Ollama, xAI/Grok, SAP AI Core, OpenAI-compatible), Helm provider values, ModelConfig provider-specific tuning fields, TLS to providers, API key passthrough |
-| `references/hitl-and-memory.md` | Human-in-the-loop approval (`requireApproval`), `ask_user`, approval through subagents, HITL wire protocol; enabling memory, memory tools and lifecycle, embedding model config |
-| `references/operations.md` | Helm values reference, database options and pgvector, OIDC/oauth2-proxy auth, OpenTelemetry tracing, AgentHarness/OpenShell setup, architecture (components, ports, controller API endpoints, reconciliation), multi-namespace watching |
-| `references/cli-reference.md` | kagent CLI command groups: install, invoke, get, BYO lifecycle (init/build/run/deploy), MCP server development commands |
+| `references/operations.md` | Helm values, database options and pgvector, OIDC/oauth2-proxy auth, architecture (components, ports, controller API), multi-namespace watching |
+| `references/telemetry.md` | Controller Prometheus metrics, OTLP traces and logs from agent runtimes and Agent Substrate, metric catalog |
 | `references/mcp-ide-setup.md` | Connecting Claude Code, Cursor, or other MCP editors to the controller's `/mcp` endpoint; IDE config JSON; MCP integration troubleshooting |
 | `references/troubleshooting.md` | Diagnosing rejected or not-ready agents, MCP session failures, dashboard/CLI connectivity, debug logging, stuck HITL tasks, memory not working |
 

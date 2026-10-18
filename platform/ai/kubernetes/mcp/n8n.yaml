@@ -1,0 +1,17 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: n8n
+  namespace: ai
+spec:
+  description: "n8n instance-level MCP (self-hosted): node discovery, workflow SDK, validate, create/update workflows"
+  protocol: STREAMABLE_HTTP
+  url: http://n8n.homelab.internal/mcp-server/http
+  timeout: 120s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: mcp-secrets
+        key: N8N_MCP_TOKEN

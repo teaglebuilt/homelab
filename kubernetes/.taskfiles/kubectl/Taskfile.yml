@@ -31,3 +31,10 @@ tasks:
         msg: "application kubeconfig missing at {{.APP_KUBECONFIG}} — bootstrap application first."
     cmds:
       - '{{.TASKFILE_DIR}}/merge-kubeconfig.sh {{.MLOPS_KUBECONFIG}} {{.APP_KUBECONFIG}}'
+
+  switch-cluster:
+    desc: Point the current kubeconfig at admin@CLUSTER (mlops or application)
+    requires:
+      vars: [CLUSTER]
+    cmds:
+      - '{{.TASKFILE_DIR}}/switch-context.sh {{.CLUSTER}}'
