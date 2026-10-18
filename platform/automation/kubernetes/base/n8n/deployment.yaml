@@ -177,6 +177,10 @@ spec:
             - secretRef:
                 name: n8n-secrets
           env:
+            - name: N8N_MCP_MANAGED_BY_ENV
+              value: "true"
+            - name: N8N_MCP_ACCESS_ENABLED
+              value: "true"
             - name: N8N_LOG_LEVEL
               value: "info"
             - name: N8N_METRICS
