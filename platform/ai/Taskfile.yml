@@ -50,12 +50,12 @@ tasks:
       # 1.0 serves api.kagent.dev/v1alpha3 only. Upgrading this release from 0.10.x
       # removes the legacy kagent.dev Agent/ModelConfig/RemoteMCPServer/AgentHarness
       # CRDs, which deletes every resource of those kinds (docs/adr/0009).
-      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.5.0-alpha1),
+      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.6.0-alpha3),
       # not from this chart — keep substrate.enabled=false to avoid double-manage.
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
-          --version 1.0.0-alpha10 \
+          --version 1.0.0-alpha16 \
           --namespace ai \
           --set kmcp.enabled=true \
           --set substrate.enabled=false \

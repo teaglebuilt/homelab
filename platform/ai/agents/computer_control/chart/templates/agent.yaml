@@ -51,7 +51,8 @@ metadata:
     app.kubernetes.io/name: devbot
     app.kubernetes.io/part-of: agents
 spec:
-  templateRef:
-    name: devbot
+  template:
+    ref:
+      name: devbot
   harnessRef:
     name: kagent

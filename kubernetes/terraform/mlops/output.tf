@@ -7,7 +7,8 @@ resource "local_file" "talos_config" {
 }
 
 resource "local_file" "kube_config" {
-  content         = module.talos_cluster.kubeconfig.kubeconfig_raw
+  # Talos names the context and user admin@<cluster>. Use the cluster name.
+  content         = replace(module.talos_cluster.kubeconfig.kubeconfig_raw, "admin@mlops", "mlops")
   filename        = "../../generated/mlops/kubeconfig"
   file_permission = "0600"
 }
