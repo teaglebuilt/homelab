@@ -1,6 +1,6 @@
 ---
 # Substrate chart values (not kagent). See:
-# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.5.0-alpha1
+# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.6.0-alpha3
 credentialProvider:
   # Lets actors in atespace `ai` read ModelConfig Secrets in namespace `ai`.
   namespacePolicies:

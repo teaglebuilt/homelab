@@ -30,7 +30,8 @@ metadata:
   name: llmd-inference-agent
   namespace: ai
 spec:
-  templateRef:
-    name: llmd-inference-agent
+  template:
+    ref:
+      name: llmd-inference-agent
   harnessRef:
     name: kagent

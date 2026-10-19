@@ -5,7 +5,7 @@ namespace: ate-system
 helmCharts:
   - name: substrate
     repo: oci://ghcr.io/kagent-dev/substrate/helm
-    version: 0.5.0-alpha1
+    version: 0.6.0-alpha3
     releaseName: substrate
     namespace: ate-system
     valuesFile: values.yaml

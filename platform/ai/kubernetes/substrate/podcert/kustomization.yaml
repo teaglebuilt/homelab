@@ -8,6 +8,6 @@ resources:
 helmCharts:
   - name: substrate-podcert
     repo: oci://ghcr.io/kagent-dev/substrate/helm
-    version: 0.5.0-alpha1
+    version: 0.6.0-alpha3
     releaseName: substrate-podcert
     namespace: podcertificate-controller-system

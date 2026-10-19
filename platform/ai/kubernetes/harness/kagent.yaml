@@ -10,7 +10,7 @@ spec:
       modelConfigRef:
         name: openai-embeddings
   workload:
-    image: ghcr.io/kagent-dev/kagent/golang-adk@sha256:26ae5c772d4a59b24ecb3619c3499e106e3b28abbc239de25b4ff8d746f97e69
+    image: ghcr.io/kagent-dev/kagent/golang-adk@sha256:2240ef5d46b71b4850d072d40f34a5f778e9342cc97df34a635b594540ec62af
   substrate:
     workerPoolRef:
       name: kagent-default

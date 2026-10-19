@@ -40,17 +40,18 @@ spec:
   skills:
     - name: n8n-workflow
       source:
-        git:
-          url: https://github.com/teaglebuilt/homelab
-          commit: 5eb26efb440297cdbebf8960b520ddd03375bfaa
-        path: .claude/skills/n8n-workflow
+        oci: ghcr.io/teaglebuilt/n8n-workflow@sha256:3520c3bc6b9999522ddde9bf3ad0bdb22f32e5b8f5adc2a633f6f0541aebd457
   tools:
     - mcp:
         server:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
-          - firecrawl_firecrawl_*
+          - firecrawl_firecrawl_search
+          - firecrawl_firecrawl_agent
+          - firecrawl_firecrawl_agent_status
+          - firecrawl_firecrawl_research_search_github
+          - firecrawl_firecrawl_research_search_papers
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
@@ -61,7 +62,8 @@ metadata:
     app.kubernetes.io/name: workflow-builder-agent
     app.kubernetes.io/part-of: homelab
 spec:
-  templateRef:
-    name: workflow-builder
+  template:
+    ref:
+      name: workflow-builder
   harnessRef:
     name: kagent

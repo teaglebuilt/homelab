@@ -70,7 +70,8 @@ metadata:
     app.kubernetes.io/name: scraping-service-agent
     app.kubernetes.io/part-of: homelab
 spec:
-  templateRef:
-    name: scraping-service-agent
+  template:
+    ref:
+      name: scraping-service-agent
   harnessRef:
     name: kagent

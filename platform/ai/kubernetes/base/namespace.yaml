@@ -5,3 +5,4 @@ metadata:
   name: ai
   labels:
     pod-security.kubernetes.io/enforce: privileged
+    ate.dev/api-access: "true"

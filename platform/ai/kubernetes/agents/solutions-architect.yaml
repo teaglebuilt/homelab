@@ -131,7 +131,8 @@ metadata:
     app.kubernetes.io/name: solutions-architect
     app.kubernetes.io/part-of: homelab
 spec:
-  templateRef:
-    name: solutions-architect
+  template:
+    ref:
+      name: solutions-architect
   harnessRef:
     name: kagent
