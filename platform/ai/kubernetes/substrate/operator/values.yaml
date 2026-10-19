@@ -7,6 +7,15 @@ credentialProvider:
     - atespace: ai
       allowedNamespaces: [ai]
 
+ateApi:
+  authorization:
+    # Setting this replaces the chart default (the shared ate-client), so keep it.
+    # The kagent controller authenticates with its pod certificate; its SPIFFE ID
+    # is the principal.
+    bootstrapOwners:
+      - system:serviceaccount:ate-system:ate-client
+      - spiffe://cluster.local/ns/ai/sa/kagent-controller
+
 postgres:
   # Connection strings reference /run/postgres.podcert.ate.dev/*.pem, which
   # ate-api-server only mounts when this is on.
