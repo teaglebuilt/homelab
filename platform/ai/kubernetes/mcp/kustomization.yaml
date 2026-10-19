@@ -11,8 +11,13 @@ resources:
   - youtube-transcript.yaml
   - n8n.yaml
   - n8n-mcp-token-rbac.yaml
+  - cronjob-n8n-mcp-token.yaml
 generators:
   - secrets-generator.yaml
+configMapGenerator:
+  - name: n8n-mcp-token-scripts
+    files:
+      - scripts/mint-mcp-token.sh
 replacements:
   - source:
       kind: Secret

@@ -132,6 +132,26 @@ tasks:
       - |-
         curl --insecure http://ai.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
 
+  n8n:mcp-token:
+    desc: Mint the n8n MCP token on mlops once
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl -n ai create job --from=cronjob/n8n-mcp-token n8n-mcp-token-manual-$(date +%s)
+
+  n8n:mcp-token:rotate:
+    desc: Rotate the n8n MCP key and store the new token. This revokes the previous key.
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - |-
+        name="n8n-mcp-token-rotate-$(date +%s)"
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl -n ai create job "$name" --from=cronjob/n8n-mcp-token --dry-run=client -o json \
+          | python3 -c 'import json,sys; j=json.load(sys.stdin); j["spec"]["template"]["spec"]["containers"][0].setdefault("env", []).append({"name":"N8N_MCP_ROTATE","value":"true"}); json.dump(j, sys.stdout)' \
+          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+
   check-gpu:
     cmds:
       - kubectl describe node mlops-work-00 | grep -A5 "Capacity"

@@ -11,6 +11,7 @@ resources:
   - internal-httproute.yaml
   - external-httproute.yaml
   - cronjob-workflow-export.yaml
+  - mesh-service.yaml
 configMapGenerator:
   - name: n8n-scripts
     files:
@@ -18,4 +19,3 @@ configMapGenerator:
       - scripts/import-workflows.sh
       - scripts/export-workflows.sh
       - scripts/upload-workflows.sh
-      - scripts/mint-mcp-token.sh

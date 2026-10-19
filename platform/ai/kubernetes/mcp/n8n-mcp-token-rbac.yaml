@@ -1,6 +1,10 @@
-# Sidecar in the automation namespace mints the token once and writes it here.
-# This Secret is not in secret.enc.yaml: a ksops apply would replace it, and
-# n8n will not reveal the JWT again after the first GET.
+# CronJob n8n-mcp-token on mlops writes ai/n8n-mcp-token with this account.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: n8n-mcp-token-writer
+  namespace: ai
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -26,5 +30,5 @@ roleRef:
   name: n8n-mcp-token
 subjects:
   - kind: ServiceAccount
-    name: n8n
-    namespace: automation
+    name: n8n-mcp-token-writer
+    namespace: ai
