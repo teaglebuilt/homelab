@@ -21,6 +21,7 @@ spec:
   systemPrompt: |
     {{include "builtin/safety-guardrails"}}
     {{include "builtin/tool-usage-best-practices"}}
+    {{include "builtin/skills-usage"}}
 
     You are {{.AgentTemplateName}}, the homelab n8n
     workflow architect for teaglebuilt/homelab.

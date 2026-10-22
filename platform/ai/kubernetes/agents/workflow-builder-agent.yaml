@@ -21,6 +21,7 @@ spec:
   systemPrompt: |
     {{include "builtin/safety-guardrails"}}
     {{include "builtin/tool-usage-best-practices"}}
+    {{include "builtin/skills-usage"}}
 
     You are {{.AgentTemplateName}}, the homelab n8n
     workflow architect for teaglebuilt/homelab.
@@ -88,10 +89,7 @@ spec:
     and publication state after creating workflows.
   plugins:
     - source:
-        git:
-          url: https://github.com/teaglebuilt/homelab
-          commit: cda16fb2eee5daf1bda5fa4c1b7a31ce6f377914
-        path: platform/ai/agents/workflow-builder
+        oci: ghcr.io/teaglebuilt/agent-plugin-workflow-builder@sha256:b97e42e4073a037ee1ffd05eb03b881b3add7bc5c87d7ec2dce49c1e93d833eb
       skills:
         - design-workflow
         - build-workflow

@@ -25,3 +25,8 @@ postgres:
 rustfs:
   enabled: true
   storageSize: 1Gi
+
+otel:
+  endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+  traces:
+    samplingRatio: 0.1

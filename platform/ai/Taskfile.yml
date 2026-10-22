@@ -187,3 +187,30 @@ tasks:
           -t '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' \
           --push '{{.TASKFILE_DIR}}/kubernetes/harness'
       - docker buildx imagetools inspect '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}'
+
+  push-plugin:
+    desc: Package an agent plugin as a scratch OCI image, push it, and print the digest-pinned oci ref
+    vars:
+      PLUGIN: '{{.PLUGIN | default "workflow-builder"}}'
+      TAG: '{{.TAG | default "latest"}}'
+      REGISTRY: '{{.REGISTRY | default "ghcr.io/nextgensolutions-llc"}}'
+      PLATFORMS: '{{.PLATFORMS | default "linux/amd64"}}'
+    preconditions:
+      - sh: test -f '{{.TASKFILE_DIR}}/agents/{{.PLUGIN}}/plugin.json'
+        msg: agents/{{.PLUGIN}}/plugin.json not found
+    cmds:
+      - |-
+        printf 'FROM scratch\nCOPY . /\n' | docker buildx build \
+          --platform '{{.PLATFORMS}}' \
+          -f - \
+          -t '{{.REGISTRY}}/agent-plugin-{{.PLUGIN}}:{{.TAG}}' \
+          --push '{{.TASKFILE_DIR}}/agents/{{.PLUGIN}}'
+      - |-
+        digest="$(docker buildx imagetools inspect '{{.REGISTRY}}/agent-plugin-{{.PLUGIN}}:{{.TAG}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}')"
+        echo "oci: {{.REGISTRY}}/agent-plugin-{{.PLUGIN}}@${digest}"
+
+  debug-agent:
+    cmds:
+      - kubectl get agent workflow-builder-agent -n ai -o jsonpath='{range .status.conditions[?(@.type=="Ready")]}{.status} {.reason} {.message}{end}'
+      - export WORKER_POOL=$(kubectl get harness kagent -n ai -o jsonpath='{.spec.substrate.workerPoolRef.name}')
+      - kubectl logs -n ai -l ate.dev/worker-pool=$WORKER_POOL --tail=200
