@@ -1,0 +1,9 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: workflow-builder-github
+  namespace: ai
+spec:
+  destinations:
+    - origin: https://github.com

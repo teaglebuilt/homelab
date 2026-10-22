@@ -86,10 +86,15 @@ spec:
 
     Return the actual workflow ID, validation result,
     and publication state after creating workflows.
-  skills:
-    - name: n8n-workflow
-      source:
-        oci: ghcr.io/teaglebuilt/n8n-workflow@sha256:3520c3bc6b9999522ddde9bf3ad0bdb22f32e5b8f5adc2a633f6f0541aebd457
+  plugins:
+    - source:
+        git:
+          url: https://github.com/teaglebuilt/homelab
+          commit: cda16fb2eee5daf1bda5fa4c1b7a31ce6f377914
+        path: platform/ai/agents/workflow-builder
+      skills:
+        - design-workflow
+        - build-workflow
   tools:
     - mcp:
         server:
@@ -110,7 +115,6 @@ spec:
           - get_workflow_details
           - get_workflow_version
           - list_credentials
-          - search_nodes
           - update_workflow
           - search_nodes
           - search_workflows
@@ -131,6 +135,16 @@ spec:
           - firecrawl_firecrawl_research_search_papers
 ---
 apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: workflow-builder-github
+  namespace: ai
+spec:
+  destinations:
+    - origin: https://github.com
+    - origin: https://api.github.com
+---
+apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
 metadata:
   name: workflow-builder-agent
@@ -144,3 +158,5 @@ spec:
       name: workflow-builder
   harnessRef:
     name: kagent
+  egressPolicyRefs:
+    - name: workflow-builder-github
