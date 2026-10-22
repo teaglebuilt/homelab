@@ -7,7 +7,8 @@ metadata:
 spec:
   description: "n8n instance-level MCP (self-hosted): node discovery, workflow SDK, validate, create/update workflows"
   protocol: STREAMABLE_HTTP
-  url: http://n8n.homelab.internal/mcp-server/http
+  # Proxy rewrites tools/call arguments:null to {}. n8n rejects null.
+  url: http://n8n-mcp-proxy.ai.svc.cluster.local:8080/mcp-server/http
   timeout: 120s
   headersFrom:
     - name: Authorization

@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+resources:
+  - jev-adapter.yaml
+  - agentgateway.yaml
+  - backends-fixture.yaml
+  - routes-fixture.yaml
+configMapGenerator:
+  - name: jev-task-profile
+    files:
+      - profile.json=profile.json
+generatorOptions:
+  disableNameSuffixHash: false
+images:
+  - name: jev-routing-adapter
+    newName: ghcr.io/REPLACE_OWNER/jev-routing-adapter
+    newTag: part5

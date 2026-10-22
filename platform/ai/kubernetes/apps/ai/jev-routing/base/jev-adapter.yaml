@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jev-extproc
+  labels: {app.kubernetes.io/name: jev-extproc}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: jev-extproc}
+  template:
+    metadata:
+      labels: {app: jev-extproc}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      volumes:
+        - name: profile
+          configMap:
+            name: jev-task-profile
+      containers:
+        - name: adapter
+          image: jev-routing-adapter:part5
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TYPESAFE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: typesafe-jev
+                  key: TYPESAFE_API_KEY
+            - name: JEV_PROFILE_PATH
+              value: /etc/jev/profile.json
+          volumeMounts:
+            - {name: profile, mountPath: /etc/jev, readOnly: true}
+          ports:
+            - {name: grpc, containerPort: 50051}
+          readinessProbe: {tcpSocket: {port: grpc}, initialDelaySeconds: 2}
+          livenessProbe: {tcpSocket: {port: grpc}, initialDelaySeconds: 10}
+          resources:
+            requests: {cpu: 50m, memory: 32Mi}
+            limits: {cpu: "1", memory: 128Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jev-extproc
+spec:
+  selector: {app: jev-extproc}
+  ports:
+    - {name: grpc, port: 50051, targetPort: grpc, appProtocol: kubernetes.io/h2c}

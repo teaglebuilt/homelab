@@ -44,6 +44,9 @@ spec:
     Firecrawl MCP tools are for research and scraping.
     They are not replacements for n8n MCP tools.
 
+    Every n8n tool call must include an arguments object.
+    Use {} when a tool has no inputs.
+
     Never:
     - Execute n8n init
     - Install n8n, Node.js or npm
@@ -55,8 +58,10 @@ spec:
     1. Load the n8n-workflow skill.
     2. Identify the user's workflow requirements.
     3. Research using the appropriate available tools.
-    4. Call get_workflow_sdk_reference.
-    5. Call search_nodes.
+    4. Call get_workflow_sdk_reference with arguments {}.
+    5. Call search_nodes with
+       {"queries":["<service or node>"],"usage":"workflow"}.
+       Use usage "agentTool" only for agent-tool nodes.
     6. Call get_node_types for the selected nodes.
     7. Follow the skill's SDK generation process.
     8. Call validate_workflow.
@@ -91,16 +96,29 @@ spec:
           kind: RemoteMCPServer
           name: n8n
         tools:
-          - get_workflow_sdk_reference
-          - get_workflow_best_practices
-          - search_nodes
-          - get_node_types
-          - explore_node_resources
-          - validate_workflow
+          - add_data_table_column
+          - add_data_table_rows
           - create_workflow_from_code
-          - update_workflow
+          - create_data_table
+          - explore_node_resources
+          - execute_workflow
+          - get_execution
+          - get_node_types
+          - get_sdk_reference
+          - get_workflow_best_practices
+          - get_workflow_history
           - get_workflow_details
+          - get_workflow_version
+          - list_credentials
+          - search_nodes
+          - update_workflow
+          - search_nodes
           - search_workflows
+          - search_executions
+          - search_data_tables
+          - test_workflow
+          - validate_node_config
+          - validate_workflow
     - mcp:
         server:
           kind: RemoteMCPServer

@@ -1,0 +1,47 @@
+# This uses the Solo agentgateway OSS CRDs, NOT KGateway's policy CRDs.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayParameters
+metadata: {name: jev-routing}
+spec:
+  service:
+    spec: {type: ClusterIP}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata: {name: jev-routing}
+spec:
+  gatewayClassName: agentgateway
+  infrastructure:
+    parametersRef:
+      group: agentgateway.dev
+      kind: AgentgatewayParameters
+      name: jev-routing
+  listeners:
+    - name: http
+      port: 8080
+      protocol: HTTP
+      allowedRoutes:
+        namespaces: {from: Same}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata: {name: jev-classify}
+spec:
+  targetRefs:
+    - {group: gateway.networking.k8s.io, kind: Gateway, name: jev-routing}
+  frontend:
+    http:
+      maxBufferSize: 32Ki
+  traffic:
+    phase: PreRouting
+    extProc:
+      backendRef: {name: jev-extproc, port: 50051}
+      failureMode: FailClosed
+      processingOptions:
+        requestHeaderMode: Send
+        requestBodyMode: Buffered
+        requestTrailerMode: Skip
+        responseHeaderMode: Send
+        responseBodyMode: None
+        responseTrailerMode: Skip
+        allowModeOverride: false
