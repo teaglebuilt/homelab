@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: n8n-mcp-token
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: n8n-mcp-token
+spec:
+  schedule: "*/30 * * * *"
+  timeZone: America/New_York
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 360
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: n8n-mcp-token-writer
+          containers:
+            - name: mint
+              image: curlimages/curl:8.10.1
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "/scripts/mint-mcp-token.sh"]
+              env:
+                - name: N8N_URL
+                  value: http://n8n-mesh.automation.svc.cluster.local:5678
+                - name: N8N_OWNER_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: n8n-owner
+                      key: N8N_OWNER_EMAIL
+                      optional: true
+                - name: N8N_OWNER_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: n8n-owner
+                      key: N8N_OWNER_PASSWORD
+                      optional: true
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                seccompProfile:
+                  type: RuntimeDefault
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 32Mi
+                limits:
+                  cpu: 200m
+                  memory: 64Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: n8n-mcp-token-scripts
+                defaultMode: 0555

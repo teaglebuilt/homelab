@@ -1,11 +1,20 @@
 ---
 # Substrate chart values (not kagent). See:
-# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.5.0-alpha1
+# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.6.0-alpha3
 credentialProvider:
   # Lets actors in atespace `ai` read ModelConfig Secrets in namespace `ai`.
   namespacePolicies:
     - atespace: ai
       allowedNamespaces: [ai]
+
+ateApi:
+  authorization:
+    # Setting this replaces the chart default (the shared ate-client), so keep it.
+    # The kagent controller authenticates with its pod certificate; its SPIFFE ID
+    # is the principal.
+    bootstrapOwners:
+      - system:serviceaccount:ate-system:ate-client
+      - spiffe://cluster.local/ns/ai/sa/kagent-controller
 
 postgres:
   # Connection strings reference /run/postgres.podcert.ate.dev/*.pem, which
@@ -16,3 +25,8 @@ postgres:
 rustfs:
   enabled: true
   storageSize: 1Gi
+
+otel:
+  endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+  traces:
+    samplingRatio: 0.1

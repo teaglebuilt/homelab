@@ -1,0 +1,24 @@
+apiVersion: ENC[AES256_GCM,data:hhA=,iv:cCL/3kufyYxi2VTM0QDJ+NCaF3J2R7cjue0Q1mobvXM=,tag:NSunF9283kqRmA9whjPVHQ==,type:str]
+kind: ENC[AES256_GCM,data:Gkmf2Fgm,iv:q/AjYkF87VW3IHVVFVJqV+PtWLceiQZ0wWaKQMFu3hM=,tag:LoOEYgRruDPf6RuMWpMCMA==,type:str]
+metadata:
+    name: ENC[AES256_GCM,data:3KwrKCrqK7XF,iv:iM3Jl1JCgXHjEypaEoPHGlNix1vUCttw74qo/U9RCgw=,tag:vj+o2JfaZvwdPloLAPNyyQ==,type:str]
+    namespace: ENC[AES256_GCM,data:8zY=,iv:VggROqh0orBtkdBjInLLa8Yx+RukgGjsugpdhvzGDww=,tag:EBcEc484sIZ8ey8WQX9ezw==,type:str]
+type: ENC[AES256_GCM,data:vUz9lrsa,iv:BvbubzzyXg3YfvOEbkcMZ+0Q5UDEC+IC6sDIHcVjso8=,tag:6Q0larbkDoO3RwmI+uphGQ==,type:str]
+stringData:
+    N8N_OWNER_EMAIL: ENC[AES256_GCM,data:TSfXpEWWJhMIE2jzJKIQsNdrcfIa3dAKuYU=,iv:YA8WsBcHa2fts6OAucVGWTMN4wuR12NmHThl/FE1ndY=,tag:vujo+xvpnbpRj34wyJY9Zw==,type:str]
+    N8N_OWNER_PASSWORD: ENC[AES256_GCM,data:d/K0qzoaeq8pfiA=,iv:Ohe6+XWzxnj/sx0RPEd1b1ia0QMBX5yLSAzqD8Jbyxk=,tag:JaCXZp7BgVCyBZBUqqgKdw==,type:str]
+sops:
+    kms:
+        - arn: arn:aws:kms:us-east-1:626956831217:key/f22ea8b8-ec28-4d80-988e-7372419dbc28
+          created_at: "2026-10-19T15:49:06Z"
+          enc: AQICAHgf2Bz/yC/N+d80dqtXyzpCypiaZx1Lgwl8YcJR1TYnOAHLh/WUW+wDVr2XKS1+ji6iAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMpnlrCZo4JuEd/sgOAgEQgDsGQpptAIgzmm+m2CewqCCGMFf1LDotrCAmiAb1/5J443YImHc/YJk6GsDmyOYfymr8lyQhnEjn5lLgOA==
+          aws_profile: ""
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2026-10-19T15:49:06Z"
+    mac: ENC[AES256_GCM,data:A8CpCbe7zorwiPIRnFZ2cUHjIeWb07vJRru6gI/4Jg0O2SveGKPhxWY8PVao4Bwes6qACGs1h73I5t3kxC2hEaVC0CBw0S5iCcxpo9dhwUWqx2m/1RRQqt2Mb56kiSu22pgZJfHu2awke1qLdCK1l9x7yB4SAZN3zpfcuViqf4U=,iv:QpJQsAhdx4w6StvPo9rdMXbQx2hAm8pEOMs7WPmF0tw=,tag:WvBkkaCv8GltFIa46mO8XQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData|apiVersion|metadata|kind|type)$
+    version: 3.8.1

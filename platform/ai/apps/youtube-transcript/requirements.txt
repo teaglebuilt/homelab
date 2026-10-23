@@ -1,0 +1,5 @@
+fastapi>=0.115
+fastmcp>=4.1,<5
+uvicorn>=0.30
+youtube-transcript-api>=1.0
+yt-dlp>=2024.8.6

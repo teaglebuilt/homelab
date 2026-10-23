@@ -1,0 +1,64 @@
+# SAFE DEFAULT: synthetic fixture backends. No model inference occurs.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: coding-fixture}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: coding-fixture}}
+  template:
+    metadata: {labels: {app: coding-fixture}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: fixture
+          image: jev-routing-adapter:part5
+          args: ["-fixture-model=kb-coding"]
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: http}}
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: coding-fixture}
+spec:
+  selector: {app: coding-fixture}
+  ports: [{name: http, port: 8080, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: general-fixture}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: general-fixture}}
+  template:
+    metadata: {labels: {app: general-fixture}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: fixture
+          image: jev-routing-adapter:part5
+          args: ["-fixture-model=kb-general"]
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: http}}
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: general-fixture}
+spec:
+  selector: {app: general-fixture}
+  ports: [{name: http, port: 8080, targetPort: http}]

@@ -9,7 +9,7 @@
       "type": "http",
       "url": "http://n8n.homelab.internal/mcp-server/http",
       "headers": {
-        "Authorization": "Bearer ${N8N_API_KEY}"
+        "Authorization": "${N8N_API_KEY}"
       }
     },
     "siderolabs-docs": {

@@ -2,15 +2,14 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
-x-vars: &vars
-  TOKEN: $(gh auth token)
-  REGISTRY: ghcr.io/nextgensolutions-llc
+vars:
+  REGISTRY: ghcr.io/teaglebuilt
   USERNAME: teaglebuilt
 
 tasks:
   auth:
     cmds:
-      - echo $TOKEN | docker login ghcr.io -u {{.USERNAME}} --password-stdin
+      - gh auth token | docker login ghcr.io -u {{.USERNAME}} --password-stdin
 
   build:
     vars:
@@ -23,3 +22,46 @@ tasks:
       - auth
     cmds:
       - docker push {{.REGISTRY}}/{{.IMAGE}}:latest
+
+  # AgentTemplate spec.skills[].source.oci must be repo@sha256:...
+  # https://kagent.dev/docs/kagent/1.x/examples/skills/#publish-the-skill-as-an-oci-image
+  push-skill:
+    desc: Build a skill FROM scratch and push the OCI image
+    summary: |
+      SKILL is the path to a skill directory (the folder that contains SKILL.md). Relative paths start from the directory you run task in. The image name is that directory's name. Prints the digest-pinned reference for spec.skills[].source.oci.
+
+      task docker:push-skill SKILL=.claude/skills/n8n-workflow
+    deps: [auth]
+    requires:
+      vars: [SKILL]
+    vars:
+      TAG: '{{.TAG | default "1.0.0"}}'
+      PLATFORM: '{{.PLATFORM | default "linux/amd64"}}'
+    cmds:
+      - |-
+        skill='{{.SKILL}}'
+        case "$skill" in
+          /*) ;;
+          ~/*) skill="$HOME/${skill#~/}" ;;
+          ~) skill="$HOME" ;;
+          *) skill='{{.USER_WORKING_DIR}}'/"$skill" ;;
+        esac
+        skill=${skill%/}
+        name=$(basename "$skill" | tr '[:upper:]' '[:lower:]')
+        image='{{.REGISTRY}}/'"$name"':{{.TAG}}'
+        docker buildx build --push --platform '{{.PLATFORM}}' -f - -t "$image" "$skill" <<'EOF'
+        FROM scratch
+        COPY . /
+        EOF
+        digest=$(docker buildx imagetools inspect --format '{{"{{"}}.Manifest.Digest{{"}}"}}' "$image")
+        echo '{{.REGISTRY}}/'"$name"'@'"$digest"
+        vis=$(gh api "user/packages/container/$name" --jq .visibility 2>/dev/null || echo unknown)
+        if [ "$vis" != public ]; then
+          echo "visibility=$vis - anonymous pull is disabled; flip it once (cannot be undone):"
+          echo "  https://github.com/users/{{.USERNAME}}/packages/container/$name/settings"
+        fi
+
+  packages:
+    desc: List GHCR container package visibility
+    cmds:
+      - gh api "user/packages?package_type=container&per_page=100" --jq '.[] | "\(.visibility)\t\(.name)"'

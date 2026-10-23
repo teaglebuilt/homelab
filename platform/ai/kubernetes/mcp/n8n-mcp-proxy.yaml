@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-mcp-proxy
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: n8n-mcp-proxy
+    app.kubernetes.io/part-of: homelab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: n8n-mcp-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: n8n-mcp-proxy
+        app.kubernetes.io/part-of: homelab
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: proxy
+          image: python:3.13-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "-u", "/scripts/n8n-mcp-proxy.py"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: UPSTREAM_ORIGIN
+              value: http://n8n-mesh.automation.svc.cluster.local:5678
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: n8n-mcp-proxy-scripts
+            defaultMode: 0444
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-mcp-proxy
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: n8n-mcp-proxy
+    app.kubernetes.io/part-of: homelab
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: n8n-mcp-proxy
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP

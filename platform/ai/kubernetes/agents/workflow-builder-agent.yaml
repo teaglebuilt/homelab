@@ -21,36 +21,129 @@ spec:
   systemPrompt: |
     {{include "builtin/safety-guardrails"}}
     {{include "builtin/tool-usage-best-practices"}}
+    {{include "builtin/skills-usage"}}
 
-    You are {{.AgentTemplateName}}, the architect and developer for workflows that run in this homelab platform
-    repository (`teaglebuilt/homelab`). You design, review, and manage workflows on n8n.
+    You are {{.AgentTemplateName}}, the homelab n8n
+    workflow architect for teaglebuilt/homelab.
 
-    Your purpose is to research, design, and generate workflows on n8n. The most emphasis will be on workflows
-    for web scraping with firecrawl, however you are capable of designing workflows for all purposes and will be used
-    as such.
+    Your task is to research, design, validate, and
+    create n8n workflows.
 
-    The `n8n-workflow` skill is the source of truth for how you build. Follow it: it carries the
-    research rules, the mandatory build order, the homelab conventions for where workflow JSON is
-    stored, and the self-hosted firecrawl pattern. Its delegation step does not apply to you — you
-    are the builder it describes.
+    SKILL ACTIVATION:
+    For all n8n workflow operations, invoke load_skill
+    with the n8n-workflow skill before taking action.
+    Follow its complete instructions, not merely
+    its metadata or description.
 
-    You reach n8n and firecrawl through MCP. Research before you propose, validate before you
-    create, and never hardcode a secret — n8n credentials are configured in the UI and referenced
-    by name.
-  skills:
-    - name: n8n-workflow
-      source:
-        git:
-          url: https://github.com/teaglebuilt/homelab
-          commit: 5eb26efb440297cdbebf8960b520ddd03375bfaa
-        path: .claude/skills/n8n-workflow
+    The skill's Claude-specific subagent delegation
+    instructions do not apply. You are the builder.
+
+    TOOL USAGE:
+    The n8n instance is already running on Kubernetes.
+    Use the n8n MCP server for workflow operations.
+
+    Firecrawl MCP tools are for research and scraping.
+    They are not replacements for n8n MCP tools.
+
+    Every n8n tool call must include an arguments object.
+    Use {} when a tool has no inputs.
+
+    Never:
+    - Execute n8n init
+    - Install n8n, Node.js or npm
+    - Attempt to bootstrap an n8n instance
+    - Invent MCP tools or their results
+    - Claim a workflow exists without confirmation
+
+    MANDATORY BUILD PROCESS:
+    1. Load the n8n-workflow skill.
+    2. Identify the user's workflow requirements.
+    3. Research using the appropriate available tools.
+    4. Call get_workflow_sdk_reference with arguments {}.
+    5. Call search_nodes with
+       {"queries":["<service or node>"],"usage":"workflow"}.
+       Use usage "agentTool" only for agent-tool nodes.
+    6. Call get_node_types for the selected nodes.
+    7. Follow the skill's SDK generation process.
+    8. Call validate_workflow.
+    9. Only create or update after validation.
+    10. Verify the saved workflow using
+        get_workflow_details.
+
+    If any required tool is unavailable, report its
+    exact name and stop the dependent operation.
+    Do not attempt software installation as a fallback.
+
+    WORKFLOW CONVENTIONS:
+    Use self-hosted Firecrawl through HTTP Request
+    nodes where required by the skill.
+
+    Never hardcode credentials.
+
+    Use the GitOps workflow directory specified
+    by the skill as the desired source location.
+    Do not claim files are committed to Git unless
+    a repository-write tool confirms the operation.
+
+    Return the actual workflow ID, validation result,
+    and publication state after creating workflows.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-workflow-builder@sha256:b97e42e4073a037ee1ffd05eb03b881b3add7bc5c87d7ec2dce49c1e93d833eb
+      skills:
+        - design-workflow
+        - build-workflow
   tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: n8n
+        tools:
+          - add_data_table_column
+          - add_data_table_rows
+          - create_workflow_from_code
+          - create_data_table
+          - explore_node_resources
+          - execute_workflow
+          - get_execution
+          - get_node_types
+          - get_sdk_reference
+          - get_workflow_best_practices
+          - get_workflow_history
+          - get_workflow_details
+          - get_workflow_version
+          - list_credentials
+          - update_workflow
+          - search_nodes
+          - search_workflows
+          - search_executions
+          - search_data_tables
+          - test_workflow
+          - validate_node_config
+          - validate_workflow
     - mcp:
         server:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
-          - firecrawl_firecrawl_*
+          - firecrawl_search
+          - firecrawl_agent
+          - firecrawl_agent_status
+          - firecrawl_research_search_github
+          - firecrawl_research_search_papers
+          - firecrawl_research_read_paper
+          - firecrawl_research_related_papers
+          - firecrawl_research_inspect_paper
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: workflow-builder-github
+  namespace: ai
+spec:
+  destinations:
+    - origin: https://github.com
+    - origin: https://api.github.com
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
@@ -61,7 +154,10 @@ metadata:
     app.kubernetes.io/name: workflow-builder-agent
     app.kubernetes.io/part-of: homelab
 spec:
-  templateRef:
-    name: workflow-builder
+  template:
+    ref:
+      name: workflow-builder
   harnessRef:
     name: kagent
+  egressPolicyRefs:
+    - name: workflow-builder-github

@@ -50,12 +50,12 @@ tasks:
       # 1.0 serves api.kagent.dev/v1alpha3 only. Upgrading this release from 0.10.x
       # removes the legacy kagent.dev Agent/ModelConfig/RemoteMCPServer/AgentHarness
       # CRDs, which deletes every resource of those kinds (docs/adr/0009).
-      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.5.0-alpha1),
+      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.6.0-alpha3),
       # not from this chart — keep substrate.enabled=false to avoid double-manage.
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
-          --version 1.0.0-alpha10 \
+          --version 1.0.0-alpha16 \
           --namespace ai \
           --set kmcp.enabled=true \
           --set substrate.enabled=false \
@@ -132,6 +132,26 @@ tasks:
       - |-
         curl --insecure http://ai.homelab.internal/api/generate -d '{ "model": "qwen2.5-coder:latest", "prompt": "How are you today?", "stream": false}'
 
+  n8n:mcp-token:
+    desc: Mint the n8n MCP token on mlops once
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl -n ai create job --from=cronjob/n8n-mcp-token n8n-mcp-token-manual-$(date +%s)
+
+  n8n:mcp-token:rotate:
+    desc: Rotate the n8n MCP key and store the new token. This revokes the previous key.
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - |-
+        name="n8n-mcp-token-rotate-$(date +%s)"
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl -n ai create job "$name" --from=cronjob/n8n-mcp-token --dry-run=client -o json \
+          | python3 -c 'import json,sys; j=json.load(sys.stdin); j["spec"]["template"]["spec"]["containers"][0].setdefault("env", []).append({"name":"N8N_MCP_ROTATE","value":"true"}); json.dump(j, sys.stdout)' \
+          | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+
   check-gpu:
     cmds:
       - kubectl describe node mlops-work-00 | grep -A5 "Capacity"
@@ -167,3 +187,30 @@ tasks:
           -t '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' \
           --push '{{.TASKFILE_DIR}}/kubernetes/harness'
       - docker buildx imagetools inspect '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}'
+
+  push-plugin:
+    desc: Package an agent plugin as a scratch OCI image, push it, and print the digest-pinned oci ref
+    vars:
+      PLUGIN: '{{.PLUGIN | default "workflow-builder"}}'
+      TAG: '{{.TAG | default "latest"}}'
+      REGISTRY: '{{.REGISTRY | default "ghcr.io/nextgensolutions-llc"}}'
+      PLATFORMS: '{{.PLATFORMS | default "linux/amd64"}}'
+    preconditions:
+      - sh: test -f '{{.TASKFILE_DIR}}/agents/{{.PLUGIN}}/plugin.json'
+        msg: agents/{{.PLUGIN}}/plugin.json not found
+    cmds:
+      - |-
+        printf 'FROM scratch\nCOPY . /\n' | docker buildx build \
+          --platform '{{.PLATFORMS}}' \
+          -f - \
+          -t '{{.REGISTRY}}/agent-plugin-{{.PLUGIN}}:{{.TAG}}' \
+          --push '{{.TASKFILE_DIR}}/agents/{{.PLUGIN}}'
+      - |-
+        digest="$(docker buildx imagetools inspect '{{.REGISTRY}}/agent-plugin-{{.PLUGIN}}:{{.TAG}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}')"
+        echo "oci: {{.REGISTRY}}/agent-plugin-{{.PLUGIN}}@${digest}"
+
+  debug-agent:
+    cmds:
+      - kubectl get agent workflow-builder-agent -n ai -o jsonpath='{range .status.conditions[?(@.type=="Ready")]}{.status} {.reason} {.message}{end}'
+      - export WORKER_POOL=$(kubectl get harness kagent -n ai -o jsonpath='{.spec.substrate.workerPoolRef.name}')
+      - kubectl logs -n ai -l ate.dev/worker-pool=$WORKER_POOL --tail=200

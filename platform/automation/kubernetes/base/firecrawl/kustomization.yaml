@@ -70,6 +70,7 @@ helmCharts:
         USE_DB_AUTHENTICATION: "false"
         HDX_NODE_BETA_MODE: "1"
         NUQ_DATABASE_URL: "postgresql://postgres:password@firecrawl-firecrawl-nuq-postgres:5432/postgres"
+        SEARXNG_ENDPOINT: "http://searxng.research.svc.cluster.local:8080"
       playwrightConfig:
         PORT: "3000"
       secret:

@@ -4,6 +4,8 @@ set: [pipefail]
 shopt: [globstar]
 
 includes:
+  docker:
+    taskfile: .taskfiles/docker/Taskfile.yml
   kubernetes:
     taskfile: kubernetes/Taskfile.yml
   containers:

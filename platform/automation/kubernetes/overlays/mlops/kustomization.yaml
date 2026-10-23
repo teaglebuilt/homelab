@@ -6,3 +6,4 @@ resources:
   - namespace.yaml
   - mcp-deployment.yaml
   - mcp-service.yaml
+  - n8n-mesh-service.yaml

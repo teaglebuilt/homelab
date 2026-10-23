@@ -74,7 +74,8 @@ metadata:
     app.kubernetes.io/name: youtube-knowledge-agent
     app.kubernetes.io/part-of: homelab
 spec:
-  templateRef:
-    name: youtube-knowledge-agent
+  template:
+    ref:
+      name: youtube-knowledge-agent
   harnessRef:
     name: kagent

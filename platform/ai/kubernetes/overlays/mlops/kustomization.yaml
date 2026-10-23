@@ -5,12 +5,12 @@ resources:
   - ../../base
   - ../../aigateway
   - ../../llm-providers
-  - ../../mcp
   - ../../harness
   - ../../agents
   - ../../routes
   - ../../substrate
   - ../../database
+  - ../../mcp
   - ../../apps/youtube-transcript
   - ../../apps/kb-ingest/mesh
 helmCharts:
@@ -19,14 +19,22 @@ helmCharts:
     releaseName: agentgateway
     version: v2.2.1
     namespace: ai
+  - name: kmcp-crds
+    repo: oci://ghcr.io/kagent-dev/kmcp/helm
+    releaseName: kmcp-crds
+    version: 0.4.0
+    namespace: ai
+  - name: kmcp
+    repo: oci://ghcr.io/kagent-dev/kmcp/helm
+    releaseName: kmcp
+    version: 0.4.0
+    namespace: ai
   - name: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     releaseName: kagent
-    version: 1.0.0-alpha10
+    version: 1.0.0-alpha16
     namespace: ai
     valuesInline:
-      kmcp:
-        enabled: true
       podSecurityContext:
         runAsNonRoot: true
         runAsUser: 65532
@@ -39,9 +47,8 @@ helmCharts:
           drop:
             - ALL
         readOnlyRootFilesystem: true
-      database:
-        postgres:
-          role: kagent
+      config:
+        database:
           vectorEnabled: true
       providers:
         default: openAI
@@ -56,21 +63,20 @@ helmCharts:
           config:
             host: ollama.ai.svc.cluster.local:11434
       controller:
-        substrate:
-          # Separate substrate release in ate-system (kubernetes/substrate/).
+        # Mounts the podidentity credential + servicedns CA so the controller can
+        # authenticate to the substrate API in ate-system (kubernetes/substrate/).
+        substrateClientCertificate:
           enabled: true
-          ateApiEndpoint: dns:///api.ate-system.svc:443
-          atenetRouterURL: http://atenet-router.ate-system.svc:80
       # Bundled substrate subchart off — CRDs + control plane come from
-      # platform/ai/kubernetes/substrate/ (substrate-crds + substrate 0.5.0-alpha1).
+      # platform/ai/kubernetes/substrate/ (substrate-crds + substrate 0.6.0-alpha3).
       substrate:
         enabled: false
       substrateWorkerPool:
         create: true
         name: kagent-default
         sandboxClass: gvisor
-        # Must match the separate substrate chart version (0.5.0-alpha1).
-        workerImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.5.0-alpha1
+        # Must match the separate substrate chart version (0.6.0-alpha3).
+        workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v0.6.0-alpha3
         # limits.memory is projected as the worker's actor capacity budget; the
         # controller default of 1Gi is too small for a gVisor sandbox to boot.
         template:

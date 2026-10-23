@@ -10,9 +10,18 @@ resources:
   - kb-retrieval.yaml
   - youtube-transcript.yaml
   - n8n.yaml
+  - n8n-mcp-proxy.yaml
   - n8n-mcp-token-rbac.yaml
+  - cronjob-n8n-mcp-token.yaml
 generators:
   - secrets-generator.yaml
+configMapGenerator:
+  - name: n8n-mcp-token-scripts
+    files:
+      - scripts/mint-mcp-token.sh
+  - name: n8n-mcp-proxy-scripts
+    files:
+      - scripts/n8n-mcp-proxy.py
 replacements:
   - source:
       kind: Secret
