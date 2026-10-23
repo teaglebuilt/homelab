@@ -126,11 +126,14 @@ spec:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
-          - firecrawl_firecrawl_search
-          - firecrawl_firecrawl_agent
-          - firecrawl_firecrawl_agent_status
-          - firecrawl_firecrawl_research_search_github
-          - firecrawl_firecrawl_research_search_papers
+          - firecrawl_search
+          - firecrawl_agent
+          - firecrawl_agent_status
+          - firecrawl_research_search_github
+          - firecrawl_research_search_papers
+          - firecrawl_research_read_paper
+          - firecrawl_research_related_papers
+          - firecrawl_research_inspect_paper
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: EgressPolicy

@@ -28,7 +28,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: youtube-transcript
-          image: ghcr.io/teaglebuilt/youtube-transcript:0.2.0
+          image: ghcr.io/teaglebuilt/youtube-transcript:0.2.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

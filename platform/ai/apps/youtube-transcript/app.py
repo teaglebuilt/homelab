@@ -28,7 +28,7 @@ VIDEO_ID = Query(None, description="11-character YouTube video id")
 VIDEO_URL = Query(None, description="YouTube URL (watch, youtu.be, shorts, embed); used when video_id is unset")
 
 # Every route with an operation_id becomes an MCP tool of that name at /mcp.
-api = FastAPI(title="youtube-transcript", version="0.2.0")
+api = FastAPI(title="youtube-transcript", version="0.2.1")
 
 _ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 _URL_ID_RE = re.compile(
@@ -41,6 +41,19 @@ class TranscriptUnavailable(Exception):
         super().__init__(detail or reason)
         self.reason = reason
         self.detail = detail
+
+
+class TranscriptBlocked(Exception):
+    """YouTube rate-limited or IP-blocked the caption endpoint.
+
+    Never an `available: false` — that means "this video has no captions", and
+    a caller who conflates the two records a transient block as a permanent
+    content fact.
+    """
+
+
+def _blocked_body(video_id: str, exc: Exception) -> dict:
+    return {"error": "blocked", "video_id": video_id, "detail": str(exc)}
 
 
 def parse_video_id(value: str) -> str:
@@ -74,7 +87,7 @@ def _proxy_config():
 
 def fetch_segments(video_id: str) -> list[dict]:
     from youtube_transcript_api import YouTubeTranscriptApi
-    from youtube_transcript_api._errors import CouldNotRetrieveTranscript
+    from youtube_transcript_api._errors import CouldNotRetrieveTranscript, RequestBlocked
 
     proxy = _proxy_config()
     try:
@@ -103,6 +116,8 @@ def fetch_segments(video_id: str) -> list[dict]:
             }
             for s in raw
         ]
+    except RequestBlocked as exc:
+        raise TranscriptBlocked(str(exc)) from exc
     except CouldNotRetrieveTranscript as exc:
         raise TranscriptUnavailable("no_transcript", str(exc)) from exc
 
@@ -257,6 +272,9 @@ async def markdown(
         return JSONResponse({"error": "bad_request", "detail": str(exc)}, status_code=400)
     try:
         note, info = await _note(video_id)
+    except TranscriptBlocked as exc:
+        log.warning("caption endpoint blocked for %s: %s", video_id, exc)
+        return JSONResponse(_blocked_body(video_id, exc), status_code=502)
     except Exception as exc:
         log.exception("markdown render failed for %s", video_id)
         return JSONResponse(
@@ -289,6 +307,9 @@ async def ingest(
         return JSONResponse({"error": "bad_request", "detail": str(exc)}, status_code=400)
     try:
         note, info = await _note(video_id)
+    except TranscriptBlocked as exc:
+        log.warning("caption endpoint blocked for %s: %s", video_id, exc)
+        return JSONResponse(_blocked_body(video_id, exc), status_code=502)
     except Exception as exc:
         log.exception("transcript fetch failed for %s", video_id)
         return JSONResponse(
@@ -349,6 +370,9 @@ async def transcript(
                 "segments": [],
             }
         )
+    except TranscriptBlocked as exc:
+        log.warning("caption endpoint blocked for %s: %s", video_id, exc)
+        return JSONResponse(_blocked_body(video_id, exc), status_code=502)
     except Exception as exc:
         log.exception("transcript fetch failed for %s", video_id)
         return JSONResponse(
