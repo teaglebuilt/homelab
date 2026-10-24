@@ -6,6 +6,12 @@ metadata:
   namespace: ai
 spec:
   kagent:
+    compaction:
+      tokenThreshold: 22000
+      eventRetentionSize: 20
+      summarizer:
+        modelConfigRef:
+          name: claude-opus-5-gateway
     memory:
       modelConfigRef:
         name: openai-embeddings

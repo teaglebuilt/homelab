@@ -50,6 +50,25 @@ helmCharts:
       config:
         database:
           vectorEnabled: true
+        telemetry:
+          traces:
+            endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+            protocol: grpc
+            timeout: 15s
+          logs:
+            endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+            protocol: grpc
+            timeout: 15s
+        runtimeDefaults:
+          telemetry:
+            traces:
+              endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+              protocol: grpc
+              timeout: 15s
+            logs:
+              endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+              protocol: grpc
+              timeout: 15s
       providers:
         default: openAI
         openAI:
@@ -87,16 +106,6 @@ helmCharts:
             limits:
               cpu: "4"
               memory: 4Gi
-      otel:
-        exporter:
-          otlp:
-            endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
-            protocol: grpc
-            timeout: "15000"
-        traces:
-          enabled: true
-        logs:
-          enabled: true
       kagent-tools:
         otel:
           tracing:

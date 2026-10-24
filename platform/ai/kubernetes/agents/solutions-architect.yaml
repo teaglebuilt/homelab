@@ -51,7 +51,7 @@ spec:
     For any question about how *this* platform works, or when proposing a
     change:
     1. Call `kb_search` first with a concrete query (tech + intent). (Vector Store Search)
-    2. Call `firecrawl_firecrawl_search` with the same search query. (Web Search)
+    2. Call `firecrawl_search` with the same search query. (Web Search)
     3. Combine results from web and vector store
     2. Prefer 1–3 targeted searches over one vague one.
     3. Cite chunk `path` (and `heading` when useful) when you rely on a hit.
@@ -109,11 +109,14 @@ spec:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
-          - firecrawl_firecrawl_search
-          - firecrawl_firecrawl_agent
-          - firecrawl_firecrawl_agent_status
-          - firecrawl_firecrawl_research_search_github
-          - firecrawl_firecrawl_research_search_papers
+          - firecrawl_search
+          - firecrawl_agent
+          - firecrawl_agent_status
+          - firecrawl_research_search_github
+          - firecrawl_research_search_papers
+          - firecrawl_research_related_papers
+          - firecrawl_research_inspect_paper
+          - firecrawl_research_read_paper
     - mcp:
         server:
           kind: RemoteMCPServer
