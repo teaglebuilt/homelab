@@ -207,19 +207,42 @@ spec:
               drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz/readiness
+              port: 5678
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 5678
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 5678
+            periodSeconds: 5
+            failureThreshold: 60
           resources:
             requests:
               cpu: 150m
-              memory: 512Mi
+              memory: 768Mi
             limits:
               cpu: 550m
-              memory: 768Mi
+              memory: 1536Mi
           envFrom:
             - configMapRef:
                 name: n8n-config
             - secretRef:
                 name: n8n-secrets
           env:
+            - name: NODE_OPTIONS
+              value: --max-old-space-size=1152
             - name: N8N_MCP_MANAGED_BY_ENV
               value: "true"
             - name: N8N_MCP_ACCESS_ENABLED
@@ -276,7 +299,7 @@ spec:
               value: "true"
             # 2.33 reads the singular MODE var. The plural MODES var was ignored.
             - name: N8N_DEFAULT_BINARY_DATA_MODE
-              value: s3
+              value: filesystem
             - name: N8N_EXTERNAL_STORAGE_S3_HOST
               value: "s3.us-east-1.amazonaws.com"
             - name: N8N_EXTERNAL_STORAGE_S3_BUCKET_NAME
