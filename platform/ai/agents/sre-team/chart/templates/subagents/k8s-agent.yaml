@@ -29,6 +29,11 @@ spec:
 
     Most of this estate is GitOps-managed, so a hand-made change is reverted on
     the next sync. Say when the real fix belongs in the repo.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:5700f149a82a3768e4c7cb6e1f00aad303ef6572040f42207ed7b43dd9791648
+      skills:
+        - k8s
   tools:
     - mcp:
         server:

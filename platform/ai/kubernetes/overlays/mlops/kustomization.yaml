@@ -110,6 +110,7 @@ helmCharts:
         grafana:
           url: http://grafana-mesh.observability.svc.cluster.local
           secretRef: kagent-grafana-mcp-auth
+        allowedHosts: kagent-grafana-mcp,kagent-grafana-mcp.ai,kagent-grafana-mcp.ai.svc,kagent-grafana-mcp.ai.svc.cluster.local,kagent-grafana-mcp:8000,kagent-grafana-mcp.ai:8000,kagent-grafana-mcp.ai.svc:8000,kagent-grafana-mcp.ai.svc.cluster.local:8000,localhost:8000,127.0.0.1:8000
         args:
           - --disable-admin
       kagent-tools:
@@ -125,3 +126,18 @@ helmCharts:
           env:
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: grpc
+patches:
+  - target:
+      group: api.kagent.dev
+      version: v1alpha3
+      kind: RemoteMCPServer
+      name: kagent-grafana-mcp
+    patch: |
+      - op: add
+        path: /spec/headersFrom
+        value:
+          - name: Authorization
+            valueFrom:
+              type: Secret
+              name: kagent-grafana-mcp-auth
+              key: MCP_GRAFANA_AUTHORIZATION

@@ -205,6 +205,24 @@ tasks:
           --push '{{.TASKFILE_DIR}}/kubernetes/harness'
       - docker buildx imagetools inspect '{{.REGISTRY}}/claude-harness:{{.CLAUDE_CODE_VERSION}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}'
 
+  push-skill:
+    desc: Package an skill as a scratch OCI image, push it, and print the digest-pinned oci ref
+    vars:
+      SKILL: '{{.SKILL}}'
+      TAG: '{{.TAG | default "latest"}}'
+      REGISTRY: '{{.REGISTRY | default "ghcr.io/teaglebuilt"}}'
+      PLATFORMS: '{{.PLATFORMS | default "linux/amd64"}}'
+    cmds:
+      - |-
+        printf 'FROM scratch\nCOPY . /\n' | docker buildx build \
+          --platform '{{.PLATFORMS}}' \
+          -f - \
+          -t '{{.REGISTRY}}/{{.SKILL}}:{{.TAG}}' \
+          --push '{{.TASKFILE_DIR}}/agents/{{.SKILL}}'
+      - |-
+        digest="$(docker buildx imagetools inspect '{{.REGISTRY}}/{{.SKILL}}:{{.TAG}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}')"
+        echo "oci: {{.REGISTRY}}/{{.SKILL}}-agent@${digest}"
+
   push-plugin:
     desc: Package an agent plugin as a scratch OCI image, push it, and print the digest-pinned oci ref
     vars:

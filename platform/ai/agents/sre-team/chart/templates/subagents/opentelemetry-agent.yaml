@@ -30,6 +30,11 @@ spec:
 
     Read before you write; never mutate a collector CR to test a theory. Name the
     stage you proved broken and the evidence for it.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:5700f149a82a3768e4c7cb6e1f00aad303ef6572040f42207ed7b43dd9791648
+      skills:
+        - opentelemetry
   tools:
     - mcp:
         server:

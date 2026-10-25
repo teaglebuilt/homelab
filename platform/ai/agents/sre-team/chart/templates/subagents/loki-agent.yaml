@@ -27,6 +27,11 @@ spec:
 
     Never run an unbounded selector. Report the LogQL you ran, and if you found
     a `trace_id` state it on its own line so it can be handed to Tempo.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:5700f149a82a3768e4c7cb6e1f00aad303ef6572040f42207ed7b43dd9791648
+      skills:
+        - loki
   tools:
     - mcp:
         server:

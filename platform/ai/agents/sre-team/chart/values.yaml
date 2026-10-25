@@ -8,7 +8,7 @@ mcp:
   grafana: kagent-grafana-mcp
 
 plugin:
-  oci: ghcr.io/nextgensolutions-llc/agent-plugin-sre-team@sha256:<commit_sha>
+  oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:<commit_sha>
 
 endpoints:
   prometheus: http://prometheus-mesh.observability.svc.cluster.local:9090

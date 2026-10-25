@@ -31,6 +31,11 @@ spec:
 
     Confirm before mutating a Gateway, route or policy, and note that the durable
     fix usually belongs in the `homelab-gateway` chart.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:5700f149a82a3768e4c7cb6e1f00aad303ef6572040f42207ed7b43dd9791648
+      skills:
+        - kgateway
   tools:
     - mcp:
         server:

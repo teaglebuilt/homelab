@@ -28,6 +28,11 @@ spec:
     than assuming the clock. Retention is {{ .Values.retention }}.
 
     Report the TraceQL you ran and the trace IDs you found.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:5700f149a82a3768e4c7cb6e1f00aad303ef6572040f42207ed7b43dd9791648
+      skills:
+        - tempo
   tools:
     - mcp:
         server:

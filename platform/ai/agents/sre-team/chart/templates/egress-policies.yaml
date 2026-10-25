@@ -1,0 +1,11 @@
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: sre-team-egress-policies
+  namespace: ai
+spec:
+  destinations:
+    - origin: http://kagent-tools.ai.svc.cluster.local
+    - origin: http://kagent-tools.ai
+    - origin: http://kagent-grafana-mcp.ai
+    - origin: http://grafana-mesh.observability.svc.cluster.local

@@ -80,6 +80,11 @@ spec:
     Lead with the answer in one or two sentences, then the evidence naming
     which subagent produced it, then the recommended action labelled read-only
     or mutating. Markdown.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-sre-team@sha256:5700f149a82a3768e4c7cb6e1f00aad303ef6572040f42207ed7b43dd9791648
+      skills:
+        - sre-lead
   tools:
     - mcp:
         server:
@@ -88,7 +93,6 @@ spec:
         tools:
           - k8s_get_resources
           - k8s_get_events
-          - datetime_get_current_time
     {{- if .Values.agents.k8s }}
     - subAgent:
         name: k8s
@@ -186,3 +190,5 @@ spec:
       name: sre-agent
   harnessRef:
     name: {{ .Values.harness }}
+  egressPolicyRefs:
+    - name: sre-team-egress-policies
