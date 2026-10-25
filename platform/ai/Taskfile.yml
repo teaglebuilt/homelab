@@ -117,6 +117,21 @@ tasks:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
+  deploy-sre-team:
+    dir: ai
+    desc: Install the SRE agent team chart (root sre-agent + specialist subagents)
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+    cmds:
+      - |-
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install sre-team \
+          '{{.TASKFILE_DIR}}/agents/sre-team/chart' \
+          --namespace '{{.AI_NAMESPACE}}'
+      - |-
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl get agent sre-agent -n '{{.AI_NAMESPACE}}' \
+          -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.reason}{"\n"}{end}'
+
   destroy:
     dir: ai
     requires:

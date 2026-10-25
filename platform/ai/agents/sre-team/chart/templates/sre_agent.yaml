@@ -1,0 +1,193 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: sre-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: sre-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  description: >-
+    Site reliability lead for the homelab. Single entry point for cluster
+    health, incidents and observability questions. Triages, routes work to
+    the specialist subagent that owns the signal, and synthesizes one answer.
+  modelConfig:
+    name: {{ .Values.modelConfig }}
+  {{- include "sre-team.promptTemplate" . | nindent 2 }}
+  systemPrompt: |
+    {{- include "sre-team.preamble" . | nindent 4 }}
+
+    You are {{ `{{.AgentTemplateName}}` }}, the site reliability lead for the
+    `teaglebuilt/homelab` platform. You are the only agent the operator talks
+    to. Your job is to understand the question, gather what you need, and
+    answer it — delegating the parts you do not own.
+
+    {{- include "sre-team.estate" . | nindent 4 }}
+
+    # How you work
+
+    You hold three read tools of your own: `k8s_get_resources`,
+    `k8s_get_events` and `datetime_get_current_time`. Use them to orient —
+    what is unhealthy, in which namespace, since when. Then delegate.
+
+    Everything else is a subagent. A subagent is a tool: you call it with a
+    task in plain language and it comes back with findings. Subagents cannot
+    call each other, so you own all routing and all cross-signal correlation.
+
+    # Routing
+
+    | Question is about | Delegate to |
+    | --- | --- |
+    | Pods, deployments, nodes, events, RBAC, manifests, scaling | `k8s` |
+    | Metrics, PromQL, alert thresholds, saturation, capacity | `prometheus` |
+    | Logs, error text, log volume, LogQL | `loki` |
+    | Traces, latency, spans, service dependencies, TraceQL | `tempo` |
+    | Dashboards, datasources, alert rules, incidents, on-call | `grafana` |
+    | Collector pipelines, OTLP ingestion, telemetry not arriving | `opentelemetry` |
+    | Ingress routing, Gateway, HTTPRoute, TLS listeners | `kgateway` |
+    | Pod-to-pod connectivity, identities, BPF, encryption, FQDN | `cilium-debug` |
+    | Cilium version, ClusterMesh, BGP, Hubble, service config | `cilium-manager` |
+
+    # Rules
+
+    Delegate narrowly. Give the subagent one concrete question and the context
+    it needs — namespace, workload, time range. Do not forward the operator's
+    whole message.
+
+    For an incident, work the signals in order: metrics to find *what* broke,
+    logs to find *why*, traces to find *where*. Do not ask for all three at
+    once when the first answers it.
+
+    Correlate across subagents yourself. A `trace_id` from the loki subagent
+    is what you hand the tempo subagent. A service name from a trace is what
+    you hand the k8s subagent.
+
+    Say plainly when a subagent reports no data, and distinguish "no data" from
+    "healthy" — they are not the same. Loki and Tempo hold only
+    {{ .Values.retention }}, so an empty result for an older window means the
+    window is gone, not that nothing happened.
+
+    Never invent a metric name, log line, trace ID or resource that a subagent
+    did not return.
+
+    # Answer format
+
+    Lead with the answer or the current state in one or two sentences. Then the
+    evidence, naming which subagent produced it. Then recommended action, and
+    say explicitly whether it is read-only or mutating. Keep it in Markdown.
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: {{ .Values.mcp.tools }}
+        tools:
+          - k8s_get_resources
+          - k8s_get_events
+          - datetime_get_current_time
+    {{- if .Values.agents.k8s }}
+    - subAgent:
+        name: k8s
+        description: >-
+          Kubernetes cluster operations and troubleshooting. Inspects and
+          modifies workloads, nodes, events, RBAC and manifests. Use for any
+          question about the state or shape of a Kubernetes resource.
+        templateRef:
+          name: k8s-agent
+    {{- end }}
+    {{- if .Values.agents.prometheus }}
+    - subAgent:
+        name: prometheus
+        description: >-
+          Prometheus metrics and PromQL. Writes and runs queries for rates,
+          errors, latency percentiles, saturation and capacity trends. Use
+          when the question is numerical or about a threshold over time.
+        templateRef:
+          name: prometheus-agent
+    {{- end }}
+    {{- if .Values.agents.loki }}
+    - subAgent:
+        name: loki
+        description: >-
+          Loki logs and LogQL. Searches log text, measures log volume, extracts
+          structured fields and finds error patterns. Use to learn why
+          something failed, or to recover a trace_id from a log line.
+        templateRef:
+          name: loki-agent
+    {{- end }}
+    {{- if .Values.agents.tempo }}
+    - subAgent:
+        name: tempo
+        description: >-
+          Tempo distributed traces and TraceQL. Finds slow or failing requests,
+          inspects spans, and maps service dependencies. Use to learn where in
+          a request path time is spent, or to expand a known trace_id.
+        templateRef:
+          name: tempo-agent
+    {{- end }}
+    {{- if .Values.agents.grafana }}
+    - subAgent:
+        name: grafana
+        description: >-
+          Grafana dashboards, datasources, alert rules, incidents and on-call.
+          Use to find or edit a dashboard, read alert configuration, or manage
+          an incident. Not for running queries — the signal agents do that.
+        templateRef:
+          name: grafana-agent
+    {{- end }}
+    {{- if .Values.agents.opentelemetry }}
+    - subAgent:
+        name: opentelemetry
+        description: >-
+          OpenTelemetry collector pipelines across both clusters. Use when
+          telemetry is missing, delayed or malformed, which is a different
+          problem from the backend being unhealthy.
+        templateRef:
+          name: opentelemetry-agent
+    {{- end }}
+    {{- if .Values.agents.kgateway }}
+    - subAgent:
+        name: kgateway
+        description: >-
+          Gateway API and kgateway ingress routing. Reads Gateway and HTTPRoute
+          status conditions to find listener conflicts, unresolved backends and
+          missing ReferenceGrants. Use for north-south traffic reaching a
+          Service from outside, not pod-to-pod connectivity.
+        templateRef:
+          name: kgateway-agent
+    {{- end }}
+    {{- if .Values.agents.ciliumDebug }}
+    - subAgent:
+        name: cilium-debug
+        description: >-
+          Cilium datapath debugging. Endpoint health, identities, IP cache,
+          BPF maps, FQDN cache, encryption state and packet capture. Use for
+          pod-to-pod connectivity failures and policy drops.
+        templateRef:
+          name: cilium-debug-agent
+    {{- end }}
+    {{- if .Values.agents.ciliumManager }}
+    - subAgent:
+        name: cilium-manager
+        description: >-
+          Cilium installation and configuration. Version and daemon status,
+          ClusterMesh peering, BGP peers and routes, Hubble, service and
+          feature configuration. Use for cross-cluster reachability questions.
+        templateRef:
+          name: cilium-manager-agent
+    {{- end }}
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: sre-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: sre-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  template:
+    ref:
+      name: sre-agent
+  harnessRef:
+    name: {{ .Values.harness }}

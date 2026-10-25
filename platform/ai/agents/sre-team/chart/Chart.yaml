@@ -1,0 +1,11 @@
+---
+apiVersion: v2
+name: sre-team
+description: SRE agent team for kagent 1.x. One conversational root agent that delegates to specialist subagents.
+type: application
+version: 0.1.0
+appVersion: 1.0.0-alpha16
+keywords:
+  - kagent
+  - sre
+  - observability

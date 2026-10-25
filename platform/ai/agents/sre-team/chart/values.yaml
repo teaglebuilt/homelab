@@ -1,0 +1,31 @@
+---
+modelConfig: llmd-vllm-config
+harness: kagent
+builtinPrompts: kagent-builtin-prompts
+
+mcp:
+  tools: kagent-tool-server
+  grafana: kagent-grafana-mcp
+
+endpoints:
+  prometheus: http://prometheus-mesh.observability.svc.cluster.local:9090
+
+datasourceUids:
+  prometheus: prometheus
+  loki: loki
+  tempo: tempo
+
+retention: 24h
+
+agents:
+  k8s: true
+  prometheus: true
+  loki: true
+  tempo: true
+  grafana: true
+  opentelemetry: true
+  kgateway: true
+  ciliumDebug: true
+  ciliumManager: true
+
+commonLabels: {}

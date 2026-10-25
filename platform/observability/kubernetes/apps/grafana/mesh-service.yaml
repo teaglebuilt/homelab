@@ -1,0 +1,24 @@
+---
+# Cilium ClusterMesh front door for the Grafana HTTP API. Same pattern as
+# loki-gateway-mesh: real backends on `application`, backend-less on `mlops`
+# so the kagent grafana MCP server can reach Grafana with one DNS name.
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-mesh
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: grafana-mesh
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    service.cilium.io/global: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/instance: prometheus-community
+    app.kubernetes.io/name: grafana
+  ports:
+    - name: http-web
+      port: 80
+      targetPort: 3000
+      protocol: TCP

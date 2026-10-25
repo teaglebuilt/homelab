@@ -23,7 +23,7 @@ spec:
           }
         ]
       },
-      "description": "ai-gateway access logs from Loki (Vector). Stream labels only in {}; container is structured metadata. route/status come from logfmt/regexp on the message line.",
+      "description": "Gateway access logs from Loki, plus kagent traces (Tempo), span metrics (Prometheus), and OTLP runtime logs. Gateway route/status come from logfmt on the Vector access line. Kagent panels use the agent variable, a regex of OTel service names. Span metrics are emitted by Tempo's metrics-generator (cluster label is always application).",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -210,11 +210,166 @@ spec:
           ],
           "title": "Access log lines",
           "type": "logs"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+          "id": 6,
+          "panels": [],
+          "title": "Kagent traces and runtime logs",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "description": "invoke_agent spans from agent runtimes. Service name is the Agent name. Open a trace to follow it into Loki.",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 25 },
+          "id": 7,
+          "targets": [
+            {
+              "datasource": { "type": "tempo", "uid": "tempo" },
+              "limit": 20,
+              "query": "{ resource.service.name =~ \"$agent\" && name =~ \"invoke_agent.*\" }",
+              "queryType": "traceql",
+              "refId": "A",
+              "tableType": "traces"
+            }
+          ],
+          "title": "Agent invocation traces",
+          "type": "traces"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "description": "Tempo span-metrics calls for invoke_agent. Label is service, not service_name.",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "lineWidth": 1,
+                "showPoints": "never"
+              },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 35 },
+          "id": 8,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "editorMode": "code",
+              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{span_name=~\"invoke_agent.*\", service=~\"$agent\"}[5m]))",
+              "legendFormat": "{{service}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Agent invoke rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "description": "p95 of generate_content spans, by model. Dimension gen.ai.request.model is the label gen_ai_request_model.",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "showPoints": "never"
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 35 },
+          "id": 9,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(traces_spanmetrics_latency_bucket{span_name=~\"generate_content.*\", service=~\"$agent\"}[5m])))",
+              "legendFormat": "{{gen_ai_request_model}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Model latency p95",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "description": "invoke_agent spans with status_code STATUS_CODE_ERROR.",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "lineWidth": 1,
+                "showPoints": "never"
+              },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 43 },
+          "id": 10,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "editorMode": "code",
+              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{span_name=~\"invoke_agent.*\", status_code=\"STATUS_CODE_ERROR\", service=~\"$agent\"}[5m]))",
+              "legendFormat": "{{service}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Agent invoke errors",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "OTLP logs whose service_name matches agent: kagent-controller, each Agent, the substrate router (agentgateway), and ateapi state changes. Worker stdout is not in this stream.",
+          "gridPos": { "h": 10, "w": 12, "x": 12, "y": 43 },
+          "id": 11,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "{service_name=~\"$agent\"}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Kagent and substrate logs",
+          "type": "logs"
         }
       ],
       "refresh": "30s",
       "schemaVersion": 39,
-      "tags": ["ai", "agentgateway", "loki", "access-logs"],
+      "tags": ["ai", "agentgateway", "kagent", "loki", "tempo", "access-logs"],
       "templating": {
         "list": [
           {
@@ -240,6 +395,24 @@ spec:
             ],
             "query": ".+",
             "type": "textbox"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+              "value": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
+            },
+            "label": "agent",
+            "name": "agent",
+            "options": [
+              {
+                "selected": true,
+                "text": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+                "value": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
+              }
+            ],
+            "query": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+            "type": "textbox"
           }
         ]
       },
@@ -248,6 +421,6 @@ spec:
       "timezone": "browser",
       "title": "AI Traffic",
       "uid": "gen-ai-requests-loki",
-      "version": 5,
+      "version": 6,
       "weekStart": ""
     }

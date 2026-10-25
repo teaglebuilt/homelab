@@ -25,6 +25,9 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        # Always re-chmods the volume to 0660 on every start, which makes n8n
+        # reject /home/node/.n8n/config. Skip once the volume root is gid 1000.
+        fsGroupChangePolicy: OnRootMismatch
       initContainers:
         - name: download-workflows
           image: public.ecr.aws/aws-cli/aws-cli:2.27.38
@@ -150,6 +153,35 @@ spec:
             limits:
               cpu: "1"
               memory: 512Mi
+        - name: fix-config-permissions
+          # Runs after kubelet's fsGroup pass. n8n exits the previous process
+          # when /home/node/.n8n/config is group-writable (0660).
+          image: ghcr.io/n8n-io/n8n:2.33.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [ -f /home/node/.n8n/config ]; then
+                chmod 600 /home/node/.n8n/config
+              fi
+          volumeMounts:
+            - name: n8n-storage
+              mountPath: /home/node/.n8n
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
       containers:
         - name: n8n
           # 2.33.0 fixes the Postgres workflow-statistics rollup crash

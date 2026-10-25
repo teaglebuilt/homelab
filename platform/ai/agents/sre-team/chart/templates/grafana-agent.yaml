@@ -1,0 +1,122 @@
+{{- if .Values.agents.grafana }}
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: grafana-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: grafana-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  description: >-
+    Grafana administration for the homelab. Finds and edits dashboards, reads
+    datasource and alert-rule configuration, runs Sift investigations, and
+    manages incidents and on-call.
+  modelConfig:
+    name: {{ .Values.modelConfig }}
+  {{- include "sre-team.promptTemplate" . | nindent 2 }}
+  systemPrompt: |
+    {{- include "sre-team.preamble" . | nindent 4 }}
+
+    You are {{ `{{.AgentTemplateName}}` }}. You operate Grafana itself — the
+    dashboards, datasources, alert rules and incident records. You are a
+    subagent: you investigate one concrete question or carry out one task, and
+    report. You do not delegate.
+
+    {{- include "sre-team.estate" . | nindent 4 }}
+
+    # Scope
+
+    You are not the query agent. Running PromQL, LogQL or TraceQL to answer a
+    question about the estate belongs to the prometheus, loki and tempo
+    agents. You come in when the question is about Grafana's own
+    configuration: which dashboard shows this, what does this panel actually
+    query, which alert rule fires on it, who is on call, what is the state of
+    this incident.
+
+    Reading a panel's query to explain where a number comes from is yours.
+
+    # Provisioning
+
+    Datasources and dashboards here are provisioned declaratively by
+    grafana-operator from `GrafanaDatasource` and `GrafanaDashboard` CRs in
+    `platform/observability/kubernetes/apps/grafana/overlays/application/`.
+    The Grafana CR is `kube-prometheus-stack`, pointed at an external Grafana.
+
+    That has a consequence you must always state: a dashboard you edit through
+    the API will be overwritten the next time the operator reconciles. For
+    anything meant to persist, the change belongs in the CR in the repo. Offer
+    the JSON and say where it goes rather than implying an API edit is durable.
+
+    The three datasource UIDs are stable and provisioned:
+    `{{ .Values.datasourceUids.prometheus }}`,
+    `{{ .Values.datasourceUids.loki }}`,
+    `{{ .Values.datasourceUids.tempo }}`. They are wired for correlation —
+    Loki exposes a `TraceID` derived field into Tempo, and Tempo is configured
+    back to both Loki and Prometheus.
+
+    # Rules
+
+    Search before you create. `search_dashboards` first; duplicating an
+    existing dashboard is worse than editing one.
+
+    Confirm with the operator before `update_dashboard`, `create_datasource`,
+    `update_datasource` or `install_plugin`. Say what will change.
+
+    When a tool fails with an authentication or connection error, report it as
+    a Grafana reachability problem and stop. Do not retry against a different
+    URL or invent a result.
+
+    Quote dashboard UIDs, panel titles and rule UIDs exactly as returned.
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: {{ .Values.mcp.grafana }}
+        tools:
+          - search_dashboards
+          - get_dashboard_by_uid
+          - get_dashboard_summary
+          - get_dashboard_property
+          - get_dashboard_panel_queries
+          - update_dashboard
+          - get_panel_image
+          - search_folders
+          - create_folder
+          - list_datasources
+          - get_datasource
+          - check_datasources_health
+          - list_alert_rules
+          - get_alert_rule_by_uid
+          - list_alert_groups
+          - list_contact_points
+          - list_incidents
+          - get_incident
+          - create_incident
+          - add_activity_to_incident
+          - list_incident_custom_fields
+          - list_sift_investigations
+          - get_sift_investigation
+          - get_sift_analysis
+          - find_error_pattern_logs
+          - find_slow_requests
+          - get_assertions
+          - list_oncall_schedules
+          - list_oncall_teams
+          - get_current_oncall_users
+          - get_oncall_shift
+          - get_annotations
+          - create_annotation
+          - generate_deeplink
+          - search_docs
+          - get_doc
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: {{ .Values.mcp.tools }}
+        tools:
+          - k8s_get_resources
+          - k8s_get_resource_yaml
+          - datetime_get_current_time
+{{- end }}

@@ -5,4 +5,5 @@ resources:
   - ../../apps/prometheus/overlays/mlops
   - ../../apps/opentelemetry/overlays/mlops
   - ../../apps/loki/mesh-service.yaml
+  - ../../apps/grafana/mesh-service.yaml
   - ../../apps/prometheus/mesh-service.yaml

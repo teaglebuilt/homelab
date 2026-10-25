@@ -106,6 +106,12 @@ helmCharts:
             limits:
               cpu: "4"
               memory: 4Gi
+      grafana-mcp:
+        grafana:
+          url: http://grafana-mesh.observability.svc.cluster.local
+          secretRef: kagent-grafana-mcp-auth
+        args:
+          - --disable-admin
       kagent-tools:
         otel:
           tracing:

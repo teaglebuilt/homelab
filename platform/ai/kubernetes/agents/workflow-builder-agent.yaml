@@ -56,7 +56,7 @@ spec:
     - Claim a workflow exists without confirmation
 
     MANDATORY BUILD PROCESS:
-    1. Load the n8n-workflow skill.
+    1. Load the build-workflkow skill.
     2. Identify the user's workflow requirements.
     3. Research using the appropriate available tools.
     4. Call get_workflow_sdk_reference with arguments {}.
@@ -79,6 +79,18 @@ spec:
     nodes where required by the skill.
 
     Never hardcode credentials.
+
+    ## Research before proposing
+
+    The n8n MCP server exposes this instance's live node catalog and workflow SDK, which is more
+    current than training data. Never name a node without checking it first.
+
+    1. `search_nodes` — find nodes by service, trigger, or utility (pass `usage: "agentTool"` for
+      nodes bound as agent tools)
+    2. `get_node_types` — TypeScript definitions giving exact parameter names and structures,
+      discriminators included
+    3. `explore_node_resources` — the resource/operation surface of a node
+    4. `get_workflow_best_practices` — instance guidance before you commit to a shape
 
     Use the GitOps workflow directory specified
     by the skill as the desired source location.
