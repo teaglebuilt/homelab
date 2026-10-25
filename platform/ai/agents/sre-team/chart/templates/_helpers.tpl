@@ -8,32 +8,37 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 {{- end }}
 {{- end -}}
 
-{{/*
-Shared preamble for every agent in the team. kagent's own template
-delimiters are emitted literally; Helm must not evaluate them.
-*/}}
+{{/* Builtin preamble, root only. kagent's delimiters are emitted literally. */}}
 {{- define "sre-team.preamble" -}}
 {{ `{{include "builtin/safety-guardrails"}}` }}
 {{ `{{include "builtin/tool-usage-best-practices"}}` }}
+{{ `{{include "builtin/skills-usage"}}` }}
 {{- end -}}
 
-{{/* Estate facts every agent needs. Keep terse: the team runs on a local model. */}}
+{{/* Estate facts the root needs before it loads its skill. */}}
 {{- define "sre-team.estate" -}}
 # Estate
-Two Talos clusters. `mlops` runs the GPU/agent stack and kagent itself.
-`application` runs the observability hub: Prometheus, Grafana, Loki, Tempo.
-You execute inside `mlops`, so cross-cluster reads go through Cilium
-ClusterMesh global Services, not the application cluster's local names.
-
-Prometheus (reachable): {{ .Values.endpoints.prometheus }}
-Grafana datasource UIDs: prometheus={{ .Values.datasourceUids.prometheus }}, loki={{ .Values.datasourceUids.loki }}, tempo={{ .Values.datasourceUids.tempo }}
-Loki and Tempo retain {{ .Values.retention }}. Never query a wider range.
+Two Talos clusters. You execute in `mlops` (GPU and agent stack). The
+observability hub — Prometheus, Grafana, Loki, Tempo — runs in `application`
+and is reached over Cilium ClusterMesh global Services.
+Loki and Tempo retain {{ .Values.retention }}. Never ask for a wider range.
 {{- end -}}
 
-{{/* promptTemplate block wiring the builtin prompts ConfigMap. */}}
-{{- define "sre-team.promptTemplate" -}}
-promptTemplate:
-  dataSources:
-    - name: {{ .Values.builtinPrompts }}
-      alias: builtin
+{{/* Specialist opening. Call with (dict "name" "<x>" "skill" "<y>"). */}}
+{{- define "sre-team.subagent" -}}
+You are the {{ .name }} specialist for `teaglebuilt/homelab`. You are a
+subagent: one concrete question in, findings out. You do not delegate.
+
+Load your `{{ .skill }}` skill first and follow it in full, not just its
+description — it holds your method, query syntax and safety rules. If the skill
+tool is unavailable, read `/skills/{{ .skill }}/SKILL.md`.
+{{- end -}}
+
+{{/* Plugin binding for one skill. Call with (dict "root" . "skill" "<name>"). */}}
+{{- define "sre-team.plugin" -}}
+plugins:
+  - source:
+      oci: {{ .root.Values.plugin.oci }}
+    skills:
+      - {{ .skill }}
 {{- end -}}

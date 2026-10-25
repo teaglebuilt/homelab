@@ -188,6 +188,16 @@ spec:
           # (firstEvent.getTime is not a function) — n8n-io/n8n#34669 / PR #34670.
           image: ghcr.io/n8n-io/n8n:2.33.0
           imagePullPolicy: IfNotPresent
+          # fsGroup ORs group-write onto the volume (0660) before this container
+          # starts. chmod here, then hand off to the image entrypoint.
+          command: ["tini", "--", "/bin/sh", "-c"]
+          args:
+            - |
+              umask 077
+              if [ -f /home/node/.n8n/config ]; then
+                chmod 600 /home/node/.n8n/config
+              fi
+              exec /docker-entrypoint.sh
           ports:
             - containerPort: 5678
           securityContext:
@@ -224,8 +234,10 @@ spec:
               value: n8n.teaglebuilt.tech
             - name: N8N_EDITOR_BASE_URL
               value: https://n8n.teaglebuilt.tech
-            - name: WEBHOOK_URL
+            - name: N8N_WEBHOOK_URL
               value: https://n8n.teaglebuilt.tech
+            - name: N8N_MIGRATE_FS_STORAGE_PATH
+              value: "true"
             - name: N8N_PROTOCOL
               value: https
             - name: N8N_PROXY_HOPS
@@ -250,15 +262,20 @@ spec:
                   key: password
             - name: DB_POSTGRESDB_POOL_SIZE
               value: "5"
-            - name: N8N_RUNNERS_ENABLED
+            - name: N8N_RUNNERS_TASK_TIMEOUT
+              value: "300"
+            - name: N8N_UNVERIFIED_PACKAGES_ENABLED
               value: "true"
+            - name: N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES
+              value: "2147483648"
+            - name: N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES
+              value: "5000"
             - name: N8N_BLOCK_ENV_ACCESS_IN_NODE
               value: "false"
             - name: N8N_GIT_NODE_DISABLE_BARE_REPOS
               value: "true"
-            - name: N8N_AVAILABLE_BINARY_DATA_MODES
-              value: s3,filesystem
-            - name: N8N_DEFAULT_BINARY_DATA_MODES
+            # 2.33 reads the singular MODE var. The plural MODES var was ignored.
+            - name: N8N_DEFAULT_BINARY_DATA_MODE
               value: s3
             - name: N8N_EXTERNAL_STORAGE_S3_HOST
               value: "s3.us-east-1.amazonaws.com"

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "sre-team",
+  "version": "1.0.0",
+  "description": "Operating instructions for the homelab SRE agent team: one skill per specialist subagent.",
+  "license": "MIT",
+  "keywords": ["kagent", "sre", "observability"]
+}

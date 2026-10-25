@@ -123,11 +123,13 @@ tasks:
     vars:
       CLUSTER: '{{.CLUSTER | default "mlops"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      PLUGIN_OCI: '{{.PLUGIN_OCI | default ""}}'
     cmds:
       - |-
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install sre-team \
           '{{.TASKFILE_DIR}}/agents/sre-team/chart' \
-          --namespace '{{.AI_NAMESPACE}}'
+          --namespace '{{.AI_NAMESPACE}}' \
+          {{if .PLUGIN_OCI}}--set 'plugin.oci={{.PLUGIN_OCI}}'{{end}}
       - |-
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl get agent sre-agent -n '{{.AI_NAMESPACE}}' \
           -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.reason}{"\n"}{end}'

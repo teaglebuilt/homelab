@@ -1,0 +1,5 @@
+chart
+README.md
+.dockerignore
+**/tests
+**/__pycache__
