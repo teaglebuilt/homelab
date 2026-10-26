@@ -59,4 +59,21 @@ spec:
           - query_prometheus
           - list_prometheus_metric_names
           - list_datasources
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: opentelemetry-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: opentelemetry-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  template:
+    ref:
+      name: opentelemetry-agent
+  harnessRef:
+    name: {{ .Values.harness }}
+  egressPolicyRefs:
+    - name: sre-team-egress-policies
 {{- end }}

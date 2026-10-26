@@ -60,4 +60,21 @@ spec:
           - prometheus_promql_tool
           - k8s_get_resources
           - datetime_get_current_time
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: prometheus-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  template:
+    ref:
+      name: prometheus-agent
+  harnessRef:
+    name: {{ .Values.harness }}
+  egressPolicyRefs:
+    - name: sre-team-egress-policies
 {{- end }}

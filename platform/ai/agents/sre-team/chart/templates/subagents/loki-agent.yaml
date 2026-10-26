@@ -55,4 +55,21 @@ spec:
           - k8s_get_resources
           - k8s_get_pod_logs
           - datetime_get_current_time
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: loki-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: loki-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  template:
+    ref:
+      name: loki-agent
+  harnessRef:
+    name: {{ .Values.harness }}
+  egressPolicyRefs:
+    - name: sre-team-egress-policies
 {{- end }}

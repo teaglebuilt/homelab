@@ -84,4 +84,21 @@ spec:
           - k8s_get_resources
           - k8s_get_resource_yaml
           - datetime_get_current_time
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: grafana-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: sre-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  template:
+    ref:
+      name: grafana-agent
+  harnessRef:
+    name: {{ .Values.harness }}
+  egressPolicyRefs:
+    - name: sre-team-egress-policies
 {{- end }}

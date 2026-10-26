@@ -63,4 +63,21 @@ spec:
           - k8s_wait
           - k8s_generate_resource
           - datetime_get_current_time
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: k8s-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: k8s-agent
+    {{- include "sre-team.labels" . | nindent 4 }}
+spec:
+  template:
+    ref:
+      name: k8s-agent
+  harnessRef:
+    name: {{ .Values.harness }}
+  egressPolicyRefs:
+    - name: sre-team-egress-policies
 {{- end }}

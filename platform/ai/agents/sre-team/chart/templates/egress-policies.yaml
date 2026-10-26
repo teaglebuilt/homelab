@@ -7,5 +7,9 @@ spec:
   destinations:
     - origin: http://kagent-tools.ai.svc.cluster.local
     - origin: http://kagent-tools.ai
-    - origin: http://kagent-grafana-mcp.ai
-    - origin: http://grafana-mesh.observability.svc.cluster.local
+    - origin: http://kagent-grafana-mcp.ai.svc.cluster.local:8000
+      authentication:
+        header: Authorization
+        secretKeyRef:
+          name: kagent-grafana-mcp-auth
+          key: MCP_GRAFANA_AUTHORIZATION
