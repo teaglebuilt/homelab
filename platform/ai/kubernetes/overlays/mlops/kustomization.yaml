@@ -110,6 +110,9 @@ helmCharts:
         grafana:
           url: http://grafana-mesh.observability.svc.cluster.local
           secretRef: kagent-grafana-mcp-auth
+        # Main Org. — silences mcp-grafana's GRAFANA_ORG_ID warning.
+        config:
+          GRAFANA_ORG_ID: "1"
         allowedHosts: "*"
         # args:
         #   - --disable-admin

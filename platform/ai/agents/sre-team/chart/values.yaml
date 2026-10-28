@@ -21,14 +21,14 @@ datasourceUids:
 retention: 24h
 
 agents:
-  k8s: true
+  k8s: false
   prometheus: true
   loki: true
   tempo: true
   grafana: true
   opentelemetry: true
   kgateway: true
-  ciliumDebug: true
-  ciliumManager: true
+  ciliumDebug: false
+  ciliumManager: false
 
 commonLabels: {}

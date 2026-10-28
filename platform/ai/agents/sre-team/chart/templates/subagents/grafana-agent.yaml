@@ -3,10 +3,10 @@
 apiVersion: api.kagent.dev/v1alpha3
 kind: AgentTemplate
 metadata:
-  name: grafana-agent
+  name: grafana-agent-template
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: grafana-agent
+    app.kubernetes.io/name: grafana-agent-template
     {{- include "sre-team.labels" . | nindent 4 }}
 spec:
   description: >-
@@ -91,12 +91,12 @@ metadata:
   name: grafana-agent
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: sre-agent
+    app.kubernetes.io/name: grafana-agent
     {{- include "sre-team.labels" . | nindent 4 }}
 spec:
   template:
     ref:
-      name: grafana-agent
+      name: grafana-agent-template
   harnessRef:
     name: {{ .Values.harness }}
   egressPolicyRefs:

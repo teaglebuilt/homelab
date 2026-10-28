@@ -3,10 +3,10 @@
 apiVersion: api.kagent.dev/v1alpha3
 kind: AgentTemplate
 metadata:
-  name: loki-agent
+  name: loki-agent-template
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: loki-agent
+    app.kubernetes.io/name: loki-agent-template
     {{- include "sre-team.labels" . | nindent 4 }}
 spec:
   description: >-
@@ -67,7 +67,7 @@ metadata:
 spec:
   template:
     ref:
-      name: loki-agent
+      name: loki-agent-template
   harnessRef:
     name: {{ .Values.harness }}
   egressPolicyRefs:

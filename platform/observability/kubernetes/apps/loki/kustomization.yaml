@@ -28,6 +28,11 @@ helmCharts:
           chunk_encoding: snappy
         pattern_ingester:
           enabled: true
+        compactor:
+          retention_enabled: true
+          delete_request_store: s3
+          retention_delete_delay: 2h
+          compaction_interval: 10m
         limits_config:
           # Required so OTLP logs keep trace_id/span_id as structured metadata,
           # which powers the Loki -> Tempo derived-field correlation.
