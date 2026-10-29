@@ -37,18 +37,22 @@ spec:
           args:
             - "--model"
             # Safe first boot on 12GB VRAM (4070 SUPER). Step up to AWQ 7–8B later.
-            - "Qwen/Qwen2.5-3B-Instruct"
+            - "Qwen/Qwen3-8B-AWQ"
             - "--served-model-name"
             - "vllm-selfhosted"
             - "--port"
             - "8000"
             - "--max-model-len"
-            - "32768"
+            - "8192"
             - "--gpu-memory-utilization"
-            - "0.80"
+            - "0.90"
             - "--enable-auto-tool-choice"
             - "--tool-call-parser"
             - "hermes"
+            - "--reasoning-parser"
+            - "qwen3"
+            - "--max-num-seqs"
+            - "1"
             # Mirror NIM's CUDA-graph disable on this GPU — capture often OOMs at startup.
             - "--enforce-eager"
           env:

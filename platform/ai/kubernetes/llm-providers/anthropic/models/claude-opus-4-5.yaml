@@ -9,3 +9,6 @@ spec:
   model: claude-opus-4-5
   apiKeySecret: anthropic-api-key
   apiKeySecretKey: Authorization
+  anthropic:
+    promptCaching: true
+    cacheTTL: "5m"

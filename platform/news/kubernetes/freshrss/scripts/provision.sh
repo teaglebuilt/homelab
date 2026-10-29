@@ -23,6 +23,13 @@ until php -r '
 done
 echo "[provision] postgres reachable"
 
+# The PVC replaces the image's /data tree. Match the image entrypoint:
+# prepare.php creates cache/users/favicons/tokens; access-permissions makes
+# them writable for www-data before do-install runs its requirement checks.
+echo "[provision] preparing data directories"
+php -f ./cli/prepare.php >/dev/null
+./cli/access-permissions.sh --only-userdirs
+
 if [ ! -f data/config.php ]; then
   echo "[provision] running do-install"
   ./cli/do-install.php \
@@ -63,7 +70,7 @@ for opml in /opml/*.opml; do
 done
 [ "$imported" -eq 0 ] && echo "[provision] no OPML seeds found; skipping feed import"
 
-# Ensure the data dir is writable by the runtime user (apache drops to www-data).
-chown -R www-data:www-data data || true
+# Same post-install ownership pass the image entrypoint runs.
+./cli/access-permissions.sh --only-userdirs
 
 echo "[provision] done"

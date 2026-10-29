@@ -11,7 +11,7 @@ spec:
       eventRetentionSize: 20
       summarizer:
         modelConfigRef:
-          name: claude-opus-5-gateway
+          name: llmd-vllm-config
     memory:
       modelConfigRef:
         name: openai-embeddings

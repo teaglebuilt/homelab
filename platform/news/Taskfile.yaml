@@ -29,8 +29,12 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
       - |-
+        if [ '{{.CLUSTER}}' != 'application' ]; then
+          echo "Skipping freshrss rollout wait on CLUSTER={{.CLUSTER}} (FreshRSS runs on application)"
+          exit 0
+        fi
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl rollout status deployment/freshrss -n feeds --timeout=180s
 
   kdestroy:
