@@ -2,7 +2,7 @@
 apiVersion: api.kagent.dev/v1alpha3
 kind: EgressPolicy
 metadata:
-  name: workflow-builder-github
+  name: workflow-agent-github
   namespace: ai
 spec:
   destinations:

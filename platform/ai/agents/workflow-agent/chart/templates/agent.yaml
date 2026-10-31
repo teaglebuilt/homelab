@@ -2,16 +2,16 @@
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
 metadata:
-  name: workflow-builder-agent
+  name: workflow-agent
   namespace: ai
   labels:
-    app.kubernetes.io/name: workflow-builder-agent
+    app.kubernetes.io/name: workflow-agent
     app.kubernetes.io/part-of: homelab
 spec:
   template:
     ref:
-      name: workflow-builder
+      name: workflow-agent
   harnessRef:
     name: kagent
   egressPolicyRefs:
-    - name: workflow-builder-github
+    - name: workflow-agent-github
