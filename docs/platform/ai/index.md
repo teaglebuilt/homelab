@@ -4,6 +4,7 @@
   1. Claude Code / Cursor
   2. OpenWebUI
 2. [Platform AI Infrastructure](#platform-infrastructure)
+3. [Platform AI Hardware](#platform-hardware)
 
 ## Where it runs
 
@@ -89,3 +90,28 @@ Only the providers listed in `platform/ai/kubernetes/llm-providers/kustomization
 
 1. [RAG (Retrieval Augmented Generation)](./rag.md)
 2. AI Software Factory: **planned**, see "Build Software Factory" in `.ai/ROADMAP.md`
+
+
+```mermaid
+flowchart TD
+    Q[Requests arrive] --> V[vLLM replicas]
+    V --> M["/metrics"]
+    M --> P[Prometheus]
+
+    P --> D{Demand above target?}
+
+    D -->|queue depth or p99 high| K[KEDA or custom autoscaler]
+    K --> H[Increase Deployment replicas]
+
+    H --> N[Cluster or node autoscaler]
+    N --> G[Provision GPU node]
+    G --> W[Warm model from NVMe or cache]
+    W --> V
+
+    D -->|low sustained demand| S[Scale down after cooldown]
+    S --> V
+```
+
+## Platform Hardware
+
+`nvidia-device-plugin` is used with talos nvidia extensions to establish connection to [Nvidia 4070 RTX Super Ti]() connected to `mlops-work-00`.
