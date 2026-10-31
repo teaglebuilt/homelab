@@ -1,0 +1,133 @@
+---
+# Nightly Qdrant snapshots. Qdrant writes each collection snapshot to
+# /qdrant/snapshots (snapshotPersistence -> nfs-csi -> unas.internal); this job
+# triggers them, keeps the newest KEEP per collection, then mirrors the NAS
+# directory to SeaweedFS.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: qdrant-snapshot
+  namespace: data
+  labels:
+    app.kubernetes.io/name: qdrant-snapshot
+    app.kubernetes.io/part-of: qdrant
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: qdrant-snapshot
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            # Create + prune through the API so Qdrant's view stays consistent.
+            - name: snapshot
+              image: python:3.12-alpine
+              env:
+                - name: QDRANT_URL
+                  value: http://qdrant.data.svc.cluster.local:6333
+                - name: QDRANT_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: qdrant-secrets
+                      key: qdrant_api_key
+                - name: KEEP
+                  value: "7"
+              command: ["python", "-c"]
+              args:
+                - |
+                  import json, os, urllib.request
+                  base, keep = os.environ["QDRANT_URL"], int(os.environ["KEEP"])
+                  hdr = {"api-key": os.environ["QDRANT_API_KEY"]}
+
+                  def call(method, path):
+                      req = urllib.request.Request(base + path, method=method, headers=hdr)
+                      with urllib.request.urlopen(req, timeout=1800) as r:
+                          return json.load(r)["result"]
+
+                  for c in call("GET", "/collections")["collections"]:
+                      name = c["name"]
+                      snap = call("POST", f"/collections/{name}/snapshots?wait=true")
+                      print(f"{name}: created {snap['name']} ({snap['size']} bytes)")
+                      snaps = sorted(call("GET", f"/collections/{name}/snapshots"),
+                                     key=lambda s: s["creation_time"] or "", reverse=True)
+                      for old in snaps[keep:]:
+                          call("DELETE", f"/collections/{name}/snapshots/{old['name']}?wait=true")
+                          print(f"{name}: pruned {old['name']}")
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+          containers:
+            # Mirror the NAS snapshot dir to SeaweedFS; --delete keeps the
+            # bucket in step with KEEP above.
+            - name: mirror
+              image: amazon/aws-cli:2.31.19
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: qdrant-snapshots-s3
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: qdrant-snapshots-s3
+                      key: AWS_SECRET_ACCESS_KEY
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
+                - name: HOME
+                  value: /tmp
+              command:
+                - aws
+                - --endpoint-url
+                - http://seaweedfs-s3.storage.svc.cluster.local:8333
+                - s3
+                - sync
+                - --delete
+                - --exclude
+                - "*/tmp/*"
+                - /snapshots
+                - s3://qdrant-snapshots
+              volumeMounts:
+                - name: snapshots
+                  mountPath: /snapshots
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+          volumes:
+            # Created by the chart's volumeClaimTemplate for pod qdrant-0;
+            # ReadWriteMany on NFS, so this job can mount it alongside Qdrant.
+            - name: snapshots
+              persistentVolumeClaim:
+                claimName: qdrant-snapshots-qdrant-0
+                readOnly: true
+            - name: tmp
+              emptyDir: {}

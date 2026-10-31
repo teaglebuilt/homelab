@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: data
 resources:
   - httproute.yaml
+  - snapshot-cronjob.yaml
 helmCharts:
   - name: qdrant
     repo: https://qdrant.github.io/qdrant-helm
@@ -23,8 +24,19 @@ helmCharts:
       #       name: qdrant-secrets
       #       key: qdrant_api_key
       apiKey: your-super-secret-api-key
+      # Snapshots land on the NAS (nfs-csi -> unas.internal) via a separate
+      # volume, so a large snapshot can't fill the storage volume.
+      snapshotPersistence:
+        enabled: true
+        accessModes: ["ReadWriteMany"]
+        size: 50Gi
+        storageClassName: nfs-csi
       config:
         api_key: your-super-secret-api-key
+        storage:
+          snapshots_path: /qdrant/snapshots
+          snapshots_config:
+            snapshots_storage: local
         cluster:
           enabled: "false"
           p2p:
