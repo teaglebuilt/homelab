@@ -1,0 +1,11 @@
+spin_manifest_version = 2
+[application]
+name = "watm-server"
+version = "0.1.0"
+
+[[trigger.http]]
+route = "/watm/..."
+component = "watm-server"
+
+[component.watm-server]
+source = "target/wasm32-wasi/release/watm_server.wasm"
