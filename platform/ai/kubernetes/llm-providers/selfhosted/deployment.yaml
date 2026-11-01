@@ -47,7 +47,7 @@ spec:
             - "--gpu-memory-utilization"
             - "0.92"
             - "--enable-auto-tool-choice"
-            - "enable-prefix-caching"
+            - "--enable-prefix-caching"
             - "--tool-call-parser"
             - "hermes"
             - "--reasoning-parser"
@@ -63,12 +63,6 @@ spec:
               value: /data/providers/vllm
             - name: PYTORCH_ALLOC_CONF
               value: expandable_segments:True
-            - name: HF_HOME
-              value: /cache/huggingface
-            - name: XDG_CACHE_HOME
-              value: /cache/xdg
-            - name: TRITON_CACHE_DIR
-              value: /cache/triton
           ports:
             - containerPort: 8000
               name: http
