@@ -92,26 +92,20 @@ Only the providers listed in `platform/ai/kubernetes/llm-providers/kustomization
 2. AI Software Factory: **planned**, see "Build Software Factory" in `.ai/ROADMAP.md`
 
 
-```mermaid
-flowchart TD
-    Q[Requests arrive] --> V[vLLM replicas]
-    V --> M["/metrics"]
-    M --> P[Prometheus]
-
-    P --> D{Demand above target?}
-
-    D -->|queue depth or p99 high| K[KEDA or custom autoscaler]
-    K --> H[Increase Deployment replicas]
-
-    H --> N[Cluster or node autoscaler]
-    N --> G[Provision GPU node]
-    G --> W[Warm model from NVMe or cache]
-    W --> V
-
-    D -->|low sustained demand| S[Scale down after cooldown]
-    S --> V
-```
-
 ## Platform Hardware
 
-`nvidia-device-plugin` is used with talos nvidia extensions to establish connection to [Nvidia 4070 RTX Super Ti]() connected to `mlops-work-00`.
+`nvidia-device-plugin` is used for connecting the node to the GPU device and resource allocation for kubernetes workloads. Talos has nvidia extensions used to establish base requirements for the gpu's to work on a bare immutable image.
+
+1. [Nvidia 4070 Super RTX Ti 12GB]()
+2. [Nvidia 5090 Super RTX Ti 32GB]()
+
+```mermaid
+flowchart TD
+    C[Clients] --> GW[agentgateway]
+    GW -->|group 1| V["vLLM x1 · mlops-work-00 · max-num-seqs ~4"]
+    GW -->|group 2 if unhealthy| H[Hosted OpenAI]
+    V --> M["/metrics"] --> A{Saturation or GPU needed elsewhere?}
+    A -->|saturation| R[Alert: tune model / route hosted]
+    A -->|train or ComfyUI| T[task gpu:mode · scale vLLM 0]
+    T --> V
+```
