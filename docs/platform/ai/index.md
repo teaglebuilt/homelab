@@ -4,7 +4,7 @@
   1. Claude Code / Cursor
   2. OpenWebUI
 2. [Platform AI Infrastructure](#platform-infrastructure)
-3. [Platform AI Hardware](#platform-hardware)
+3. [Platform AI Hardware](./hardware.md)
 
 ## Where it runs
 
@@ -88,24 +88,8 @@ Only the providers listed in `platform/ai/kubernetes/llm-providers/kustomization
 
 ## Use Cases
 
-1. [RAG (Retrieval Augmented Generation)](./rag.md)
-2. AI Software Factory: **planned**, see "Build Software Factory" in `.ai/ROADMAP.md`
-
-
-## Platform Hardware
-
-`nvidia-device-plugin` is used for connecting the node to the GPU device and resource allocation for kubernetes workloads. Talos has nvidia extensions used to establish base requirements for the gpu's to work on a bare immutable image.
-
-1. [Nvidia 4070 Super RTX Ti 12GB]()
-2. [Nvidia 5090 Super RTX Ti 32GB]()
-
-```mermaid
-flowchart TD
-    C[Clients] --> GW[agentgateway]
-    GW -->|group 1| V["vLLM x1 · mlops-work-00 · max-num-seqs ~4"]
-    GW -->|group 2 if unhealthy| H[Hosted OpenAI]
-    V --> M["/metrics"] --> A{Saturation or GPU needed elsewhere?}
-    A -->|saturation| R[Alert: tune model / route hosted]
-    A -->|train or ComfyUI| T[task gpu:mode · scale vLLM 0]
-    T --> V
-```
+1. [Agentic Engineering](./agentic-engineering.md)
+2. [RAG (Retrieval Augmented Generation)](./rag.md)
+3. [Model Factory](https://github.com/teaglebuilt/model-factory)
+4. [Software Factory](https://github.com/teaglebuilt/software-factory)
+5. [Research](https://github.com/teaglebuilt/data-platform)
