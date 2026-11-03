@@ -7,8 +7,13 @@ metadata:
 spec:
   apiKeySecret: llmd-dummy-api-key
   apiKeySecretKey: api-key
-  # Must match --served-model-name on the vLLM Deployment.
   model: vllm-selfhosted
   provider: OpenAI
+  stream: true
   openAI:
     baseUrl: http://vllm-selfhosted.ai.svc.cluster.local:8000/v1
+    temperature: "0.1"
+    topP: "0.95"
+    seed: 42
+    maxTokens: 4096
+    timeout: 180

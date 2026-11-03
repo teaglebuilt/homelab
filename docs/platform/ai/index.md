@@ -4,6 +4,7 @@
   1. Claude Code / Cursor
   2. OpenWebUI
 2. [Platform AI Infrastructure](#platform-infrastructure)
+3. [Platform AI Hardware](./hardware.md)
 
 ## Where it runs
 
@@ -87,5 +88,8 @@ Only the providers listed in `platform/ai/kubernetes/llm-providers/kustomization
 
 ## Use Cases
 
-1. [RAG (Retrieval Augmented Generation)](./rag.md)
-2. AI Software Factory: **planned**, see "Build Software Factory" in `.ai/ROADMAP.md`
+1. [Agentic Engineering](./agentic-engineering.md)
+2. [RAG (Retrieval Augmented Generation)](./rag.md)
+3. [Model Factory](https://github.com/teaglebuilt/model-factory)
+4. [Software Factory](https://github.com/teaglebuilt/software-factory)
+5. [Research](https://github.com/teaglebuilt/data-platform)
