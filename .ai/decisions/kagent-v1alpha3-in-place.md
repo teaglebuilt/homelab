@@ -1,7 +1,7 @@
 # ADR-0009: Move kagent to 1.0 (api.kagent.dev/v1alpha3) in place in `ai`, with Agent Substrate
 
 ## Status
-Proposed
+Complete
 
 ## Context
 kagent 0.10.3 serves `kagent.dev/v1alpha2`. Its `AgentHarness` supports only `hermes` and `openclaw`, Agent Substrate is disabled in the mlops overlay, and `harness/hermes.yaml` referenced a WorkerPool that was never created. The software factory needs kagent's Claude Harness, which exists only in kagent 1.0 (`v1.0.0-alpha`, API group `api.kagent.dev/v1alpha3`). 1.0 splits an agent into an `AgentTemplate` (model, prompt, tools, skills, plugins) and a `Harness` (runtime on Substrate), and every Harness runs on Substrate.
