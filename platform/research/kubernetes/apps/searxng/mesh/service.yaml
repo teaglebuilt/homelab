@@ -4,6 +4,9 @@ kind: Service
 metadata:
   name: searxng
   namespace: research
+  annotations:
+    service.cilium.io/global: "true"
+    service.cilium.io/shared: "true"
 spec:
   selector:
     app: searxng

@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: research
 resources:
   - deployment.yaml
-  - service.yaml
+  - mesh
   - internal-httproute.yaml
 configMapGenerator:
   - name: searxng-settings

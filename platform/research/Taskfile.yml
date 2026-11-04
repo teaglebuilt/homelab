@@ -11,7 +11,7 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes | kubectl apply -f -
+        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes/overlays/{{.CLUSTER}} | kubectl apply -f -
 
   destroy:
     vars:
@@ -19,4 +19,4 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
