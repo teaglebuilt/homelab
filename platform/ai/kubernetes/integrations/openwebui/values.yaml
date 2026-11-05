@@ -72,10 +72,8 @@ extraEnvVars:
       secretKeyRef:
         name: openwebui-secrets
         key: webui_api_key
-  # Live qdrant is in `default` on application (declared `data` — see
-  # workload-reallocation Q7). Prefer the LB DNS so the URI survives ns moves.
   - name: QDRANT_URI
-    value: "http://qdrant.homelab.internal:6333"
+    value: "http://qdrant.data.svc.cluster.local:6333"
   - name: QDRANT_API_KEY
     value: "your-super-secret-api-key"
   - name: STORAGE_PROVIDER
@@ -101,19 +99,11 @@ extraEnvVars:
         key: aws_secret_access_key
   - name: VECTOR_DB
     value: "qdrant"
+  # Pinned to the knowledge-tree embedding space — see ADR-0005.
   - name: RAG_EMBEDDING_ENGINE
-    value: "openai"
-  - name: RAG_OPENAI_API_BASE_URL
-    value: >-
-      http://ai-gateway-mesh.ai.svc.cluster.local/v1
+    value: ""
   - name: RAG_EMBEDDING_MODEL
-    value: "embeddings"
-requests:
-  cpu: 60m
-  memory: 256Mi
-limits:
-  cpu: 300m
-  memory: 400Mi
+    value: "BAAI/bge-small-en-v1.5"
 
 podSecurityContext:
   fsGroupChangePolicy: Always
