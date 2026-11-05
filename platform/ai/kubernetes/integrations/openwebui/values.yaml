@@ -41,23 +41,16 @@ extraEnvVars:
   #   value: http://ollama.ai.svc.cluster.local:11434
   # - name: OLLAMA_BASE_URL
   #   value: http://ollama.ai.svc.cluster.local:11434
-  - name: ENABLE_RAG_WEB_SEARCH
+  - name: ENABLE_WEB_SEARCH
     value: "True"
+  - name: WEB_SEARCH_ENGINE
+    value: "searxng"
   - name: SEARXNG_QUERY_URL
     value: "http://searxng.research.svc.cluster.local:8080/search?q=<query>"
-  - name: RAG_WEB_SEARCH_ENGINE
-    value: "searxng"
   - name: USE_CUDA_DOCKER
     value: "false"
   - name: ENABLE_IMAGE_GENERATION
     value: "false"
-  # NVIDIA NIM Configuration (OpenAI-compatible API)
-  # - name: OPENAI_API_BASE_URL
-  #   value: http://nim.ai.svc.cluster.local:8000/v1
-  # - name: OPENAI_API_KEY
-  #   value: "not-required"
-  # - name: ENABLE_OPENAI_API
-  #   value: "true"
   # Piper TTS Configuration (via openedai-speech)
   - name: AUDIO_TTS_ENGINE
     value: "openai"
@@ -79,10 +72,8 @@ extraEnvVars:
       secretKeyRef:
         name: openwebui-secrets
         key: webui_api_key
-  # Live qdrant is in `default` on application (declared `data` — see
-  # workload-reallocation Q7). Prefer the LB DNS so the URI survives ns moves.
   - name: QDRANT_URI
-    value: "http://qdrant.homelab.internal:6333"
+    value: "http://qdrant.data.svc.cluster.local:6333"
   - name: QDRANT_API_KEY
     value: "your-super-secret-api-key"
   - name: STORAGE_PROVIDER
@@ -108,19 +99,11 @@ extraEnvVars:
         key: aws_secret_access_key
   - name: VECTOR_DB
     value: "qdrant"
+  # Pinned to the knowledge-tree embedding space — see ADR-0005.
   - name: RAG_EMBEDDING_ENGINE
-    value: "openai"
-  - name: RAG_OPENAI_API_BASE_URL
-    value: >-
-      http://ai-gateway-mesh.ai.svc.cluster.local/v1
+    value: ""
   - name: RAG_EMBEDDING_MODEL
-    value: "embeddings"
-requests:
-  cpu: 60m
-  memory: 256Mi
-limits:
-  cpu: 300m
-  memory: 400Mi
+    value: "BAAI/bge-small-en-v1.5"
 
 podSecurityContext:
   fsGroupChangePolicy: Always

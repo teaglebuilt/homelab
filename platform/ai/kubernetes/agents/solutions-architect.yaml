@@ -121,6 +121,11 @@ spec:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
+          - firecrawl_crawl
+          - firecrawl_parse
+          - firecrawl_extract
+          - firecrawl_interact
+          - firecrawl_interact_stop
           - firecrawl_search
           - firecrawl_agent
           - firecrawl_agent_status
