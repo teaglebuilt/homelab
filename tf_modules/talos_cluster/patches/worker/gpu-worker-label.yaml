@@ -1,4 +1,4 @@
 ---
 machine:
   nodeLabels:
-    nvidia.com/gpu.present: "true"
+    homelab.teaglebuilt.dev/gpu-node: "true"
