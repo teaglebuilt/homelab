@@ -5,7 +5,6 @@ namespace: automation
 resources:
   - deployment.yaml
   - serviceaccount.yaml
-  - service.yaml
   - configmap.yaml
   - pvc.yaml
   - internal-httproute.yaml

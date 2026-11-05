@@ -1,5 +1,4 @@
-# Same global Service as on application. No n8n pods run here, so Cilium
-# uses the endpoints shared from the application cluster.
+---
 apiVersion: v1
 kind: Service
 metadata:

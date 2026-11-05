@@ -11,12 +11,14 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes/overlays/{{.CLUSTER}} | kubectl apply -f -
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes/overlays/{{.CLUSTER}} | kubectl apply -f -
 
   destroy:
     vars:
-      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./research/kubernetes/overlays/{{.CLUSTER}} | kubectl delete -f -
