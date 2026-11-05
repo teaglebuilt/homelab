@@ -12,6 +12,8 @@ resources:
   - ../../database
   - ../../mcp
   - ../../apps/youtube-transcript
+  # Bearer shared with application (youtube-transcript -> kb-ingest over mesh).
+  - ../../apps/kb-ingest
   - ../../apps/kb-ingest/mesh
 helmCharts:
   - name: agentgateway

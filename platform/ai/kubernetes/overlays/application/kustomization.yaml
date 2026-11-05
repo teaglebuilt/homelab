@@ -8,3 +8,5 @@ resources:
   - ../../base
   - ../../integrations
   - ../../apps/youtube-transcript/mesh
+  # Secret only — kb-ingest Deployment is the knowledge-tree Helm release.
+  - ../../apps/kb-ingest
