@@ -60,6 +60,31 @@ tasks:
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
+  cluster-health:
+    summary: Wait until every node reports Ready (explicit Ready condition — not the old inverted NotReady grep)
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+      TIMEOUT: '{{.TIMEOUT | default "10m"}}'
+    preconditions:
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
+    cmds:
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        echo "Waiting for all nodes Ready (timeout {{.TIMEOUT}})..."
+        kubectl wait --for=condition=Ready nodes --all --timeout='{{.TIMEOUT}}'
+        not_ready="$(kubectl get nodes --no-headers 2>/dev/null | awk '$2 != "Ready" {print}' || true)"
+        if [ -n "$not_ready" ]; then
+          echo "ERROR: nodes still not Ready:"
+          echo "$not_ready"
+          exit 1
+        fi
+        echo "All nodes Ready:"
+        kubectl get nodes -o wide
+
   bootstrap-cluster:
     summary: Full per-cluster helmfile sync (stages 00-05) and its LB-IPAM pool; includes the ClusterMesh overlay when enable.clusterMesh is true
     dir: kubernetes
@@ -75,6 +100,8 @@ tasks:
           sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
         msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
     cmds:
+      - task: cluster-health
+        vars: { CLUSTER: '{{.CLUSTER}}' }
       - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
 
   provision-application:
