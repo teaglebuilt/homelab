@@ -26,6 +26,7 @@ cgroup:
 # https://docs.cilium.io/en/stable/operations/performance/tuning/#ebpf-host-routing
 bpf:
   hostLegacyRouting: false
+  masquerade: true
 
 bandwidthManager:
   enabled: true
@@ -143,6 +144,9 @@ ingressController:
     #   io.cilium/lb-ipam-ips: 192.168.X.X
     insecureNodePort: 32434
     secureNodePort: 31247
+
+egressGateway:
+  enabled: true
 
 # mTLS
 authentication:
