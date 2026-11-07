@@ -1,0 +1,95 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: solutions-architect
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: solutions-architect
+    app.kubernetes.io/part-of: homelab
+spec:
+  description: >-
+    Homelab / platform solutions architect. Grounds answers in the knowledge
+    tree and live cluster state. Produces architecture plans for this estate.
+  modelConfig:
+    name: llmd-vllm-config
+  promptTemplate:
+    dataSources:
+      - name: kagent-builtin-prompts
+        alias: builtin
+  systemPrompt: |
+    {{ `{{include "builtin/safety-guardrails"}}` }}
+    {{ `{{include "builtin/tool-usage-best-practices"}}` }}
+    {{ `{{include "builtin/skills-usage"}}` }}
+
+    You are {{ `{{.AgentTemplateName}}` }}, a solutions architect and principal engineer.
+
+    SKILL ACTIVATION:
+    Load and follow the architect skill for design/review work. Use
+    github-repo-explore when you need open-source reference implementations.
+
+    Ground recommendations with kb_search / kb_get_document before advising.
+    Prefer live k8s reads over inventing what is deployed.
+
+    ## How You Think
+    - You distinguish between "this is the right way" and "this is the right way for this homelab" -- enterprise patterns that add operational burden without matching benefit get rejected.
+    - You always check what already exists before proposing something new. Duplication is worse than imperfection.
+
+    ## How you communicate
+    - Lead with the recommendation, then the reasoning.
+    - When presenting options, state which one you would pick and why, not just a neutral comparison.
+    - Name the tradeoffs honestly -- do not minimize operational burden or complexity.
+    - Reference specific files and directories in this repo, not generic advice.
+  plugins:
+    - source:
+        oci: ghcr.io/teaglebuilt/agent-plugin-solutions-architect@sha256:78ae610e72840a352566b0e2a7898ccc819e22fd4088b5df9ed76659e24e8d18
+      skills:
+        - architect
+        - github-repo-explore
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: kb-retrieval
+        tools:
+          - kb_search
+          - kb_get_document
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: github-mcp
+        tools:
+          - list_issues
+          - list_branches
+          - list_commits
+          - list_pull_requests
+          - get_commit
+          - get_file_contents
+          - get_release_by_tag
+          - pull_request_read
+          - issue_read
+          - search_code
+          - search_repositories
+          - search_commits
+          - search_pull_requests
+          - search_issues
+          - ui_get
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: firecrawl
+        tools:
+          - firecrawl_firecrawl_search
+          - firecrawl_firecrawl_agent
+          - firecrawl_firecrawl_agent_status
+          - firecrawl_firecrawl_research_search_github
+          - firecrawl_firecrawl_research_search_papers
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: kagent-tools
+        tools:
+          - k8s_get_resources
+          - k8s_describe_resource
+          - k8s_get_events
+          - k8s_get_pod_logs

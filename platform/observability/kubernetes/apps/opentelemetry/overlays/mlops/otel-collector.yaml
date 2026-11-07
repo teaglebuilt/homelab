@@ -28,6 +28,14 @@ spec:
       batch:
         timeout: 10s
         send_batch_size: 1024
+      filter/kagent_taskstore:
+        error_mode: ignore
+        traces:
+          span:
+            - IsMatch(
+                span.attributes["rpc.method"],
+                "^kagent\\.api\\.v1alpha1\\.TaskStoreService/"
+              )
     exporters:
       # Forward to the gateway collector on `application`. This is a plain
       # gRPC dial of the mesh ClusterIP (NOT endpoint discovery), which routes
@@ -36,6 +44,8 @@ spec:
         endpoint: otel-collector-mesh.observability.svc.cluster.local:4317
         tls:
           insecure: true
+      otlphttp/agentevals:
+        endpoint: http://agentevals.agentevals.svc.cluster.local:4318
       debug:
         verbosity: normal
     service:
@@ -44,6 +54,13 @@ spec:
           receivers: [otlp]
           processors: [batch]
           exporters: [otlp/gateway, debug]
+        traces/agentevals:
+          receivers: [otlp]
+          processors:
+            - memory_limiter
+            - filter/kagent_taskstore
+          exporters:
+            - otlphttp/agentevals
         logs:
           receivers: [otlp]
           processors: [batch]

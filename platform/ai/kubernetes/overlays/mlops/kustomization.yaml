@@ -131,6 +131,23 @@ helmCharts:
           env:
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: grpc
+  - name: agentevals
+    repo: oci://ghcr.io/agentevals-dev/agentevals/helm
+    releaseName: agentevals
+    version: 0.12.0
+    namespace: ai
+    valuesInline:
+      env:
+        - name: AGENTEVALS_EVALUATION_EVENTS
+          value: "true"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: http://otel-agent-collector.observability.svc.cluster.local:4318
+        - name: OTEL_SERVICE_NAME
+          value: agentevals
+        # - name: AGENTEVALS_STORAGE_BACKEND
+        #   value: postgres
+        # - name: AGENTEVALS_DATABASE_URL
+        #   value: ""
 patches:
   - target:
       group: api.kagent.dev

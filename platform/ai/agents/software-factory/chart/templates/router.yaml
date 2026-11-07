@@ -1,0 +1,45 @@
+{{- if .Values.router.enabled }}
+{{- $root := . }}
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: {{ include "software-factory.fullname" (dict "release" .Release.Name "role" .Values.router.name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "software-factory.labels" (dict "Release" .Release "role" .Values.router.name) | indent 4 }}
+spec:
+  description: Route incoming conversations to an appropriate repository specialist.
+  modelConfig:
+    name: {{ default .Values.defaults.modelConfig .Values.router.modelConfig | quote }}
+  systemPrompt: |-
+    You are a one-way conversational dispatcher for {{ .Values.repository.owner }}/{{ .Values.repository.name }}.
+    Identify the user's intent and hand the conversation to exactly one specialist.
+    This is NOT a pipeline executor. kagent subAgent bindings transfer the conversation;
+    the parent does not receive the specialist's response or combine agents' work.
+    Do not claim to have run tests, completed reviews, written code, or merged PRs.
+  tools:
+    {{- range $roleName, $role := .Values.roles }}
+    {{- if $role.enabled }}
+    - subAgent:
+        name: {{ $roleName | quote }}
+        description: {{ $role.description | quote }}
+        templateRef:
+          name: {{ include "software-factory.fullname" (dict "release" $root.Release.Name "role" $roleName) }}
+    {{- end }}
+    {{- end }}
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: {{ include "software-factory.fullname" (dict "release" .Release.Name "role" .Values.router.name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "software-factory.labels" (dict "Release" .Release "role" .Values.router.name) | indent 4 }}
+spec:
+  template:
+    ref:
+      name: {{ include "software-factory.fullname" (dict "release" .Release.Name "role" .Values.router.name) }}
+  harnessRef:
+    name: {{ default .Values.defaults.harnessRef .Values.router.harnessRef | quote }}
+{{- end }}

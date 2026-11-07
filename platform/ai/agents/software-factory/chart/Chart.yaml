@@ -1,0 +1,6 @@
+apiVersion: v2
+name: software-factory
+version: 0.1.0
+appVersion: "1.0"
+description: Repo-scoped kagent v1alpha3 agents; reuses shared kagent Harness and MCP infrastructure.
+type: application

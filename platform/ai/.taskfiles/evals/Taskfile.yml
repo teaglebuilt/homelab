@@ -1,0 +1,50 @@
+---
+version: "3"
+
+vars:
+  EVAL_NAMESPACE: '{{.EVAL_NAMESPACE | default "ai"}}'
+  # A2A via HTTPRoute: ai.homelab.internal/api → kagent-controller (strips /api).
+  # Override with KAGENT_ENDPOINT=http://localhost:8083 if using port-forward.
+  # Invoke posts to {KAGENT_ENDPOINT}/agents/{EVAL_NAMESPACE}/{AGENT}
+  KAGENT_ENDPOINT: '{{.KAGENT_ENDPOINT | default "http://ai.homelab.internal/api"}}'
+
+tasks:
+  invoke:
+    desc: Execute one agent evaluation case via A2A (no kagent CLI)
+    requires:
+      vars: [AGENT, SUITE, CASE]
+    preconditions:
+      - sh: command -v jq >/dev/null
+        msg: "jq not found on PATH"
+      - sh: command -v curl >/dev/null
+        msg: "curl not found on PATH"
+      - sh: command -v uuidgen >/dev/null
+        msg: "uuidgen not found on PATH"
+      - sh: test -f '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_set.json'
+        msg: "Eval set missing: platform/ai/agents/{{.SUITE}}/evals/eval_set.json"
+      - sh: curl -sf --max-time 3 '{{.KAGENT_ENDPOINT}}/readyz' >/dev/null || curl -sf --max-time 3 '{{.KAGENT_ENDPOINT}}/' >/dev/null
+        msg: "KAGENT_ENDPOINT {{.KAGENT_ENDPOINT}} not reachable (HTTPRoute ai.homelab.internal/api or port-forward localhost:8083)"
+    cmds:
+      - |
+        ROOT_DIR='{{.ROOT_DIR}}' \
+        EVAL_NAMESPACE='{{.EVAL_NAMESPACE}}' \
+        KAGENT_ENDPOINT='{{.KAGENT_ENDPOINT}}' \
+        '{{.TASKFILE_DIR}}/invoke.sh' '{{.AGENT}}' '{{.SUITE}}' '{{.CASE}}'
+
+  score:
+    desc: Score a captured OTLP trace file with agentevals
+    requires:
+      vars: [SUITE, TRACE]
+    preconditions:
+      - sh: command -v agentevals >/dev/null
+        msg: "agentevals CLI not found on PATH"
+      - sh: test -f '{{.TRACE}}'
+        msg: "Trace file not found: {{.TRACE}}"
+      - sh: test -f '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_set.json'
+        msg: "Eval set missing: platform/ai/agents/{{.SUITE}}/evals/eval_set.json"
+    cmds:
+      - |
+        agentevals run '{{.TRACE}}' \
+          --eval-set '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_set.json' \
+          --config '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_config.yaml' \
+          --output json

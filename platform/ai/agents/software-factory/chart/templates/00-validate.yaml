@@ -1,0 +1,31 @@
+{{- /* Validate required repo info, tool safety, and whether packaged prompt exists. */ -}}
+{{- if gt (len .Release.Name) 44 -}}
+  {{- fail "Helm release name must be 44 characters or fewer to preserve unique role-specific resource names" -}}
+{{- end -}}
+{{- $owner := required "repository.owner must be set (for example: teaglebuilt)" .Values.repository.owner -}}
+{{- $name := required "repository.name must be set (for example: showyourdream)" .Values.repository.name -}}
+{{- if not (regexMatch "^[A-Za-z0-9_.-]+$" $owner) -}}
+  {{- fail "repository.owner contains unsupported characters" -}}
+{{- end -}}
+{{- if not (regexMatch "^[A-Za-z0-9_.-]+$" $name) -}}
+  {{- fail "repository.name contains unsupported characters" -}}
+{{- end -}}
+{{- if and .Values.plugin.enabled (not (regexMatch "^[0-9a-f]{40}$" .Values.plugin.commit)) -}}
+  {{- fail "plugin.commit must be a full 40-character lowercase Git commit SHA" -}}
+{{- end -}}
+{{- if and .Values.plugin.enabled (not .Values.plugin.url) -}}
+  {{- fail "plugin.url must be set when plugin.enabled=true" -}}
+{{- end -}}
+{{- range $roleName, $role := .Values.roles -}}
+  {{- if $role.enabled -}}
+    {{- range $binding := $role.toolBindings -}}
+      {{- if not $binding.serverName -}}
+        {{- fail (printf "roles.%s.toolBindings[] requires serverName" $roleName) -}}
+      {{- end -}}
+      {{- if not $binding.tools -}}
+        {{- fail (printf "roles.%s MCP binding for %s must specify at least one named tool; avoid exposing the entire MCP catalog" $roleName $binding.serverName) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Intentionally emits no Kubernetes object. */ -}}

@@ -1,0 +1,51 @@
+{
+  "skill_name": "architect",
+  "evals": [
+    {
+      "id": 0,
+      "name": "gitops-topology-decision",
+      "prompt": "We're running 4 kubernetes clusters (dev, staging, prod-us, prod-eu) and right now every team deploys with their own helm scripts from CI. I want to move to GitOps with ArgoCD but I'm not sure whether to run one ArgoCD that manages all four clusters or one per cluster. Which way should we go, and write it up as an ADR I can put in docs/adr/.",
+      "expected_output": "An ADR file grounded in the knowledge tree's ArgoCD topology notes, comparing hub/spoke vs per-cluster vs single, with a clear recommendation and negative consequences.",
+      "files": [],
+      "assertions": [
+        "Cites at least one knowledge-tree document by its tree/<path>.md path",
+        "Grounds the ArgoCD topology options in the tree's own argocd notes (hub/spoke, per-cluster, per-environment-tier), not just generic ArgoCD knowledge",
+        "Produces an ADR file named with sequential NNNN- prefix in a docs/adr style path",
+        "ADR contains an explicit negative-consequences section that names real costs",
+        "Commits to one topology as the recommendation rather than listing options neutrally",
+        "Addresses the user's actual scale (4 clusters, dev/staging/prod-us/prod-eu) rather than an abstract cluster count",
+        "States that grounding came from kb_search/kb_get_document (kb-retrieval MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "monolith-split-tradeoff",
+      "prompt": "our python monolith is getting painful - 6 devs, one postgres, deploys take 25 min and one bad migration takes down everything. people keep saying microservices. is that actually the right move for us or is there something in between? i want to see the tradeoffs not just an opinion",
+      "expected_output": "A tradeoff analysis weighing modular monolith vs selective extraction vs full microservices against team size, citing tree documents on microservices pitfalls and deployment.",
+      "files": [],
+      "assertions": [
+        "Cites at least one knowledge-tree document by its tree/<path>.md path",
+        "Recommends an intermediate option (modular monolith or selective extraction) over full microservices for a 6-dev team",
+        "Includes a side-by-side tradeoff comparison of 3 or more candidate options",
+        "Ties the analysis to the user's stated pains: 25-minute deploys and migration blast radius",
+        "States what the recommended option costs or gives up, not only its benefits",
+        "States that grounding came from kb_search/kb_get_document (kb-retrieval MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "rag-retrieval-architecture",
+      "prompt": "I'm designing the retrieval layer for an internal docs assistant - maybe 50k markdown docs, needs to answer questions with citations. Need to decide chunking strategy, whether to do hybrid search or pure vector, and whether I need a reranker. Give me the architecture and a diagram.",
+      "expected_output": "A design grounded in tree/ai/rag-and-vector-search.md and llm-application-patterns chunking notes, with a Mermaid diagram and explicit tradeoffs.",
+      "files": [],
+      "assertions": [
+        "Cites at least one knowledge-tree document by its tree/<path>.md path",
+        "Contains a syntactically valid fenced ```mermaid diagram",
+        "Decides all three questions asked: chunking strategy, hybrid vs pure vector, and whether a reranker is needed",
+        "Justifies the hybrid-vs-vector choice with reasoning tied to the 50k-doc markdown corpus",
+        "States the cost or tradeoff of the reranker decision (latency, complexity, or spend)",
+        "States that grounding came from kb_search/kb_get_document (kb-retrieval MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: software-factory-repositories
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - owner: teaglebuilt
+            name: homelab
+          - owner: nextgensolutions-llc
+            name: showyourdream
+  template:
+    metadata:
+      name: 'factory-{{.name}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/teaglebuilt/homelab.git
+        targetRevision: main
+        path: kubernetes/charts/software-factory
+        helm:
+          releaseName: 'factory-{{.name}}'
+          valuesObject:
+            repository:
+              owner: '{{.owner}}'
+              name: '{{.name}}'
+            defaults:
+              modelConfig: llmd-vllm-config
+              harnessRef: kagent
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: ai
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=false

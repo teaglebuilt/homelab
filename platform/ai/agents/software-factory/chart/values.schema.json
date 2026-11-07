@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "repository",
+    "defaults",
+    "roles"
+  ],
+  "properties": {
+    "repository": {
+      "type": "object",
+      "required": [
+        "owner",
+        "name"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defaultBranch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "instructions": {
+          "type": "string"
+        }
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "required": [
+        "modelConfig",
+        "harnessRef"
+      ],
+      "properties": {
+        "modelConfig": {
+          "type": "string",
+          "minLength": 1
+        },
+        "harnessRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extraInstructions": {
+          "type": "string"
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "modelConfig": {
+            "type": "string"
+          },
+          "harnessRef": {
+            "type": "string"
+          },
+          "toolBindings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "serverName",
+                "tools"
+              ],
+              "properties": {
+                "serverName": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "serverNamespace": {
+                  "type": "string"
+                },
+                "tools": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "requireApproval": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "extraInstructions": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "router": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "modelConfig": {
+          "type": "string"
+        },
+        "harnessRef": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "plugin": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "url": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "roleSkills": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

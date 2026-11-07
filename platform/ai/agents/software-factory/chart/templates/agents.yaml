@@ -1,0 +1,21 @@
+{{- $root := . -}}
+{{- range $roleName, $role := .Values.roles }}
+{{- if $role.enabled }}
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: {{ include "software-factory.fullname" (dict "release" $root.Release.Name "role" $roleName) }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+{{ include "software-factory.labels" (dict "Release" $root.Release "role" $roleName) | indent 4 }}
+  annotations:
+    software-factory.kagent.dev/repository: {{ printf "%s/%s" $root.Values.repository.owner $root.Values.repository.name | quote }}
+spec:
+  template:
+    ref:
+      name: {{ include "software-factory.fullname" (dict "release" $root.Release.Name "role" $roleName) }}
+  harnessRef:
+    name: {{ default $root.Values.defaults.harnessRef $role.harnessRef | quote }}
+{{- end }}
+{{- end }}

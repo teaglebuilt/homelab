@@ -1,0 +1,25 @@
+repository:
+  owner: nextgensolutions-llc
+  name: showyourdream
+  defaultBranch: main
+  description: Next.js + Expo video creation product; AI-generated image/video pipeline.
+  instructions: |-
+    Read repository instructions and actual package scripts before proposing commands.
+    Verify PR checks through the CI provider; do not assume successful deployments.
+defaults:
+  modelConfig: llmd-vllm-config # replace with a more capable local model if available
+  harnessRef: kagent
+roles:
+  architect:
+    toolBindings:
+      - serverName: kb-retrieval
+        tools: [kb_search, kb_get_document]
+      # Add a repo-scoped GitHub READ binding here after discovering exact tool names.
+  developer:
+    toolBindings: [] # Required for code edits: repo-scoped Git/checkout MCP, approval for write calls.
+  reviewer:
+    toolBindings: [] # Required for PR review: repo-scoped GitHub READ MCP.
+  tester:
+    toolBindings: [] # Required for execution: CI/test-runner MCP.
+  security:
+    enabled: true

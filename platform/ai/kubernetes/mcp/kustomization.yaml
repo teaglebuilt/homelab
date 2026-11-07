@@ -22,14 +22,14 @@ configMapGenerator:
   - name: n8n-mcp-proxy-scripts
     files:
       - scripts/n8n-mcp-proxy.py
-replacements:
-  - source:
-      kind: Secret
-      name: mcp-secrets
-      fieldPath: stringData.GITHUB_PERSONAL_ACCESS_TOKEN
-    targets:
-      - select:
-          kind: MCPServer
-          name: github-mcp-server
-        fieldPaths:
-          - spec.deployment.env.GITHUB_PERSONAL_ACCESS_TOKEN
+# replacements:
+#   - source:
+#       kind: Secret
+#       name: mcp-secrets
+#       fieldPath: stringData.GITHUB_PERSONAL_ACCESS_TOKEN
+#     targets:
+#       - select:
+#           kind: MCPServer
+#           name: github-mcp-server
+#         fieldPaths:
+#           - spec.deployment.env.GITHUB_PERSONAL_ACCESS_TOKEN

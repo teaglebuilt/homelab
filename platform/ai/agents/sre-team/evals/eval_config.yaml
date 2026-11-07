@@ -1,0 +1,6 @@
+---
+evaluators:
+  - name: tool_trajectory_avg_score
+    type: builtin
+    threshold: 1.0
+    trajectory_match_type: EXACT

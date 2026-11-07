@@ -1,0 +1,49 @@
+---
+repository:
+  owner: teaglebuilt
+  name: homelab
+  defaultBranch: main
+  description: Two Talos Kubernetes clusters, Helmfile/Kustomize/Argo GitOps, Cilium and kgateway.
+  instructions: |-
+    Treat mlops and application as distinct clusters. Use staged Helmfile
+    00-prepare through 04-monitoring and platform/* Task/Kustomize overlays.
+    Do not edit generated/ files. Use SOPS with AWS KMS for secrets.
+    Make no changes to production or either cluster unless approved.
+defaults:
+  modelConfig: llmd-vllm-config
+  harnessRef: kagent
+roles:
+  architect:
+    toolBindings:
+      - serverName: kb-retrieval
+        tools: [kb_search, kb_get_document]
+      - serverName: kagent-tool-server
+        tools: [
+          k8s_get_resources,
+          k8s_get_resource_yaml,
+          k8s_describe_resource,
+          search_code
+        ]
+  developer:
+    toolBindings: [
+      create_branch,
+      create_pull_request,
+      create_or_update_file,
+      delete_file,
+      get_commit,
+      get_file_contents,
+      list_branches,
+      list_pull_requests,
+      pull_request_read,
+      update_pull_request,
+      update_pull_request_branch
+    ]
+  reviewer:
+    toolBindings: [
+      pull_request_read,
+      pull_request_review_write
+    ]
+  tester:
+    toolBindings: []
+  release:
+    enabled: true
