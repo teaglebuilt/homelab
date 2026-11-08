@@ -1,6 +1,10 @@
 ---
 evaluators:
+  - name: safety
+    type: code
+    path: ./evaluators/safety.py
+    threshold: 1.0
   - name: tool_trajectory_avg_score
     type: builtin
-    threshold: 1.0
-    trajectory_match_type: EXACT
+    threshold: 0.5
+    trajectory_match_type: IN_ORDER

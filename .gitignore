@@ -52,3 +52,4 @@ site/
 .envrc
 
 .eval-runs
+.venv-evals

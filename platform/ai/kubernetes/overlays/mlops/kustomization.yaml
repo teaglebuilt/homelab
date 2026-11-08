@@ -63,6 +63,10 @@ helmCharts:
             timeout: 15s
         runtimeDefaults:
           telemetry:
+            # Required for agentevals trajectory/text graders (user input + replies).
+            # Tool args/results are already on execute_tool spans when tracing is on.
+            # Restrict evals.homelab.internal / OTLP retention — content may include prompts.
+            captureContent: true
             traces:
               endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
               protocol: grpc
@@ -137,6 +141,24 @@ helmCharts:
     version: 0.12.0
     namespace: ai
     valuesInline:
+      replicaCount: 1
+      storage:
+        backend: postgres
+      database:
+        postgres:
+          urlFile: /etc/agentevals/db/url
+          schema: agentevals
+          autoMigrate: true
+          bundled:
+            enabled: false
+      extraVolumes:
+        - name: postgres-connection
+          secret:
+            secretName: agentevals-postgres
+      extraVolumeMounts:
+        - name: postgres-connection
+          mountPath: /etc/agentevals/db
+          readOnly: true
       env:
         - name: AGENTEVALS_EVALUATION_EVENTS
           value: "true"

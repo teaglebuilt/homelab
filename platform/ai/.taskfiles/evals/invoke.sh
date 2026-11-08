@@ -85,8 +85,32 @@ fi
 
 context_id="$(jq -er '.result.task.contextId // .result.contextId // empty' <<<"$response" || true)"
 task_id="$(jq -er '.result.task.id // .result.id // empty' <<<"$response" || true)"
+task_state="$(jq -er '.result.task.status.state // empty' <<<"$response" || true)"
 [[ -n "$context_id" ]] && printf '%s\n' "$context_id" >"$run_dir/session-id"
 [[ -n "$task_id" ]] && printf '%s\n' "$task_id" >"$run_dir/task-id"
+[[ -n "$task_state" ]] && printf '%s\n' "$task_state" >"$run_dir/task-state"
+
+case "$task_state" in
+  TASK_STATE_COMPLETED|TASK_STATE_FAILED|TASK_STATE_CANCELED|TASK_STATE_REJECTED|"")
+    ;;
+  *)
+    echo "A2A task not terminal: state=${task_state:-<missing>}" >&2
+    jq . <<<"$response" >&2
+    exit 1
+    ;;
+esac
+
+if [[ "$task_state" == "TASK_STATE_FAILED" || "$task_state" == "TASK_STATE_CANCELED" || "$task_state" == "TASK_STATE_REJECTED" ]]; then
+  echo "A2A task ended unsuccessfully: ${task_state}" >&2
+  jq . <<<"$response" >&2
+  exit 1
+fi
+
+if [[ -z "$context_id" ]]; then
+  echo "A2A response missing contextId / session-id" >&2
+  jq . <<<"$response" >&2
+  exit 1
+fi
 
 # Prefer the last agent text part; fall back to full JSON.
 answer="$(jq -r '
@@ -105,6 +129,10 @@ else
   jq . <<<"$response" | tee "$run_dir/response.txt"
 fi
 
-echo "Session: ${context_id:-unknown}"
+# Machine-readable pointer for chained Taskfile tasks (export/score).
+printf '%s\n' "$run_dir" >"${ROOT_DIR}/.eval-runs/last-run-dir"
+
+echo "Session: ${context_id}"
 echo "Task: ${task_id:-unknown}"
+echo "State: ${task_state:-unknown}"
 echo "Artifacts: $run_dir"

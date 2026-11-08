@@ -20,7 +20,8 @@
                 "name": "kb_search",
                 "args": {
                   "query": "Qdrant architecture",
-                  "k": 8
+                  "k": 8,
+                  "source_type": "tree"
                 },
                 "id": "expected-search"
               }

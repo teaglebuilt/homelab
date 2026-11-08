@@ -3,7 +3,7 @@
 **Repository:** `teaglebuilt/homelab`
 **Reference PR:** [#114 — setup otel with agentevals](https://github.com/teaglebuilt/homelab/pull/114) (branch `agent-evaluations`; open when inspected)
 **Versions reviewed:** kagent `1.0.0-alpha16` and agentevals `v0.12.0` as pinned in PR #114.
-**Status:** Implementation plan, not a claim of deployment or passing tests.
+**Status:** M0–M2 implemented and verified live (2026-11-08). M3+ remaining.
 
 ## Decision
 
@@ -343,12 +343,19 @@ task platform:ai:evals:run \
 
 ## Milestones and acceptance criteria
 
-- [ ] **M0: Collector healthy.** Fix wrong agentevals namespace and undefined processor; confirm `agentevals` receiver receives spans.
-- [ ] **M1: One trace exported.** Execute existing architect case, locate the exact completed session, download `trace.otlp.json`, run `agentevals run`, inspect `score.json`.
-- [ ] **M2: Automated single-case task.** Add `export`, `assert`, and `run` Taskfile tasks with unique session ID, no cross-run mixing, timeout and clear failure reporting.
-- [ ] **M3: Useful coverage.** Add 2–3 eval cases each for architect, SRE, and workflow builder; introduce SDK-based safety grader with unit tests.
-- [ ] **M4: CI.** Static/offline evaluations on PRs; live evaluation against sandboxed agents on demand; nightly regression suite.
+- [x] **M0: Collector healthy.** Fix wrong agentevals namespace and undefined processor; confirm `agentevals` receiver receives spans.
+- [x] **M1: One trace exported.** Execute existing architect case, locate the exact completed session, download `trace.otlp.json`, run `agentevals run`, inspect `score.json`.
+- [x] **M2: Automated single-case task.** Add `export`, `assert`, and `run` Taskfile tasks with unique session ID, no cross-run mixing, timeout and clear failure reporting.
+- [ ] **M3: Useful coverage.** Add 2–3 eval cases each for architect, SRE, and workflow builder; introduce SDK-based safety grader with unit tests. *(partial: SRE `safety` grader + eval_config wired; need more cases)*
 - [ ] **M5: Improvement gate.** Compare the same held-out evaluations across model, skill and prompt revisions before promotion.
+
+### Implemented (2026-11-08)
+
+- OTEL `otel-agent` dual-exports to `agentevals.ai.svc:4318` (`memory_limiter` + `filter/kagent_taskstore` + `batch`).
+- `task platform:ai:evaluate` → `evals:run` (invoke → export → score → assert) via A2A HTTPRoute + `evals.homelab.internal` session OTLP API.
+- A2A `contextId` == agentevals `sessionId` verified on solutions-architect.
+- kagent Harness `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_ONLY` (+ `runtimeDefaults.telemetry.captureContent`) so trajectory graders see user input.
+- First architect case scores `tool_trajectory_avg_score=1.0 PASSED` with expected `kb_search` args including `source_type: tree`.
 
 ## Key risks / open checks
 

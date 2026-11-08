@@ -78,22 +78,21 @@ spec:
         verbosity: normal
     service:
       pipelines:
+        # Gateway + debug stay on the primary pipeline. AgentEvals gets its own
+        # branch so a broken agentevals exporter cannot block Tempo/Loki export.
         traces:
           receivers: [otlp]
           processors: [memory_limiter, filter/kagent_taskstore, batch]
-          exporters: [otlp/gateway, otlp/agentevals, debug]
+          exporters: [otlp/gateway, debug]
         traces/agentevals:
           receivers: [otlp]
-          processors:
-            - memory_limiter
-            - filter/kagent_taskstore
-          exporters:
-            - otlphttp/agentevals
+          processors: [memory_limiter, filter/kagent_taskstore, batch]
+          exporters: [otlphttp/agentevals]
         logs:
           receivers: [otlp]
           processors: [batch]
           exporters: [otlp/gateway]
         logs/agentevals:
           receivers: [otlp]
-          processors: [memory_limiter, filter/not_from_agentevals]
-          exporters: [otlp_http/agentevals]
+          processors: [memory_limiter, filter/not_from_agentevals, batch]
+          exporters: [otlphttp/agentevals]

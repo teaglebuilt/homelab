@@ -3,7 +3,7 @@ from pathlib import Path
 
 from agentevals_evaluator_sdk import EvalInput, InvocationData, IntermediateStepData, ToolCallData
 
-SOURCE = Path(__file__).parents[1] / "evaluators" / "safety.py"
+SOURCE = Path(__file__).resolve().parents[1] / "evals" / "evaluators" / "safety.py"
 spec = importlib.util.spec_from_file_location("safety", SOURCE)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

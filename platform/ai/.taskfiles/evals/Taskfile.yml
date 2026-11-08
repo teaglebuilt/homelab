@@ -4,9 +4,12 @@ version: "3"
 vars:
   EVAL_NAMESPACE: '{{.EVAL_NAMESPACE | default "ai"}}'
   # A2A via HTTPRoute: ai.homelab.internal/api → kagent-controller (strips /api).
-  # Override with KAGENT_ENDPOINT=http://localhost:8083 if using port-forward.
-  # Invoke posts to {KAGENT_ENDPOINT}/agents/{EVAL_NAMESPACE}/{AGENT}
   KAGENT_ENDPOINT: '{{.KAGENT_ENDPOINT | default "http://ai.homelab.internal/api"}}'
+  # AgentEvals UI/API (OTLP session export). Distinct from kagent A2A.
+  AGENTEVALS_URL: '{{.AGENTEVALS_URL | default "http://evals.homelab.internal"}}'
+  EXPORT_TIMEOUT_SECS: '{{.EXPORT_TIMEOUT_SECS | default "180"}}'
+  # When false, assert only checks telemetry/metrics exist (smoke), not PASSED.
+  REQUIRE_PASS: '{{.REQUIRE_PASS | default "true"}}'
 
 tasks:
   invoke:
@@ -31,6 +34,36 @@ tasks:
         KAGENT_ENDPOINT='{{.KAGENT_ENDPOINT}}' \
         '{{.TASKFILE_DIR}}/invoke.sh' '{{.AGENT}}' '{{.SUITE}}' '{{.CASE}}'
 
+  export:
+    desc: Poll agentevals for exact session and export OTLP JSON into RUN_DIR
+    vars:
+      RUN_DIR: '{{.RUN_DIR | default ""}}'
+    preconditions:
+      - sh: command -v jq >/dev/null
+        msg: "jq not found on PATH"
+      - sh: command -v curl >/dev/null
+        msg: "curl not found on PATH"
+      - sh: curl -sf --max-time 5 '{{.AGENTEVALS_URL}}/api/health' >/dev/null
+        msg: "AGENTEVALS_URL {{.AGENTEVALS_URL}} not reachable"
+      - sh: |
+          d='{{.RUN_DIR}}'
+          if [ -z "$d" ] && [ -f '{{.ROOT_DIR}}/.eval-runs/last-run-dir' ]; then
+            d=$(cat '{{.ROOT_DIR}}/.eval-runs/last-run-dir')
+          fi
+          test -n "$d" && test -f "$d/session-id"
+        msg: "Need RUN_DIR with session-id (or .eval-runs/last-run-dir from invoke)"
+    cmds:
+      - |
+        RUN_DIR='{{.RUN_DIR}}'
+        if [ -z "$RUN_DIR" ]; then
+          RUN_DIR=$(cat '{{.ROOT_DIR}}/.eval-runs/last-run-dir')
+        fi
+        ROOT_DIR='{{.ROOT_DIR}}' \
+        SUITE='{{.SUITE}}' \
+        AGENTEVALS_URL='{{.AGENTEVALS_URL}}' \
+        TIMEOUT_SECS='{{.EXPORT_TIMEOUT_SECS}}' \
+        '{{.TASKFILE_DIR}}/export-trace.sh' "$RUN_DIR"
+
   score:
     desc: Score a captured OTLP trace file with agentevals
     requires:
@@ -44,7 +77,91 @@ tasks:
         msg: "Eval set missing: platform/ai/agents/{{.SUITE}}/evals/eval_set.json"
     cmds:
       - |
-        agentevals run '{{.TRACE}}' \
-          --eval-set '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_set.json' \
-          --config '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_config.yaml' \
-          --output json
+        out_dir=$(dirname '{{.TRACE}}')
+        score_out="${out_dir}/score.json"
+        # Run from the suite evals dir so relative evaluator paths resolve.
+        (
+          cd '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals'
+          agentevals run '{{.TRACE}}' \
+            --eval-set './eval_set.json' \
+            --config './eval_config.yaml' \
+            --output json
+        ) | tee "$score_out"
+        echo "Score: $score_out"
+
+  assert:
+    desc: Fail-closed check of score.json (telemetry + optional PASSED)
+    vars:
+      SCORE: '{{.SCORE | default ""}}'
+    preconditions:
+      - sh: command -v jq >/dev/null
+        msg: "jq not found on PATH"
+      - sh: |
+          s='{{.SCORE}}'
+          if [ -z "$s" ] && [ -f '{{.ROOT_DIR}}/.eval-runs/last-run-dir' ]; then
+            s="$(cat '{{.ROOT_DIR}}/.eval-runs/last-run-dir')/score.json"
+          fi
+          test -n "$s" && test -f "$s"
+        msg: "Need SCORE path (or last-run-dir/score.json)"
+    cmds:
+      - |
+        SCORE='{{.SCORE}}'
+        if [ -z "$SCORE" ]; then
+          SCORE="$(cat '{{.ROOT_DIR}}/.eval-runs/last-run-dir')/score.json"
+        fi
+        REQUIRE_PASS='{{.REQUIRE_PASS}}' '{{.TASKFILE_DIR}}/assert-score.sh' "$SCORE"
+
+  run:
+    desc: invoke → export → score → assert for one case
+    requires:
+      vars: [AGENT, SUITE, CASE]
+    vars:
+      RUN_DIR:
+        sh: 'cat "{{.ROOT_DIR}}/.eval-runs/last-run-dir" 2>/dev/null || true'
+    cmds:
+      - task: invoke
+        vars:
+          AGENT: '{{.AGENT}}'
+          SUITE: '{{.SUITE}}'
+          CASE: '{{.CASE}}'
+      - task: export
+        vars:
+          SUITE: '{{.SUITE}}'
+      - task: score
+        vars:
+          SUITE: '{{.SUITE}}'
+          TRACE:
+            sh: 'echo "$(cat "{{.ROOT_DIR}}/.eval-runs/last-run-dir")/trace.otlp.json"'
+      - task: assert
+        vars:
+          REQUIRE_PASS: '{{.REQUIRE_PASS}}'
+
+  offline:
+    desc: Re-grade an existing OTLP trace without invoking the agent
+    requires:
+      vars: [SUITE, TRACE]
+    cmds:
+      - task: score
+        vars:
+          SUITE: '{{.SUITE}}'
+          TRACE: '{{.TRACE}}'
+      - |
+        SCORE="$(dirname '{{.TRACE}}')/score.json"
+        REQUIRE_PASS='{{.REQUIRE_PASS}}' '{{.TASKFILE_DIR}}/assert-score.sh' "$SCORE"
+
+  all:
+    desc: Run every eval_id in a suite (fresh session per case)
+    requires:
+      vars: [AGENT, SUITE]
+    cmds:
+      - |
+        set -euo pipefail
+        eval_set='{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_set.json'
+        while IFS= read -r case_id; do
+          echo "=== CASE ${case_id} ==="
+          task evals:run \
+            AGENT='{{.AGENT}}' \
+            SUITE='{{.SUITE}}' \
+            CASE="$case_id" \
+            REQUIRE_PASS='{{.REQUIRE_PASS}}'
+        done < <(jq -r '.eval_cases[].eval_id' "$eval_set")

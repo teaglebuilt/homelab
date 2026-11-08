@@ -15,6 +15,11 @@ spec:
     memory:
       modelConfigRef:
         name: openai-embeddings
+  # Prompts/replies on generate_content spans for agentevals graders.
+  # Overrides config.runtimeDefaults.telemetry.captureContent for this harness.
+  env:
+    - name: OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
+      value: SPAN_ONLY
   workload:
     image: ghcr.io/kagent-dev/kagent/golang-adk@sha256:2240ef5d46b71b4850d072d40f34a5f778e9342cc97df34a635b594540ec62af
   substrate:
