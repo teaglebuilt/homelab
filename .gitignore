@@ -24,6 +24,8 @@ override.tf.json
 *_override.tf.json
 env
 .venv
+.venv-evals
+.eval-runs
 terraform.tfvars
 .task
 generated
@@ -49,7 +51,3 @@ site/
 
 # Private files (only committed on private branch)
 **/private/
-.envrc
-
-.eval-runs
-.venv-evals
