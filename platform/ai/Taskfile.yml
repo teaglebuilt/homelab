@@ -6,7 +6,7 @@ includes:
     taskfile: .taskfiles/evals/Taskfile.yml
 
 vars:
-  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone
   AI_NAMESPACE: ai
   AGENTGATEWAY_VERSION: v1.6.0
 
@@ -121,23 +121,6 @@ tasks:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
 
-  deploy-sre-team:
-    dir: ai
-    desc: Install the SRE agent team chart (root sre-agent + specialist subagents)
-    vars:
-      CLUSTER: '{{.CLUSTER | default "mlops"}}'
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
-      PLUGIN_OCI: '{{.PLUGIN_OCI | default ""}}'
-    cmds:
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install sre-team \
-          '{{.TASKFILE_DIR}}/agents/sre-team/chart' \
-          --namespace '{{.AI_NAMESPACE}}' \
-          {{if .PLUGIN_OCI}}--set 'plugin.oci={{.PLUGIN_OCI}}'{{end}}
-      - |-
-        KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl get agent sre-agent -n '{{.AI_NAMESPACE}}' \
-          -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.reason}{"\n"}{end}'
-
   destroy:
     dir: ai
     requires:
@@ -248,11 +231,89 @@ tasks:
         digest="$(docker buildx imagetools inspect '{{.REGISTRY}}/agent-plugin-{{.PLUGIN}}:{{.TAG}}' --format '{{"{{"}}.Manifest.Digest{{"}}"}}')"
         echo "oci: {{.REGISTRY}}/agent-plugin-{{.PLUGIN}}@${digest}"
 
-  debug-agent:
+  push-chart:
+    desc: |
+      Package an agent Helm chart and push to GHCR OCI.
+      Usage: task platform:ai:push-chart AGENT=solutions-architect
+      Then pin the same Chart.yaml version in kubernetes/agents/kustomization.yaml.
+    requires:
+      vars: [AGENT]
+    vars:
+      CHART_DIR: '{{.TASKFILE_DIR}}/agents/{{.AGENT}}/chart'
+      OCI_REGISTRY: '{{.OCI_REGISTRY | default "oci://ghcr.io/teaglebuilt/charts"}}'
+    preconditions:
+      - sh: command -v helm >/dev/null
+        msg: helm not found on PATH
+      - sh: test -f '{{.CHART_DIR}}/Chart.yaml'
+        msg: Chart not found at agents/{{.AGENT}}/chart/Chart.yaml
     cmds:
-      - kubectl get agent workflow-builder-agent -n ai -o jsonpath='{range .status.conditions[?(@.type=="Ready")]}{.status} {.reason} {.message}{end}'
-      - export WORKER_POOL=$(kubectl get harness kagent -n ai -o jsonpath='{.spec.substrate.workerPoolRef.name}')
-      - kubectl logs -n ai -l ate.dev/worker-pool=$WORKER_POOL --tail=200
+      - |
+        set -euo pipefail
+        chart='{{.CHART_DIR}}'
+        name="$(awk '/^name:/{print $2; exit}' "$chart/Chart.yaml")"
+        ver="$(awk '/^version:/{print $2; exit}' "$chart/Chart.yaml")"
+        out="$(mktemp -d)"
+        trap 'rm -rf "$out"' EXIT
+        token="${GITHUB_TOKEN:-${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}}"
+        if [ -z "${token}" ]; then
+          echo "gh auth token (or GITHUB_TOKEN) required to push to GHCR" >&2
+          exit 1
+        fi
+        echo "$token" | helm registry login ghcr.io -u teaglebuilt --password-stdin
+        helm package "$chart" -d "$out"
+        helm push "$out/${name}-${ver}.tgz" '{{.OCI_REGISTRY}}'
+        echo "published {{.OCI_REGISTRY}}/${name}:${ver}"
+        echo "Pin in kubernetes/agents/kustomization.yaml: name=${name} version=${ver}"
+
+  debug-agent:
+    desc: |
+      Print Agent conditions and substrate worker + controller logs.
+      Usage: task platform:ai:debug-agent AGENT=solutions-architect
+    requires:
+      vars: [AGENT]
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      AI_NAMESPACE: '{{.AI_NAMESPACE | default "ai"}}'
+      TAIL: '{{.TAIL | default "200"}}'
+    preconditions:
+      - sh: test -f '{{.KUBECONFIG_FILE}}'
+        msg: "kubeconfig not found: {{.KUBECONFIG_FILE}}"
+    cmds:
+      - |
+        set -euo pipefail
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        ns='{{.AI_NAMESPACE}}'
+        agent='{{.AGENT}}'
+        tail_n='{{.TAIL}}'
+
+        echo "=== Agent {{.AGENT}} conditions ==="
+        kubectl -n "$ns" get agent "$agent" -o jsonpath='{range .status.conditions[*]}{.type}={.status} reason={.reason} msg={.message}{"\n"}{end}'
+        echo
+
+        harness="$(kubectl -n "$ns" get agent "$agent" -o jsonpath='{.spec.harnessRef.name}')"
+        if [ -z "$harness" ]; then
+          echo "Agent has no harnessRef.name" >&2
+          exit 1
+        fi
+        worker_pool="$(kubectl -n "$ns" get harness "$harness" -o jsonpath='{.spec.substrate.workerPoolRef.name}')"
+        if [ -z "$worker_pool" ]; then
+          echo "Harness $harness has no substrate.workerPoolRef.name" >&2
+          exit 1
+        fi
+
+        echo "=== Harness=${harness} WorkerPool=${worker_pool} pods ==="
+        kubectl -n "$ns" get pods -l "ate.dev/worker-pool=${worker_pool}" -o wide
+        echo
+
+        echo "=== Worker logs (ate.dev/worker-pool=${worker_pool}, last ${tail_n}) ==="
+        kubectl -n "$ns" logs -l "ate.dev/worker-pool=${worker_pool}" --tail="$tail_n" --prefix=true \
+          | grep -iE "${agent}|golden|crash|error|fail|panic" || true
+        echo
+
+        echo "=== kagent-controller logs (filtered, last ${tail_n}) ==="
+        kubectl -n "$ns" logs deploy/kagent-controller --tail="$tail_n" \
+          | grep -iE "${agent}|Golden|ActorTemplate|crash|error" || true
 
   evaluate:
     desc: |

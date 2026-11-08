@@ -3,11 +3,11 @@
 ## Kubernetes
 
 - [ ] - Complete Cluster Operations
-  - [X] - [Move non ML Workloads to application cluster like data namespace](./stories/workload-reallocation.md)
+  - [x] - [Move non ML Workloads to application cluster like data namespace](./stories/workload-reallocation.md)
   - [ ] - [Provisioning Secrets & Parameters Management](./stories/secrets-management.md)
   - [ ] - Create administration cluster for gitops (ArgoCD)
 - [ ] - Complete Cluster Operational Reliability
-  - [ ] - [Stabilize GPU Workloads](./stories/gpu-hardware-reliability.md)
+  - [x] - [Stabilize GPU Workloads](./stories/gpu-hardware-reliability.md)
 - [ ] - Observability
   - [ ] - GPU Hardware Observability
   - [ ] - AI Gateway Observability
@@ -15,20 +15,19 @@
   - [ ] - Cluster Observability
   - [ ] - Network Observability
 - [ ] - Build AI Platform
-  - [X] - AI Gateway
-  - [X] - AI Agents
-  - [X] - MCP
-    - [X] - Setup MCP Gateway
-    - [X] - Setup MCP Federation
+  - [x] - AI Gateway
+  - [x] - AI Agents
+  - [x] - MCP
+    - [x] - Setup MCP Gateway
+    - [x] - Setup MCP Federation
   - [ ] - RAG
-    - [X] Knowledge Vector Storage
+    - [x] Knowledge Vector Storage
     - [ ] Knowledge Retrievel
   - [ ] - Agent Execution Sandbox
   - [ ] - [Agent Desktop](./stories/agent-desktop-integration.md)
-  - [ ] - [Agent Evals](./stories/agentevaluations.md)
+  - [x] - [Agent Evals](./stories/agentevaluations.md)
   - [ ] - [Agent Improvement Loop](./stories/improvement-loop.md)
   - [ ] - [Agent Task Management](./stories/task-framework.md)
-  - [ ] - Add more GPU
   - [ ] - setup llmd for multi gpu support for inference https://llm-d.ai/docs/infrastructure/gateway/agentgateway
 - [ ] - Build Software Factory
 - [ ] - Build Scraping Platform

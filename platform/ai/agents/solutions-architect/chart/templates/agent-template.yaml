@@ -87,7 +87,7 @@ spec:
     - mcp:
         server:
           kind: RemoteMCPServer
-          name: kagent-tools
+          name: kagent-tool-server
         tools:
           - k8s_get_resources
           - k8s_describe_resource

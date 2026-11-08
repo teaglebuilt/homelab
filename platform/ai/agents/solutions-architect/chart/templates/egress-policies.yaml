@@ -3,7 +3,8 @@ apiVersion: api.kagent.dev/v1alpha3
 kind: EgressPolicy
 metadata:
   name: solutions-architect-agent-github
-  namespace: ai
+  namespace: {{ .Release.Namespace }}
 spec:
   destinations:
     - origin: https://github.com
+    - origin: https://api.githubcopilot.com

@@ -3,7 +3,7 @@ apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
 metadata:
   name: solutions-architect
-  namespace: ai
+  namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: solutions-architect
     app.kubernetes.io/part-of: homelab

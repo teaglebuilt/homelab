@@ -151,14 +151,6 @@ helmCharts:
           autoMigrate: true
           bundled:
             enabled: false
-      # extraVolumes:
-      #   - name: postgres-connection
-      #     secret:
-      #       secretName: agentevals-postgres
-      # extraVolumeMounts:
-      #   - name: postgres-connection
-      #     mountPath: /etc/agentevals/db
-      #     readOnly: true
       env:
         - name: AGENTEVALS_EVALUATION_EVENTS
           value: "true"

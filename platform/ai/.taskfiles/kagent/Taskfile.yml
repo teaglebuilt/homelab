@@ -5,3 +5,20 @@ tasks:
   install:
     cmds:
       - curl https://raw.githubusercontent.com/kagent-dev/kagent/refs/heads/main/scripts/get-kagent | bash -s -- --version v1.0.0-alpha16
+
+  debug-agent:
+    desc: |
+      Print Agent conditions and substrate worker + controller logs.
+      Usage: task platform:ai:debug-agent AGENT=solutions-architect
+    requires:
+      vars: [AGENT]
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      AI_NAMESPACE: '{{.AI_NAMESPACE | default "ai"}}'
+      TAIL: '{{.TAIL | default "200"}}'
+    preconditions:
+      - sh: test -f '{{.KUBECONFIG_FILE}}'
+        msg: "kubeconfig not found: {{.KUBECONFIG_FILE}}"
+    cmds:
+      - '{{.TASKFILE_DIR}}/debug-agent.sh'
