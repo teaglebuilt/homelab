@@ -50,3 +50,5 @@ site/
 # Private files (only committed on private branch)
 **/private/
 .envrc
+
+.eval-runs

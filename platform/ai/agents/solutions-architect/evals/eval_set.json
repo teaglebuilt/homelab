@@ -28,6 +28,33 @@
           }
         }
       ]
+    },
+    {
+      "eval_id": "architecture-knowledge-search",
+      "conversation": [
+        {
+          "invocation_id": "inv-1",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Explain our Qdrant architecture using the knowledge tree."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "kb_search",
+                "args": {
+                  "query": "Qdrant architecture"
+                },
+                "id": "expected-1"
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }
