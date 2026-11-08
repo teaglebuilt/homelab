@@ -1,0 +1,33 @@
+{
+ "eval_set_id": "solutions-architect",
+ "eval_cases": [
+   {
+     "eval_id": "qdrant-architecture",
+     "conversation": [
+       {
+         "invocation_id": "qdrant-001",
+         "user_content": {
+           "role": "user",
+           "parts": [
+             {
+               "text": "Use kb_search with query 'Qdrant architecture' and k=8. Explain our current architecture, cite source paths, and do not modify resources."
+             }
+           ]
+         },
+         "intermediate_data": {
+           "tool_uses": [
+             {
+               "name": "kb_search",
+               "args": {
+                 "query": "Qdrant architecture",
+                 "k": 8
+               },
+               "id": "expected-search"
+             }
+           ]
+         }
+       }
+     ]
+   }
+ ]
+}

@@ -1,6 +1,10 @@
 ---
 version: 3
 
+includes:
+  evals:
+    taskfile: .taskfiles/evals/Taskfile.yml
+
 vars:
   KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
   AI_NAMESPACE: ai
@@ -249,3 +253,30 @@ tasks:
       - kubectl get agent workflow-builder-agent -n ai -o jsonpath='{range .status.conditions[?(@.type=="Ready")]}{.status} {.reason} {.message}{end}'
       - export WORKER_POOL=$(kubectl get harness kagent -n ai -o jsonpath='{.spec.substrate.workerPoolRef.name}')
       - kubectl logs -n ai -l ate.dev/worker-pool=$WORKER_POOL --tail=200
+
+  evaluate:
+    desc: |
+      Full eval loop: A2A invoke → agentevals OTLP export → score → assert.
+      Usage: task platform:ai:evaluate -- <agent> <suite> <case>
+      Example: task platform:ai:evaluate -- solutions-architect solutions-architect qdrant-architecture
+      Smoke (telemetry only): REQUIRE_PASS=false task platform:ai:evaluate -- ...
+    vars:
+      AGENT:
+        sh: 'if [ -n "{{.CLI_ARGS}}" ]; then set -- {{.CLI_ARGS}}; echo "$1"; else echo "{{.AGENT}}"; fi'
+      SUITE:
+        sh: 'if [ -n "{{.CLI_ARGS}}" ]; then set -- {{.CLI_ARGS}}; echo "$2"; else echo "{{.SUITE}}"; fi'
+      CASE:
+        sh: 'if [ -n "{{.CLI_ARGS}}" ]; then set -- {{.CLI_ARGS}}; echo "$3"; else echo "{{.CASE}}"; fi'
+      REQUIRE_PASS: '{{.REQUIRE_PASS | default "true"}}'
+    preconditions:
+      - sh: '[ -n "{{.AGENT}}" ] && [ -n "{{.SUITE}}" ] && [ -n "{{.CASE}}" ]'
+        msg: "Need AGENT, SUITE, and CASE. Example: task platform:ai:evaluate -- solutions-architect solutions-architect qdrant-architecture"
+      - sh: test -f '{{.ROOT_DIR}}/platform/ai/agents/{{.SUITE}}/evals/eval_set.json'
+        msg: "Eval set missing: platform/ai/agents/{{.SUITE}}/evals/eval_set.json"
+    cmds:
+      - task: evals:run
+        vars:
+          AGENT: '{{.AGENT}}'
+          SUITE: '{{.SUITE}}'
+          CASE: '{{.CASE}}'
+          REQUIRE_PASS: '{{.REQUIRE_PASS}}'

@@ -1,0 +1,7 @@
+---
+version: 3
+
+tasks:
+  install:
+    cmds:
+      - curl https://raw.githubusercontent.com/kagent-dev/kagent/refs/heads/main/scripts/get-kagent | bash -s -- --version v1.0.0-alpha16

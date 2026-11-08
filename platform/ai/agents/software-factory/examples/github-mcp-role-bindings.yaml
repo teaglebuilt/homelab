@@ -1,0 +1,24 @@
+# EXAMPLE TOOL BINDINGS ONLY. Merge these into role entries in values.yaml.
+# PREREQUISITE: a RemoteMCPServer named repo-github-read and repo-github-write
+# must exist in namespace ai. Existing kind MCPServer is NOT interchangeable.
+# Verify discovered tool names against YOUR server. Fine-grained GitHub App
+# credentials must independently restrict access to the target repository.
+#
+# roles:
+#   developer:
+#     toolBindings:
+#       - serverName: repo-github-read
+#         tools: [get_file_contents, search_code, get_pull_request]
+#       - serverName: repo-github-write
+#         tools: [create_branch, push_files, create_pull_request]
+#         requireApproval: true
+#   reviewer:
+#     toolBindings:
+#       - serverName: repo-github-read
+#         tools: [get_file_contents, get_pull_request, get_pull_request_files]
+#   tester:
+#     toolBindings:
+#       - serverName: repo-ci-read
+#         tools: [get_job_logs]
+#
+# These names are illustrative; discovery is mandatory before installation.

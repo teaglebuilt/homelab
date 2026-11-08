@@ -7,7 +7,8 @@ metadata:
     app.kubernetes.io/name: kagent-postgres-setup
     app.kubernetes.io/part-of: homelab
   annotations:
-    homelab.teaglebuilt/kagent-postgres-version: v1.0.0-alpha16-1
+    # Bump when SQL or secret wiring changes so GitOps recreates the Job.
+    homelab.teaglebuilt/kagent-postgres-version: v1.0.0-alpha16-2-agentevals
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 6
@@ -93,7 +94,24 @@ spec:
               make_conn_secret kagent-postgres-owner \
                 ownerConnectionString kagent_owner_user "$owner_pw"
 
-              echo "kagent postgres setup complete"
+              # AgentEvals run-history (storage.backend=postgres). Same instance,
+              # dedicated schema+login. Secret key "url" matches urlFile mount.
+              agentevals_user=agentevals_user
+              agentevals_schema=agentevals
+              agentevals_pw="$(password_for agentevals-postgres)"
+              psql_exec \
+                --set=agentevals_user="${agentevals_user}" \
+                --set="agentevals_password=${agentevals_pw}" \
+                --set=agentevals_schema="${agentevals_schema}" \
+                < /sql/setup-agentevals.sql
+
+              # Schema selection comes from AGENTEVALS_DATABASE_SCHEMA + role search_path.
+              kubectl -n "$NS" create secret generic agentevals-postgres \
+                --from-literal="url=postgresql://${agentevals_user}:${agentevals_pw}@kagent-postgresql.${NS}.svc:5432/kagent?sslmode=disable" \
+                --from-literal="password=${agentevals_pw}" \
+                --dry-run=client -o yaml | kubectl apply -f -
+
+              echo "kagent + agentevals postgres setup complete"
           volumeMounts:
             - name: sql
               mountPath: /sql

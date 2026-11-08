@@ -1,18 +1,17 @@
 ---
-apiVersion: kagent.dev/v1alpha1
-kind: MCPServer
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
 metadata:
-  name: github-mcp-server
+  name: github-mcp
   namespace: ai
-  labels:
-    app: github-mcp-server
 spec:
-  deployment:
-    args:
-    - 'stdio'
-    cmd: "/server/github-mcp-server"
-    image: ghcr.io/github/github-mcp-server
-    port: 3000
-    env:
-      GITHUB_PERSONAL_ACCESS_TOKEN: "REPLACED_BY_KUSTOMIZE"
-  transportType: stdio
+  description: "GitHub MCP (Copilot remote): repos, issues, PRs, code search"
+  protocol: STREAMABLE_HTTP
+  url: https://api.githubcopilot.com/mcp/
+  timeout: 120s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: mcp-secrets
+        key: GITHUB_PERSONAL_ACCESS_TOKEN

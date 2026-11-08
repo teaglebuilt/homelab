@@ -25,6 +25,9 @@
     - [ ] Knowledge Retrievel
   - [ ] - Agent Execution Sandbox
   - [ ] - [Agent Desktop](./stories/agent-desktop-integration.md)
+  - [ ] - [Agent Evals](./stories/agentevaluations.md)
+  - [ ] - [Agent Improvement Loop](./stories/improvement-loop.md)
+  - [ ] - [Agent Task Management](./stories/task-framework.md)
   - [ ] - Add more GPU
   - [ ] - setup llmd for multi gpu support for inference https://llm-d.ai/docs/infrastructure/gateway/agentgateway
 - [ ] - Build Software Factory

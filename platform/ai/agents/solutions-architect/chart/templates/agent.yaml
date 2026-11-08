@@ -1,0 +1,17 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: solutions-architect
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: solutions-architect
+    app.kubernetes.io/part-of: homelab
+spec:
+  template:
+    ref:
+      name: solutions-architect
+  harnessRef:
+    name: kagent
+  egressPolicyRefs:
+    - name: solutions-architect-agent-github

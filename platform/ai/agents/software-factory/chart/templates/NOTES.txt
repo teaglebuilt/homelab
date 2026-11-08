@@ -1,0 +1,18 @@
+Created repo-scoped kagent agents for {{ .Values.repository.owner }}/{{ .Values.repository.name }}.
+
+Agents:
+{{- range $roleName, $role := .Values.roles }}
+{{- if $role.enabled }}
+  - {{ include "software-factory.fullname" (dict "release" $.Release.Name "role" $roleName) }}
+{{- end }}
+{{- end }}
+
+Check:
+  kubectl get agenttemplate,agent -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+kagent A2A endpoints (via YOUR kagent controller base URL):
+  /agents/{{ .Release.Namespace }}/<agent-name>
+
+WARNING: This chart creates agent definitions; the developer cannot edit code
+until you bind a repo-scoped Git/checkout MCP server and approve writes.
+Pipeline orchestration, CI execution and approval gates are external.

@@ -1,0 +1,88 @@
+# Install one Helm release per repository into the SAME namespace as your shared
+# Harness/ModelConfigs (usually ai). Releases are logical scope, not security isolation.
+repository:
+  owner: ""
+  name: ""
+  defaultBranch: main
+  description: ""
+  instructions: "" # repo-specific tech stack, test commands, conventions
+
+defaults:
+  modelConfig: llmd-vllm-config
+  harnessRef: kagent
+  extraInstructions: ""
+
+# The chart NEVER installs the controller, Harness, ModelConfigs, credentials,
+# GitHub MCP service, or an orchestration engine. It references existing ones.
+# Only remote MCP tools selected below can be invoked by each agent.
+roles:
+  architect:
+    enabled: true
+    description: Repository-scoped architecture and design; no code mutations.
+    modelConfig: ""
+    harnessRef: ""
+    toolBindings:
+      - serverName: kb-retrieval
+        tools: [kb_search, kb_get_document]
+      # To inspect code, supply a separate repo-scoped GitHub read MCP binding.
+    extraInstructions: ""
+  developer:
+    enabled: true
+    description: Implement a scoped change on a feature branch and produce a PR.
+    modelConfig: ""
+    harnessRef: ""
+    toolBindings: [] # Configure real Git/repo read+write tools (write requires approval).
+    extraInstructions: ""
+  reviewer:
+    enabled: true
+    description: Independent diff-first review and severity-ranked findings.
+    modelConfig: ""
+    harnessRef: ""
+    toolBindings: [] # Configure real repo/PR read-only tools.
+    extraInstructions: ""
+  tester:
+    enabled: true
+    description: Test design, test execution and CI evidence verification.
+    modelConfig: ""
+    harnessRef: ""
+    toolBindings: [] # Configure real CI/log/test runner tools.
+    extraInstructions: ""
+  security:
+    enabled: false
+    description: Threat modeling and security analysis; read-only.
+    modelConfig: ""
+    harnessRef: ""
+    toolBindings: []
+    extraInstructions: ""
+  release:
+    enabled: false
+    description: Release readiness and rollback planning; no autonomous deployment.
+    modelConfig: ""
+    harnessRef: ""
+    toolBindings: []
+    extraInstructions: ""
+
+# Optional conversational *handoff* router; NOT a sequential orchestrator.
+router:
+  enabled: false
+  modelConfig: ""
+  harnessRef: ""
+  name: router
+
+# Optional pinned Git-backed Agent Plugins bundle shipped under plugin/ in this package.
+# First publish the bundle to your Git repo and set a full commit SHA.
+plugin:
+  enabled: false
+  url: ""
+  commit: ""
+  path: plugins/software-factory
+  roleSkills:
+    architect: [architecture-design]
+    developer: [implement-change]
+    reviewer: [review-change]
+    tester: [test-change]
+    security: [security-assessment]
+    release: [release-plan]
+
+# NOTE: only tool names actually discovered in the selected RemoteMCPServer
+# should be used. If an MCP server is not ready / not permitted, the role fails.

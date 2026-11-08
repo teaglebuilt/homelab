@@ -1,0 +1,32 @@
+[project]
+name = "platform-ai"
+version = "0.1.0"
+description = "uv workspace root for on prem ai platform"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "agentevals-cli",
+]
+
+[tool.uv]
+package = false
+default-groups = ["dev"]
+index-strategy = "first-index"
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true
+
+# [[tool.uv.index]]
+# name = "private-registry"
+# url = ""
+# explicit = true
+
+[dependency-groups]
+dev = [
+    "agentevals-evaluator-sdk",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.9",
+    "mypy>=1.14",
+]
