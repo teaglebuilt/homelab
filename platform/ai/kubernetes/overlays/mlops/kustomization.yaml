@@ -151,14 +151,14 @@ helmCharts:
           autoMigrate: true
           bundled:
             enabled: false
-      extraVolumes:
-        - name: postgres-connection
-          secret:
-            secretName: agentevals-postgres
-      extraVolumeMounts:
-        - name: postgres-connection
-          mountPath: /etc/agentevals/db
-          readOnly: true
+      # extraVolumes:
+      #   - name: postgres-connection
+      #     secret:
+      #       secretName: agentevals-postgres
+      # extraVolumeMounts:
+      #   - name: postgres-connection
+      #     mountPath: /etc/agentevals/db
+      #     readOnly: true
       env:
         - name: AGENTEVALS_EVALUATION_EVENTS
           value: "true"
@@ -166,10 +166,6 @@ helmCharts:
           value: http://otel-agent-collector.observability.svc.cluster.local:4318
         - name: OTEL_SERVICE_NAME
           value: agentevals
-        # - name: AGENTEVALS_STORAGE_BACKEND
-        #   value: postgres
-        # - name: AGENTEVALS_DATABASE_URL
-        #   value: ""
 patches:
   - target:
       group: api.kagent.dev

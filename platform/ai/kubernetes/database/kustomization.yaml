@@ -13,6 +13,7 @@ configMapGenerator:
     files:
       - setup.sql
       - setup-extensions.sql
+      - setup-agentevals.sql
 generatorOptions:
   # Job pod specs are immutable; a hashed name would change the volume ref.
   disableNameSuffixHash: true
