@@ -1,3 +1,4 @@
+
 {
   "eval_set_id": "solutions-architect",
   "eval_cases": [
@@ -51,6 +52,78 @@
                   "query": "Qdrant architecture"
                 },
                 "id": "expected-1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "documentation-agent-grounded-architecture",
+      "conversation": [
+        {
+          "invocation_id": "documentation-agent-grounded-architecture-001",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "how can we build a documentation agent that can collect all docs from any documentation source and ingest into our knowledge db.\n\nhttps://kagent.dev/docs/kagent/latest/examples/documentation-agent/\nhttps://github.com/teaglebuilt/knowledge-tree/tree/master/kb/mcp_retrieval\nhttps://github.com/teaglebuilt/homelab/blob/main/platform/ai/kubernetes/agents/scraping-service-agent.yaml"
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "kb_search",
+                "args": {
+                  "query": "documentation ingestion knowledge-tree architecture",
+                  "k": 8
+                },
+                "id": "expected-kb-search"
+              },
+              {
+                "name": "search_code",
+                "args": {
+                  "query": "repo:teaglebuilt/knowledge-tree kb/mcp_retrieval"
+                },
+                "id": "expected-github-search-knowledge-tree"
+              },
+              {
+                "name": "search_code",
+                "args": {
+                  "query": "repo:teaglebuilt/homelab scraping-service-agent"
+                },
+                "id": "expected-github-search-homelab"
+              },
+              {
+                "name": "get_file_contents",
+                "args": {
+                  "owner": "teaglebuilt",
+                  "repo": "knowledge-tree",
+                  "path": "kb/mcp_retrieval/server.py",
+                  "ref": "master"
+                },
+                "id": "expected-read-retrieval-server"
+              },
+              {
+                "name": "get_file_contents",
+                "args": {
+                  "owner": "teaglebuilt",
+                  "repo": "knowledge-tree",
+                  "path": "kb/mcp_retrieval/service.py",
+                  "ref": "master"
+                },
+                "id": "expected-read-retrieval-service"
+              },
+              {
+                "name": "get_file_contents",
+                "args": {
+                  "owner": "teaglebuilt",
+                  "repo": "homelab",
+                  "path": "platform/ai/kubernetes/agents/scraping-service-agent.yaml",
+                  "ref": "main"
+                },
+                "id": "expected-read-scraping-agent"
               }
             ]
           }

@@ -6,6 +6,14 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   destinations:
+    # External
     - origin: https://github.com
     - origin: https://api.github.com
     - origin: https://api.githubcopilot.com
+    # Cluster MCP (short + FQDN; inferred policy alone is not reaching actors)
+    - origin: http://kagent-tools.ai:8084
+    - origin: http://kagent-tools.ai.svc.cluster.local:8084
+    - origin: http://kb-retrieval.ai.svc.cluster.local:3000
+    - origin: http://firecrawl-mcp.automation.svc.cluster.local:3000
+    # Model endpoint used by llmd-vllm-config
+    - origin: http://vllm-selfhosted.ai.svc.cluster.local:8000
