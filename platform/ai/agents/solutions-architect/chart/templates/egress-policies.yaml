@@ -7,4 +7,5 @@ metadata:
 spec:
   destinations:
     - origin: https://github.com
+    - origin: https://api.github.com
     - origin: https://api.githubcopilot.com

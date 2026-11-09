@@ -285,6 +285,10 @@ tasks:
       - task: kagent:debug-agent
         vars:
           AGENT: '{{.AGENT}}'
+          CLUSTER: '{{.CLUSTER}}'
+          KUBECONFIG_FILE: '{{.KUBECONFIG_FILE}}'
+          AI_NAMESPACE: '{{.AI_NAMESPACE}}'
+          TAIL: '{{.TAIL}}'
 
   evaluate:
     desc: |

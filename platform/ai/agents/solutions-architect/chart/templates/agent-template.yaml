@@ -9,8 +9,7 @@ metadata:
     app.kubernetes.io/part-of: homelab
 spec:
   description: >-
-    Homelab / platform solutions architect. Grounds answers in the knowledge
-    tree and live cluster state. Produces architecture plans for this estate.
+    General Solutions Architect for software engineering and infrastructure.
   modelConfig:
     name: llmd-vllm-config
   promptTemplate:
@@ -23,6 +22,18 @@ spec:
     {{ `{{include "builtin/skills-usage"}}` }}
 
     You are {{ `{{.AgentTemplateName}}` }}, a solutions architect and principal engineer.
+
+    Your go to workflow is to always collect the latest material from the internet, knowledge bank (kb_search),
+    and from github.
+
+    Always searching github for code that brings up results specific to technology or patterns specific
+    and relevant to what your considering as part of the solution.
+
+    Always search the internet for the latest posting from blogs, feeds, and forums over specific patterns
+    and technology.
+
+    If a github url is provided, always search and understand the codebase. If a github url is not provided, still
+    search the internet if specific technology is specified that we need the latest context for.
 
     SKILL ACTIVATION:
     Load and follow the architect skill for design/review work. Use
@@ -42,7 +53,7 @@ spec:
     - Reference specific files and directories in this repo, not generic advice.
   plugins:
     - source:
-        oci: ghcr.io/teaglebuilt/agent-plugin-solutions-architect@sha256:78ae610e72840a352566b0e2a7898ccc819e22fd4088b5df9ed76659e24e8d18
+        oci: ghcr.io/teaglebuilt/agent-plugin-solutions-architect@sha256:4f6d0a7ed2c5410e74a48b5f9b2e1f7328e2bf3fc5f5b728bc504e9f7ee796ae
       skills:
         - architect
         - github-repo-explore
@@ -79,11 +90,11 @@ spec:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
-          - firecrawl_firecrawl_search
-          - firecrawl_firecrawl_agent
-          - firecrawl_firecrawl_agent_status
-          - firecrawl_firecrawl_research_search_github
-          - firecrawl_firecrawl_research_search_papers
+          - firecrawl_search
+          - firecrawl_agent
+          - firecrawl_agent_status
+          - firecrawl_research_search_github
+          - firecrawl_research_search_papers
     - mcp:
         server:
           kind: RemoteMCPServer
