@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: ai
 resources:
   - github.yaml
+  - github-organization.yaml
   - memory.yaml
   - context7.yaml
   - firecrawl.yaml
