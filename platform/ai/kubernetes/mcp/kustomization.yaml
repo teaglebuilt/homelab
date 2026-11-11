@@ -9,6 +9,7 @@ resources:
   - context7.yaml
   - firecrawl.yaml
   - kb-retrieval.yaml
+  - kagent-controller.yaml
   - youtube-transcript.yaml
   - n8n.yaml
   - n8n-mcp-proxy.yaml

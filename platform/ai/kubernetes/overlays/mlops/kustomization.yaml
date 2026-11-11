@@ -158,6 +158,11 @@ helmCharts:
           value: http://otel-agent-collector.observability.svc.cluster.local:4318
         - name: OTEL_SERVICE_NAME
           value: agentevals
+  - name: knowledge-tree
+    repo: ghcr.io/teaglebuilt/charts/knowledge-tree
+    releaseName: knowledge-tree
+    version: 1.0.0
+    namespace: ai
 patches:
   - target:
       group: api.kagent.dev

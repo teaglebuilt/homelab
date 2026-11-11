@@ -1,0 +1,20 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: kagent-controller
+  namespace: ai
+spec:
+  description: >-
+    kagent controller's own MCP endpoint — lets an agent delegate work to
+    another agent (invoke_agent) and track a long-running delegated task
+    (create_session / get_session) rather than a plain subAgent binding,
+    which hands over the conversation and never returns a result to the
+    caller. Trusts a caller-set user header; not scoped to a specific
+    target agent. Accepted for now on this cluster's internal network —
+    see teaglebuilt/knowledge docs/stories/import-memory.md §15.
+  protocol: STREAMABLE_HTTP
+  url: http://kagent-controller.ai.svc.cluster.local:8083/mcp
+  # invoke_agent blocks until the delegated run finishes; a documentation
+  # run fetches and stores up to 10 docs, so 120s would cut it off.
+  timeout: 600s

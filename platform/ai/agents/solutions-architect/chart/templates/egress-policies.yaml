@@ -13,6 +13,8 @@ spec:
     # Cluster MCP (short + FQDN; inferred policy alone is not reaching actors)
     - origin: http://kagent-tools.ai:8084
     - origin: http://kagent-tools.ai.svc.cluster.local:8084
+    - origin: http://kagent-controller.ai:8083
+    - origin: http://kagent-controller.ai.svc.cluster.local:8083
     - origin: http://kb-retrieval.ai.svc.cluster.local:3000
     - origin: http://firecrawl-mcp.automation.svc.cluster.local:3000
     # Model endpoint used by llmd-vllm-config
