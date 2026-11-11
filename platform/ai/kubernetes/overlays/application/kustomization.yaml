@@ -14,7 +14,7 @@ helmCharts:
   - name: knowledge-tree
     repo: oci://ghcr.io/teaglebuilt/charts
     releaseName: knowledge-tree
-    version: 2.0.1
+    version: 2.0.2
     namespace: ai
     valuesInline:
       image:

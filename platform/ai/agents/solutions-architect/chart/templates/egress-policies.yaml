@@ -13,9 +13,11 @@ spec:
     # Cluster MCP (short + FQDN; inferred policy alone is not reaching actors)
     - origin: http://kagent-tools.ai:8084
     - origin: http://kagent-tools.ai.svc.cluster.local:8084
-    - origin: http://kagent-controller.ai:8083
-    - origin: http://kagent-controller.ai.svc.cluster.local:8083
     - origin: http://kb-retrieval.ai.svc.cluster.local:3000
     - origin: http://firecrawl-mcp.automation.svc.cluster.local:3000
+    # documentation subAgent runs in this Agent's sandbox, so its
+    # destinations must be granted here (mirrors knowledge-tree docsAgent.egressOrigins)
+    - origin: http://kb-ingest.ai.svc.cluster.local:3000
+    - origin: https://mcp.context7.com
     # Model endpoint used by llmd-vllm-config
     - origin: http://vllm-selfhosted.ai.svc.cluster.local:8000
