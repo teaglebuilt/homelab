@@ -159,10 +159,15 @@ helmCharts:
         - name: OTEL_SERVICE_NAME
           value: agentevals
   - name: knowledge-tree
-    repo: ghcr.io/teaglebuilt/charts/knowledge-tree
+    repo: oci://ghcr.io/teaglebuilt/charts
     releaseName: knowledge-tree
-    version: 1.0.0
+    version: 2.0.1
     namespace: ai
+    valuesInline:
+      image:
+        tag: 0.4.0
+      knowledgeScoutAgent:
+        enabled: false
 patches:
   - target:
       group: api.kagent.dev

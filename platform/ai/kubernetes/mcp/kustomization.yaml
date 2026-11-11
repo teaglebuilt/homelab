@@ -8,7 +8,6 @@ resources:
   - memory.yaml
   - context7.yaml
   - firecrawl.yaml
-  - kb-retrieval.yaml
   - kagent-controller.yaml
   - youtube-transcript.yaml
   - n8n.yaml
