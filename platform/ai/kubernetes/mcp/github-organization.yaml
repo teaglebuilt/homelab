@@ -1,0 +1,17 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: github-organization-mcp
+  namespace: ai
+spec:
+  description: "github mcp tools for organization"
+  protocol: STREAMABLE_HTTP
+  url: https://api.githubcopilot.com/mcp/
+  timeout: 120s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: mcp-secrets
+        key: GITHUB_PAT_ORGANIZATION

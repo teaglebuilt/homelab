@@ -1,13 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Print Agent conditions and substrate worker + controller logs.
+# Invoked by Taskfile with env: KUBECONFIG (or KUBECONFIG_FILE), AGENT, AI_NAMESPACE, TAIL.
 
 set -euo pipefail
 
-export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-ns='{{.AI_NAMESPACE}}'
-agent='{{.AGENT}}'
-tail_n='{{.TAIL}}'
+if [ -n "${KUBECONFIG_FILE:-}" ]; then
+  export KUBECONFIG="$KUBECONFIG_FILE"
+fi
+: "${KUBECONFIG:?KUBECONFIG or KUBECONFIG_FILE required}"
 
-echo "=== Agent {{.AGENT}} conditions ==="
+agent="${AGENT:?AGENT required}"
+ns="${AI_NAMESPACE:-ai}"
+tail_n="${TAIL:-200}"
+
+echo "=== Agent ${agent} conditions ==="
 kubectl -n "$ns" get agent "$agent" -o jsonpath='{range .status.conditions[*]}{.type}={.status} reason={.reason} msg={.message}{"\n"}{end}'
 echo
 

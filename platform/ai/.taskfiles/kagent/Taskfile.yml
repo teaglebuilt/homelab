@@ -21,4 +21,9 @@ tasks:
       - sh: test -f '{{.KUBECONFIG_FILE}}'
         msg: "kubeconfig not found: {{.KUBECONFIG_FILE}}"
     cmds:
-      - '{{.TASKFILE_DIR}}/debug-agent.sh'
+      - |
+        KUBECONFIG_FILE='{{.KUBECONFIG_FILE}}' \
+        AGENT='{{.AGENT}}' \
+        AI_NAMESPACE='{{.AI_NAMESPACE}}' \
+        TAIL='{{.TAIL}}' \
+        '{{.TASKFILE_DIR}}/debug-agent.sh'

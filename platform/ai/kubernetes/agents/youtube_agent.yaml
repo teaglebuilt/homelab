@@ -58,12 +58,13 @@ spec:
         tools:
           - get_timed_transcript
           - get_video_info
+          - ingest_video
     - mcp:
         server:
           kind: RemoteMCPServer
           name: firecrawl
         tools:
-          - firecrawl_firecrawl_search
+          - firecrawl_search
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent

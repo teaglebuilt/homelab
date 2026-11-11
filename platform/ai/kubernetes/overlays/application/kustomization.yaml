@@ -10,3 +10,24 @@ resources:
   - ../../apps/youtube-transcript/mesh
   # Secret only — kb-ingest Deployment is the knowledge-tree Helm release.
   - ../../apps/kb-ingest
+helmCharts:
+  - name: knowledge-tree
+    repo: oci://ghcr.io/teaglebuilt/charts
+    releaseName: knowledge-tree
+    version: 2.0.2
+    namespace: ai
+    valuesInline:
+      image:
+        tag: 0.4.0
+      ingest:
+        enabled: true
+      mcpServer:
+        enabled: false
+      # No kagent on this cluster: both agents default to enabled in the chart.
+      knowledgeScoutAgent:
+        enabled: false
+      docsAgent:
+        enabled: false
+      qdrant:
+        existingSecretEnabled: true
+        existingSecret: qdrant-apikey
