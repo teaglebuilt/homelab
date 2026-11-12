@@ -19,10 +19,18 @@ METADATA_ENABLED = os.environ.get("YT_METADATA", "true").lower() not in {"0", "f
 # The knowledge chunker splits on headings; one heading per interval keeps
 # chunks citeable to a point in the video.
 HEADING_INTERVAL = max(30, int(os.environ.get("YT_HEADING_INTERVAL_SECONDS", "240")))
-KB_INGEST_URL = os.environ.get("KB_INGEST_URL", "http://kb-ingest.ai.svc.cluster.local:3000").rstrip("/")
-KB_INGEST_TOKEN = os.environ.get("KB_INGEST_TOKEN", "").strip()
-KB_INGEST_PATH_PREFIX = os.environ.get("KB_INGEST_PATH_PREFIX", "tree/youtube/")
-KB_INGEST_TIMEOUT = float(os.environ.get("KB_INGEST_TIMEOUT_SECONDS", "300"))
+
+
+def _env(name: str, legacy: str, default: str) -> str:
+    """KB_API_* with the pre-rename KB_INGEST_* name as fallback."""
+    return os.environ.get(name) or os.environ.get(legacy) or default
+
+
+# knowledge-tree kb-api (POST /v1/documents). KB_INGEST_* still read during the rename.
+KB_API_URL = _env("KB_API_URL", "KB_INGEST_URL", "http://kb-api.ai.svc.cluster.local:3000").rstrip("/")
+KB_API_TOKEN = _env("KB_API_WRITE_TOKEN", "KB_INGEST_TOKEN", "").strip()
+KB_PATH_PREFIX = _env("KB_API_PATH_PREFIX", "KB_INGEST_PATH_PREFIX", "tree/youtube/")
+KB_API_TIMEOUT = float(_env("KB_API_TIMEOUT_SECONDS", "KB_INGEST_TIMEOUT_SECONDS", "300"))
 
 VIDEO_ID = Query(None, description="11-character YouTube video id")
 VIDEO_URL = Query(None, description="YouTube URL (watch, youtu.be, shorts, embed); used when video_id is unset")
@@ -206,10 +214,10 @@ def render_markdown(video_id: str, segments: list[dict], meta: dict) -> str:
 
 
 def note_path(video_id: str) -> str:
-    return f"{KB_INGEST_PATH_PREFIX.rstrip('/')}/{video_id}.md"
+    return f"{KB_PATH_PREFIX.rstrip('/')}/{video_id}.md"
 
 
-def post_to_kb_ingest(path: str, markdown: str, source_url: str, force: bool) -> dict:
+def store_document(path: str, markdown: str, source_url: str, force: bool) -> dict:
     body = json.dumps(
         {
             "path": path,
@@ -220,17 +228,17 @@ def post_to_kb_ingest(path: str, markdown: str, source_url: str, force: bool) ->
         }
     ).encode()
     headers = {"content-type": "application/json"}
-    if KB_INGEST_TOKEN:
-        headers["authorization"] = f"Bearer {KB_INGEST_TOKEN}"
+    if KB_API_TOKEN:
+        headers["authorization"] = f"Bearer {KB_API_TOKEN}"
     req = urllib.request.Request(
-        f"{KB_INGEST_URL}/ingest", data=body, headers=headers, method="POST"
+        f"{KB_API_URL}/v1/documents", data=body, headers=headers, method="POST"
     )
     try:
-        with urllib.request.urlopen(req, timeout=KB_INGEST_TIMEOUT) as resp:
+        with urllib.request.urlopen(req, timeout=KB_API_TIMEOUT) as resp:
             return json.loads(resp.read() or b"{}")
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode(errors="replace")[:500]
-        raise RuntimeError(f"kb-ingest returned {exc.code}: {detail}") from exc
+        raise RuntimeError(f"kb-api returned {exc.code}: {detail}") from exc
 
 
 async def _video_id_from(request: Request) -> str:
@@ -296,7 +304,7 @@ async def ingest(
     url: str | None = VIDEO_URL,
     force: bool = Query(False, description="re-embed even if the stored transcript is unchanged"),
 ) -> JSONResponse:
-    """Store a video's full transcript in the knowledge base (Qdrant via kb-ingest).
+    """Store a video's full transcript in the knowledge base (Qdrant via kb-api).
 
     Writes tree/youtube/<video_id>.md. Re-ingesting an unchanged video returns
     `status: unchanged`. `available: false` means no captions; nothing is stored.
@@ -322,9 +330,9 @@ async def ingest(
     path = note_path(video_id)
     url = f"https://www.youtube.com/watch?v={video_id}"
     try:
-        result = await run_in_threadpool(post_to_kb_ingest, path, note, url, force)
+        result = await run_in_threadpool(store_document, path, note, url, force)
     except Exception as exc:
-        log.exception("kb-ingest failed for %s", video_id)
+        log.exception("kb-api store failed for %s", video_id)
         return JSONResponse(
             {"error": "ingest_error", "video_id": video_id, "path": path, "detail": str(exc)},
             status_code=502,
@@ -425,7 +433,7 @@ async def video_info(
 mcp = FastMCP.from_fastapi(
     api,
     name="youtube-transcript",
-    httpx_client_kwargs={"timeout": KB_INGEST_TIMEOUT + 60},
+    httpx_client_kwargs={"timeout": KB_API_TIMEOUT + 60},
 )
 mcp_app = mcp.http_app(path="/mcp")
 

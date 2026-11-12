@@ -37,8 +37,18 @@ spec:
           env:
             - name: YT_LANGUAGES
               value: "en"
+            - name: KB_API_URL
+              value: http://kb-api.ai.svc.cluster.local:3000
+            - name: KB_API_WRITE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: kb-ingest-token
+                  key: KB_INGEST_TOKEN
+                  optional: true
+            # Pre-rename names for image 0.2.1 (posts to kb-api's legacy /ingest
+            # alias). Drop both once an image with KB_API_* support is deployed.
             - name: KB_INGEST_URL
-              value: http://kb-ingest.ai.svc.cluster.local:3000
+              value: http://kb-api.ai.svc.cluster.local:3000
             - name: KB_INGEST_TOKEN
               valueFrom:
                 secretKeyRef:

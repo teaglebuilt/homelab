@@ -8,9 +8,40 @@ resources:
   - ../../base
   - ../../integrations
   - ../../apps/youtube-transcript/mesh
-  # Secret only — kb-ingest Deployment is the knowledge-tree Helm release.
-  - ../../apps/kb-ingest
+  # Secrets only (kb-ingest-token, qdrant-apikey); kb-api itself is the
+  # knowledge-tree-api Helm release below.
+  - ../../apps/kb-api
 helmCharts:
+  # kb-api: /v1 REST + kb-mcp-write at /mcp (knowledge-tree chart 3.x).
+  - name: knowledge-tree
+    repo: oci://ghcr.io/teaglebuilt/charts
+    releaseName: knowledge-tree-api
+    version: 3.0.0
+    namespace: ai
+    valuesInline:
+      image:
+        tag: 0.5.0
+      api:
+        enabled: true
+        auth:
+          # Reuse the existing SOPS Secret; the chart maps it to KB_API_WRITE_TOKEN.
+          writeTokenSecret: kb-ingest-token
+          writeTokenSecretKey: KB_INGEST_TOKEN
+      mcp:
+        read:
+          enabled: false
+      # No kagent on this cluster: both agents default to enabled in the chart.
+      knowledgeScoutAgent:
+        enabled: false
+      docsAgent:
+        enabled: false
+      qdrant:
+        existingSecretEnabled: true
+        existingSecret: qdrant-apikey
+  # DEPRECATED: pre-rename kb-ingest (chart 2.x), kept running beside kb-api
+  # so callers can cut over without a gap. Remove this release, and
+  # apps/kb-api/mesh/kb-ingest-legacy.yaml on mlops, once kb-ingest sees no
+  # traffic (knowledge-tree docs/api.md#migration).
   - name: knowledge-tree
     repo: oci://ghcr.io/teaglebuilt/charts
     releaseName: knowledge-tree

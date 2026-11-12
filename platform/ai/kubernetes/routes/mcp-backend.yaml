@@ -32,8 +32,8 @@ spec:
           host: kagent-controller.ai.svc.cluster.local
           port: 8083
           path: /mcp
-      - name: kb-retrieval
+      - name: kb-mcp-read
         static:
-          host: kb-retrieval.ai.svc.cluster.local
+          host: kb-mcp-read.ai.svc.cluster.local
           port: 3000
           path: /mcp

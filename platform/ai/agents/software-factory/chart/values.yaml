@@ -22,7 +22,7 @@ roles:
     modelConfig: ""
     harnessRef: ""
     toolBindings:
-      - serverName: kb-retrieval
+      - serverName: kb-mcp-read
         tools: [kb_search, kb_get_document]
       # To inspect code, supply a separate repo-scoped GitHub read MCP binding.
     extraInstructions: ""

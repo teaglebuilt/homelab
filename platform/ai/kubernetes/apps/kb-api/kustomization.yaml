@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+# Secrets only — the kb-api Deployment/Service come from the knowledge-tree
+# Helm chart (release knowledge-tree-api on application). The write token
+# keeps its pre-rename Secret name `kb-ingest-token` (key KB_INGEST_TOKEN); the
+# chart maps it to KB_API_WRITE_TOKEN. Mesh Service stubs for mlops: mesh/.
+generators:
+  - secrets-generator.yaml

@@ -23,7 +23,7 @@ not a security boundary**. Enforce repo scoping in GitHub App tokens and MCP.
 
 - kagent v1alpha3 CRDs/controller running in target namespace (your `ai`).
 - Existing `Harness/kagent` and `ModelConfig/llmd-vllm-config` in that namespace.
-- `RemoteMCPServer/kb-retrieval` in `ai`, or change architect tool bindings.
+- `RemoteMCPServer/kb-mcp-read` in `ai`, or change architect tool bindings.
 - **For working code edits:** an independently secured `RemoteMCPServer`
   exposing repo-scoped Git read/write operations, with discovery-verified names.
   Your existing `kind: MCPServer` GitHub resource is NOT directly usable as
