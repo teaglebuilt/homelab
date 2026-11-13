@@ -27,6 +27,7 @@
   - [ ] - [Agent Desktop](./stories/agent-desktop-integration.md)
   - [x] - [Agent Evals](./stories/agentevaluations.md)
   - [ ] - [Agent Improvement Loop](./stories/improvement-loop.md)
+  - [ ] - [Agent Workspace](./stories/agent-workspace.md)
   - [ ] - [Agent Task Management](./stories/task-framework.md)
   - [ ] - setup llmd for multi gpu support for inference https://llm-d.ai/docs/infrastructure/gateway/agentgateway
 - [ ] - Build Software Factory
