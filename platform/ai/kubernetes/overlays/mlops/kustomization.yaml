@@ -62,10 +62,10 @@ helmCharts:
             protocol: grpc
             timeout: 15s
         runtimeDefaults:
+          skillTools:
+            disableBash: false
+            fileSearchTools: true
           telemetry:
-            # Required for agentevals trajectory/text graders (user input + replies).
-            # Tool args/results are already on execute_tool spans when tracing is on.
-            # Restrict evals.homelab.internal / OTLP retention — content may include prompts.
             captureContent: true
             traces:
               endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317

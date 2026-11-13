@@ -36,9 +36,9 @@ agents have native memory and compaction available.
 
 | Agent | MCP server | Selected tools |
 | --- | --- | --- |
-| `solutions-architect` | `kb-retrieval` | `kb_search` |
+| `solutions-architect` | `kb-mcp-read` | `kb_search` |
 | | `firecrawl` | `firecrawl_firecrawl_search`, `_agent`, `_agent_status`, `_research_search_github`, `_research_search_papers` |
-| `knowledge-scout-agent` | `kb-retrieval` | `kb_search` |
+| `knowledge-scout-agent` | `kb-mcp-read` | `kb_search` |
 | | `kagent-tool-server` | `shell`, `datetime_get_current_time` |
 | | `firecrawl` | same five as above |
 | `scraping-service-agent` | `firecrawl` | same five as above |
