@@ -12,9 +12,9 @@ resources:
   - ../../database
   - ../../mcp
   - ../../apps/youtube-transcript
-  # Bearer shared with application (youtube-transcript -> kb-ingest over mesh).
-  - ../../apps/kb-ingest
-  - ../../apps/kb-ingest/mesh
+  # Bearer shared with application (youtube-transcript, kb-mcp-write -> kb-api over mesh).
+  - ../../apps/kb-api
+  - ../../apps/kb-api/mesh
 helmCharts:
   - name: agentgateway
     repo: oci://ghcr.io/kgateway-dev/charts
@@ -62,10 +62,10 @@ helmCharts:
             protocol: grpc
             timeout: 15s
         runtimeDefaults:
+          skillTools:
+            disableBash: false
+            fileSearchTools: true
           telemetry:
-            # Required for agentevals trajectory/text graders (user input + replies).
-            # Tool args/results are already on execute_tool spans when tracing is on.
-            # Restrict evals.homelab.internal / OTLP retention — content may include prompts.
             captureContent: true
             traces:
               endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
@@ -161,13 +161,18 @@ helmCharts:
   - name: knowledge-tree
     repo: oci://ghcr.io/teaglebuilt/charts
     releaseName: knowledge-tree
-    version: 2.0.2
+    version: 3.0.0
     namespace: ai
     valuesInline:
       image:
-        tag: 0.4.0
+        tag: 0.5.0
       knowledgeScoutAgent:
         enabled: false
+      docsAgent:
+        kbWriter:
+          # Same SOPS Secret as application's kb-api (apps/kb-api).
+          tokenSecret: kb-ingest-token
+          tokenSecretKey: KB_INGEST_TOKEN
 patches:
   - target:
       group: api.kagent.dev

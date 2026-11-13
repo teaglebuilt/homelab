@@ -3,7 +3,7 @@
 #   get_timed_transcript     every caption segment {text,start,duration} + metadata
 #   get_video_info           title / uploader / upload_date / duration
 #   get_transcript_markdown  full knowledge-tree note, not stored
-#   ingest_video             WRITES the note to Qdrant via kb-ingest
+#   ingest_video             WRITES the note to Qdrant via kb-api
 # Agents bind only the tools they list; keep ingest_video off read-only agents.
 # Captions only — no ASR fallback; captions_source is always "unknown".
 ---

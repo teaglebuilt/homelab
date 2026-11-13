@@ -143,7 +143,7 @@ spec:
     - mcp:
         server:
           kind: RemoteMCPServer
-          name: kb-retrieval
+          name: kb-mcp-read
         tools:
           - kb_search
           - kb_get_document

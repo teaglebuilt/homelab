@@ -12,7 +12,7 @@ defaults:
 roles:
   architect:
     toolBindings:
-      - serverName: kb-retrieval
+      - serverName: kb-mcp-read
         tools: [kb_search, kb_get_document]
       # Add a repo-scoped GitHub READ binding here after discovering exact tool names.
   developer:

@@ -1,11 +1,13 @@
 ---
+# Global-service stub so mlops (kagent kb-mcp-write, youtube-transcript)
+# resolves kb-api, which runs on application (knowledge-tree-api release).
 apiVersion: v1
 kind: Service
 metadata:
-  name: kb-ingest
+  name: kb-api
   namespace: ai
   labels:
-    app.kubernetes.io/name: kb-ingest
+    app.kubernetes.io/name: kb-api
     app.kubernetes.io/part-of: knowledge-tree
   annotations:
     service.cilium.io/global: "true"
@@ -13,7 +15,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: kb-ingest
+    app.kubernetes.io/name: kb-api
   ports:
     - name: http
       port: 3000

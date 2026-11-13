@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Architecture decisions grounded in the personal knowledge tree via kb-retrieval MCP (Qdrant collection `knowledge`). Retrieves prior notes, patterns, and tradeoff analysis before recommending anything, then produces assessments, tradeoff matrices, ADRs, and C4 diagrams. Use whenever choosing structural options, reviewing a codebase, planning a migration, writing an ADR, drawing a diagram, or asking how to build/structure X — including when the user never says "architecture".
+description: Architecture decisions grounded in the personal knowledge tree via kb-mcp-read MCP (Qdrant collection `knowledge`). Retrieves prior notes, patterns, and tradeoff analysis before recommending anything, then produces assessments, tradeoff matrices, ADRs, and C4 diagrams. Use whenever choosing structural options, reviewing a codebase, planning a migration, writing an ADR, drawing a diagram, or asking how to build/structure X — including when the user never says "architecture".
 ---
 
 # Architect
@@ -17,7 +17,7 @@ to paper over.
 
 This skill runs **inside kagent** on the mlops cluster. There is no local
 checkout of `~/github/teaglebuilt/knowledge`, no `make query`, and no shell
-browse of `tree/`. All tree access goes through the **kb-retrieval** MCP server.
+browse of `tree/`. All tree access goes through the **kb-mcp-read** MCP server.
 
 ---
 
@@ -27,7 +27,7 @@ Authoritative source: Obsidian vault markdown under `tree/` in
 `teaglebuilt/knowledge`, embedded into Qdrant collection `knowledge`
 (384-d `BAAI/bge-small-en-v1.5`). Agents and chat share one read plane.
 
-You have two MCP tools on RemoteMCPServer `kb-retrieval`:
+You have two MCP tools on RemoteMCPServer `kb-mcp-read`:
 
 | Tool | Use for |
 |---|---|
@@ -50,7 +50,7 @@ Cite `path` (and `heading` / `source_url` when useful). Hits are slices, not
 whole docs — when a path is central to the decision, call `kb_get_document`
 before concluding.
 
-**Never** call the write plane (`kb-ingest`). Do not invent collection schemas,
+**Never** call the write plane (`kb-mcp-write` / `kb-api`). Do not invent collection schemas,
 embedding models, or Helmfile stages that search did not support.
 
 ### Retrieving
@@ -118,7 +118,7 @@ Prefer searching over guessing exact paths. Rough map when scoping queries:
 
 | Need | Tool / server |
 |---|---|
-| Knowledge grounding | `kb_search`, `kb_get_document` (`kb-retrieval`) |
+| Knowledge grounding | `kb_search`, `kb_get_document` (`kb-mcp-read`) |
 | External repo patterns | `search_code`, `search_repositories`, `get_file_contents`, … (`github-mcp`) |
 | Web / paper research | Firecrawl research/search tools (`firecrawl`) |
 | Live cluster reality | `k8s_get_resources`, `k8s_describe_resource`, `k8s_get_events`, `k8s_get_pod_logs`, helm list/get (`kagent-tools`) |

@@ -86,7 +86,7 @@ chunking strategy and a single embedding model in play.
      │     kb_search{q, k}   │
      ▼                       │
  ┌───────────────────────────┴───────────────────────┐
- │  kb-retrieval                     ns: ai          │
+ │  kb-mcp-read                      ns: ai          │
  │  ───────────────────────────────────────────────  │
  │   a. embed query    fastembed bge-small 384d      │
  │   b. ANN search     ──────────────┐               │
@@ -105,7 +105,7 @@ chunking strategy and a single embedding model in play.
 ```
 
 The embedding model on both sides of the arrow is the same `BAAI/bge-small-en-v1.5`.
-That is the load-bearing invariant: `kb-retrieval` must embed queries with the
+That is the load-bearing invariant: `kb-mcp-read` must embed queries with the
 exact model `kb ingest` used, or the vectors are not comparable.
 
 ### Qdrant tenancy

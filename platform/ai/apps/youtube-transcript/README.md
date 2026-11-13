@@ -8,7 +8,7 @@ Captions + metadata for a YouTube video, over plain HTTP.
 | `GET /transcript?video_id=<id>` (or `?url=`) | `{video_id, available, url, segments:[{text,start,duration}], captions_source, title, uploader, upload_date, duration}` |
 | `GET /video_info?video_id=<id>` | metadata only |
 | `GET /markdown?video_id=<id>` | `{video_id, available, path, markdown, segments, …}` — the knowledge note, not stored |
-| `POST /ingest?video_id=<id>[&force=true]` (or JSON `{"video_id"\|"url"}`) | renders the note and posts it to `kb-ingest`; returns kb-ingest's `{path, doc_hash, chunks, status}` |
+| `POST /ingest?video_id=<id>[&force=true]` (or JSON `{"video_id"\|"url"}`) | renders the note and stores it via kb-api `POST /v1/documents`; returns the receipt `{path, doc_hash, chunks, status, …}` |
 
 ## MCP
 
@@ -28,13 +28,13 @@ segments verbatim under a `## h:mm:ss` heading every
 knowledge chunker splits on headings. Output is deterministic for a given
 transcript, so re-posting a video is `status: unchanged` rather than a re-embed.
 Notes land at `tree/youtube/<video_id>.md`. A caption-less video returns
-`available: false` and posts nothing, so `kb-ingest /exists` stays false and a
-poller retries it.
+`available: false` and posts nothing, so kb-api `GET /v1/documents/status`
+stays `exists: false` and a poller retries it.
 
-`kb-ingest` runs on **application**; this service runs on **mlops** and reaches
+`kb-api` runs on **application**; this service runs on **mlops** and reaches
 it through the ClusterMesh front door in
-`platform/ai/kubernetes/apps/kb-ingest/mesh`. Agents read a whole stored video
-back with `kb-retrieval`'s `kb_get_document(path)`.
+`platform/ai/kubernetes/apps/kb-api/mesh`. Agents read a whole stored video
+back with `kb-mcp-read`'s `kb_get_document(path)`.
 
 A caption-less video returns **200** with `{"available": false, "reason":
 "no_transcript", "segments": []}` — deliberately *not* 404. Starlette already
@@ -94,10 +94,13 @@ Unset, requests egress from the pod IP directly.
 | `YT_LANGUAGES` | `en` | comma-separated caption language preference |
 | `YT_METADATA` | `true` | set false to skip the yt-dlp metadata call |
 | `YT_HEADING_INTERVAL_SECONDS` | `240` | seconds of video per `##` section (min 30) |
-| `KB_INGEST_URL` | `http://kb-ingest.ai.svc.cluster.local:3000` | knowledge write plane |
-| `KB_INGEST_TOKEN` | unset | bearer token for kb-ingest (Secret `kb-ingest-token`) |
-| `KB_INGEST_PATH_PREFIX` | `tree/youtube/` | must sit inside kb-ingest's `KB_INGEST_PATH_PREFIXES` |
-| `KB_INGEST_TIMEOUT_SECONDS` | `300` | long videos embed many chunks |
+| `KB_API_URL` | `http://kb-api.ai.svc.cluster.local:3000` | knowledge-tree kb-api |
+| `KB_API_WRITE_TOKEN` | unset | bearer token for kb-api (Secret `kb-ingest-token`, key `KB_INGEST_TOKEN`) |
+| `KB_API_PATH_PREFIX` | `tree/youtube/` | must sit inside kb-api's `KB_API_WRITE_PATH_PREFIXES` |
+| `KB_API_TIMEOUT_SECONDS` | `300` | long videos embed many chunks |
+
+Each `KB_API_*` falls back to its pre-rename `KB_INGEST_*` name (images ≤ 0.2.1
+read only those, and post to kb-api's legacy `/ingest` alias).
 
 ## Build
 

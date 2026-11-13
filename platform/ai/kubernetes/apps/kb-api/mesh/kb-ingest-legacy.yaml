@@ -1,0 +1,24 @@
+---
+# DEPRECATED: stub for the pre-rename kb-ingest Service (knowledge-tree 2.x
+# release on application). Kept only as a rollback path during the kb-api
+# cutover; delete together with that release.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kb-ingest
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: kb-ingest
+    app.kubernetes.io/part-of: knowledge-tree
+  annotations:
+    service.cilium.io/global: "true"
+    service.cilium.io/shared: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kb-ingest
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP

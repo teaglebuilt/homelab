@@ -14,7 +14,7 @@
         "ADR contains an explicit negative-consequences section that names real costs",
         "Commits to one topology as the recommendation rather than listing options neutrally",
         "Addresses the user's actual scale (4 clusters, dev/staging/prod-us/prod-eu) rather than an abstract cluster count",
-        "States that grounding came from kb_search/kb_get_document (kb-retrieval MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
+        "States that grounding came from kb_search/kb_get_document (kb-mcp-read MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
       ]
     },
     {
@@ -29,7 +29,7 @@
         "Includes a side-by-side tradeoff comparison of 3 or more candidate options",
         "Ties the analysis to the user's stated pains: 25-minute deploys and migration blast radius",
         "States what the recommended option costs or gives up, not only its benefits",
-        "States that grounding came from kb_search/kb_get_document (kb-retrieval MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
+        "States that grounding came from kb_search/kb_get_document (kb-mcp-read MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
       ]
     },
     {
@@ -44,7 +44,7 @@
         "Decides all three questions asked: chunking strategy, hybrid vs pure vector, and whether a reranker is needed",
         "Justifies the hybrid-vs-vector choice with reasoning tied to the 50k-doc markdown corpus",
         "States the cost or tradeoff of the reranker decision (latency, complexity, or spend)",
-        "States that grounding came from kb_search/kb_get_document (kb-retrieval MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
+        "States that grounding came from kb_search/kb_get_document (kb-mcp-read MCP), or explicitly flags that knowledge-tree retrieval returned nothing useful"
       ]
     }
   ]

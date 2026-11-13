@@ -83,12 +83,12 @@ tasks:
     env:
       TF_VAR_homelab_external_tunnel_id: '{{.CLOUDFLARE_TUNNEL_ID}}'
       TF_VAR_cloudflare_account_id: '{{.CLOUDFLARE_ACCOUNT_TAG}}'
-      TF_VAR_mlops_external_gateway_ip: '{{.MLOPS_EXTERNAL_GATEWAY_IP}}'
+      TF_VAR_external_gateway_ip: '{{.EXTERNAL_GATEWAY_IP}}'
     preconditions:
-      - sh: test -n '{{.MLOPS_EXTERNAL_GATEWAY_IP}}'
-        msg: "MLOPS_EXTERNAL_GATEWAY_IP is empty — set it or pin externalGateway.loadBalancerIP in kubernetes/clusters/mlops/environment.yaml"
+      - sh: test -n '{{.EXTERNAL_GATEWAY_IP}}'
+        msg: "EXTERNAL_GATEWAY_IP is empty — set it or pin externalGateway.loadBalancerIP in kubernetes/clusters/mlops/environment.yaml"
     cmds:
-      - echo "Tunnel origin https://{{.MLOPS_EXTERNAL_GATEWAY_IP}} (n8n.teaglebuilt.tech)"
+      - echo "Tunnel origin https://{{.EXTERNAL_GATEWAY_IP}} (n8n.teaglebuilt.tech)"
       - terraform init -input=false
       - terraform apply -auto-approve -input=false
 
