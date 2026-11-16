@@ -13,57 +13,38 @@ tasks:
       - |-
         python3 .claude/skills/youtube/scripts/generate_opml.py \
           --input youtube-subscriptions.yaml \
-          --output kubernetes/freshrss/opml/youtube-subscriptions.opml
+          --output kubernetes/apps/freshrss/opml/youtube-subscriptions.opml
       - |-
         {
-          sha256sum kubernetes/freshrss/opml/*.opml
-          sha256sum kubernetes/freshrss/scripts/provision.sh
-        } | sha256sum | awk '{print $1}' > kubernetes/freshrss/opml/.checksum
+          sha256sum kubernetes/apps/freshrss/opml/*.opml
+          sha256sum kubernetes/apps/freshrss/scripts/provision.sh
+        } | sha256sum | awk '{print $1}' > kubernetes/apps/freshrss/opml/.checksum
 
   deploy:
     dir: news
-    desc: Deploy FreshRSS to kubernetes (requires CLUSTER=application for postgres-rw)
-    deps: [gen-opml]
+    desc: Deploy FreshRSS (application cluster only — skipped elsewhere so platform:deploy can continue)
+    # deps: [gen-opml]
     vars:
       CLUSTER: '{{.CLUSTER | default "application"}}'
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
       - |-
         if [ '{{.CLUSTER}}' != 'application' ]; then
-          echo "Skipping freshrss rollout wait on CLUSTER={{.CLUSTER}} (FreshRSS runs on application)"
+          echo "news:deploy skipped for CLUSTER={{.CLUSTER}} (FreshRSS is application-only)"
           exit 0
         fi
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes/overlays/application | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl apply -f -
         KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl rollout status deployment/freshrss -n feeds --timeout=180s
-
-  kdestroy:
-    dir: news
-    vars:
-      CLUSTER: '{{.CLUSTER | default "application"}}'
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
-    cmds:
-      - |-
-        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
-
-  provision:
-    dir: news
-    cmds:
-      - |-
-        {{.TERRAFORM}} init --upgrade
-      - |-
-        {{.TERRAFORM}} apply -auto-approve \
-          -var portainer_ip=$PORTAINER_IP \
-          -var portainer_api_key=$PORTAINER_API_KEY \
-          -var="freshrss_default_password=$FRESHRSS_DEFAULT_PASSWORD" \
-          -var="freshrss_base_url=http://freshrss.homelab.internal"
 
   destroy:
     dir: news
+    vars:
+      CLUSTER: '{{.CLUSTER | default "application"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-
-        {{.TERRAFORM}} destroy -auto-approve \
-          -var portainer_ip=$PORTAINER_IP \
-          -var portainer_api_key=$PORTAINER_API_KEY \
-          -var="freshrss_default_password=$FRESHRSS_DEFAULT_PASSWORD" \
-          -var="freshrss_base_url=http://freshrss.homelab.internal"
+        if [ '{{.CLUSTER}}' != 'application' ]; then
+          echo "news:destroy skipped for CLUSTER={{.CLUSTER}} (FreshRSS is application-only)"
+          exit 0
+        fi
+        kustomize build {{.KUSTOMIZE_FLAGS}} ./kubernetes/overlays/application | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -

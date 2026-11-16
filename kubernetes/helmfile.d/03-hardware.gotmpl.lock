@@ -13,4 +13,4 @@ dependencies:
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.17.1
 digest: sha256:d51ce4b6658cfbac06f10d71cc9d54032bf379e2ec7cdb7fb39961f75e60698c
-generated: "2026-07-07T15:47:23.83651-04:00"
+generated: "2026-11-15T15:20:40.477216-05:00"

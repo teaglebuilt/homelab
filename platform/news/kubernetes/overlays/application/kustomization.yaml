@@ -4,6 +4,5 @@ kind: Kustomization
 namespace: feeds
 resources:
   - ../../base
-  - ../../freshrss
-generators:
-  - ../../secrets-generator.yaml
+  - ../../apps/freshrss
+  - httproute.yaml

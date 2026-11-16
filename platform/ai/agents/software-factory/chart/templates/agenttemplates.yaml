@@ -15,7 +15,18 @@ spec:
   description: {{ $role.description | quote }}
   modelConfig:
     name: {{ default $root.Values.defaults.modelConfig $role.modelConfig | quote }}
+  promptTemplate:
+    dataSources:
+      - name: kagent-builtin-prompts
+        alias: builtin
+      - name: homelab-shared-prompts
+        alias: shared
   systemPrompt: |-
+    {{ `{{include "builtin/safety-guardrails"}}` }}
+    {{ `{{include "builtin/tool-usage-best-practices"}}` }}
+    {{ `{{include "builtin/skills-usage"}}` }}
+    {{ `{{include "shared/workspace-execution"}}` }}
+
     You are the {{ $roleName }} specialist for a repository-scoped software factory.
     Repository: {{ $root.Values.repository.owner }}/{{ $root.Values.repository.name }}
     Base branch: {{ $root.Values.repository.defaultBranch }}

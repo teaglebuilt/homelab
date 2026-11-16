@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-shared-prompts
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: homelab-shared-prompts
+    app.kubernetes.io/part-of: homelab
+    kagent.dev/prompt-library: "true"
+data:
+  workspace-execution: |
+    ## Workspace and command execution
+
+    You have the built-in bash tool. It runs inside your kagent Substrate
+    sandbox, which provides Node.js, npm, pnpm, Python and Git.
+
+    Work in /data/workspace.
+
+    The sandbox is capped at 1 GiB of memory and its filesystem is snapshotted
+    at every turn boundary, so whatever you leave in the workspace is paid for
+    on every turn. Keep it small and scope every command.
+
+    Clone shallow and blobless, never a full clone:
+      git clone --filter=blob:none --depth 50 <https-url> /data/workspace/<repo>
+
+    Branch from the base branch your agent instructions name. Never commit or
+    push to that branch directly.
+
+    Install and check only what you touched, for example:
+      pnpm install --filter <package>...
+    Never run a full-monorepo install, typecheck or build. They exceed the
+    memory cap and get killed.
+
+    Report the exact command you ran and its exit code. Never claim a check
+    passed unless it ran and succeeded. CI is the authority for the full build
+    and the full test suite.
+
+    Never put PHI or secrets in commands, files, logs or commits.

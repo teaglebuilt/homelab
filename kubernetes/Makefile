@@ -10,8 +10,13 @@ helmfile_apply: include_env_vars
 helmfile_sync:
 	helmfile sync  .
 
+# Run deps through each cluster entrypoint so 01-bootstrap receives meshOverlay
+# (and identityOverlay). Bare `helmfile deps` loads helmfile.d/ directly, which
+# trips the ClusterMesh guard when enable.clusterMesh=true.
 helmfile_lock: build_chart_dependencies
-	helmfile deps
+	helmfile -f clusters/mlops/helmfile.yaml deps
+	helmfile -f clusters/application/helmfile.yaml deps
+
 
 clean:
 	rm -rf .task

@@ -60,8 +60,45 @@ tasks:
           -var proxmox_ssh_private_key=${PROXMOX_VE_SSH_PRIVATE_KEY} \
           -var graylog_ip=${GRAYLOG_IP}
 
+  wait-for-nodes:
+    summary: Wait until the API lists at least one node (CNI not required — nodes stay NotReady until Cilium)
+    dir: kubernetes
+    requires:
+      vars: [CLUSTER]
+    vars:
+      KUBECONFIG_FILE: '{{.TASKFILE_DIR}}/generated/{{.CLUSTER}}/kubeconfig'
+      TIMEOUT: '{{.TIMEOUT | default "10m"}}'
+    preconditions:
+      - sh: test -f {{.KUBECONFIG_FILE}}
+        msg: "kubeconfig missing at {{.KUBECONFIG_FILE}} — provision {{.CLUSTER}} first."
+    cmds:
+      - |
+        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
+        echo "Waiting for nodes to register (timeout {{.TIMEOUT}})..."
+        # Do NOT wait for Ready here: Talos nodes report NotReady until the CNI
+        # (Cilium) is installed by helmfile sync in bootstrap-cluster.
+        timeout='{{.TIMEOUT}}'
+        case "$timeout" in
+          *m) secs=$(( ${timeout%m} * 60 )) ;;
+          *s) secs=${timeout%s} ;;
+          *) secs=600 ;;
+        esac
+        end=$((SECONDS + secs))
+        while [ "$SECONDS" -lt "$end" ]; do
+          count="$(kubectl get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ')"
+          if [ "${count:-0}" -ge 1 ]; then
+            echo "Nodes registered:"
+            kubectl get nodes -o wide
+            exit 0
+          fi
+          sleep 5
+        done
+        echo "ERROR: no nodes registered within {{.TIMEOUT}}"
+        kubectl get nodes -o wide || true
+        exit 1
+
   cluster-health:
-    summary: Wait until every node reports Ready (explicit Ready condition — not the old inverted NotReady grep)
+    summary: Wait until every node reports Ready (run AFTER Cilium is installed)
     dir: kubernetes
     requires:
       vars: [CLUSTER]
@@ -100,9 +137,11 @@ tasks:
           sh -c 'for i in $(seq 1 60); do kubectl get --raw=/readyz >/dev/null 2>&1 && exit 0; sleep 10; done; exit 1'
         msg: "{{.CLUSTER}} API server not reachable after 10m — check the control plane."
     cmds:
-      - task: cluster-health
+      - task: wait-for-nodes
         vars: { CLUSTER: '{{.CLUSTER}}' }
       - KUBECONFIG='{{.KUBECONFIG_FILE}}' helmfile -f clusters/{{.CLUSTER}}/helmfile.yaml sync
+      - task: cluster-health
+        vars: { CLUSTER: '{{.CLUSTER}}' }
 
   provision-application:
     summary: Provision the application Talos cluster on pve

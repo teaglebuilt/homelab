@@ -48,6 +48,6 @@ chroma.sqlite3
 
 # MkDocs build output
 site/
-
+.pytest_cache
 # Private files (only committed on private branch)
 **/private/

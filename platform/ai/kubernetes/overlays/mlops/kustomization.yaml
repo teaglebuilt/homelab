@@ -6,6 +6,7 @@ resources:
   - ../../aigateway
   - ../../llm-providers
   - ../../harness
+  - ../../prompts
   - ../../agents
   - ../../routes
   - ../../substrate
@@ -62,6 +63,8 @@ helmCharts:
             protocol: grpc
             timeout: 15s
         runtimeDefaults:
+          # memory: 4Gi
+          # cpu: "2"
           skillTools:
             disableBash: false
             fileSearchTools: true
@@ -102,16 +105,14 @@ helmCharts:
         sandboxClass: gvisor
         # Must match the separate substrate chart version (0.6.0-alpha3).
         workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v0.6.0-alpha3
-        # limits.memory is projected as the worker's actor capacity budget; the
-        # controller default of 1Gi is too small for a gVisor sandbox to boot.
         template:
           resources:
             requests:
               cpu: 250m
               memory: 512Mi
             limits:
-              cpu: "4"
-              memory: 4Gi
+              cpu: "6"
+              memory: 8Gi
       grafana-mcp:
         grafana:
           url: http://grafana-mesh.observability.svc.cluster.local

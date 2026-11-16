@@ -67,10 +67,10 @@ tasks:
     vars:
       # Prefer env/CLI override. Otherwise read the pinned mlops external-gateway
       # LB IP from kubernetes/clusters/mlops/environment.yaml (Cilium LB-IPAM source of truth).
-      MLOPS_EXTERNAL_GATEWAY_IP:
+      EXTERNAL_GATEWAY_IP:
         sh: |
-          if [ -n "${MLOPS_EXTERNAL_GATEWAY_IP:-}" ]; then
-            printf '%s' "$MLOPS_EXTERNAL_GATEWAY_IP"
+          if [ -n "${EXTERNAL_GATEWAY_IP:-}" ]; then
+            printf '%s' "$EXTERNAL_GATEWAY_IP"
           else
             grep -E '^\s*loadBalancerIP:' "{{.TASKFILE_DIR}}/kubernetes/clusters/mlops/environment.yaml" \
               | head -1 \
