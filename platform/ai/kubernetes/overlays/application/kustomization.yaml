@@ -2,8 +2,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: ai
-# Non-GPU integrations only. LLM providers, kagent, and ai-gateway stay on mlops.
-# base includes ai-gateway-mesh for ClusterMesh reachability from open-webui.
 resources:
   - ../../base
   - ../../integrations
@@ -16,11 +14,11 @@ helmCharts:
   - name: knowledge-tree
     repo: oci://ghcr.io/teaglebuilt/charts
     releaseName: knowledge-tree-api
-    version: 3.0.0
+    version: 3.0.1
     namespace: ai
     valuesInline:
       image:
-        tag: 0.5.0
+        tag: 0.5.1
       api:
         enabled: true
         auth:
@@ -30,30 +28,6 @@ helmCharts:
       mcp:
         read:
           enabled: false
-      # No kagent on this cluster: both agents default to enabled in the chart.
-      knowledgeScoutAgent:
-        enabled: false
-      docsAgent:
-        enabled: false
-      qdrant:
-        existingSecretEnabled: true
-        existingSecret: qdrant-apikey
-  # DEPRECATED: pre-rename kb-ingest (chart 2.x), kept running beside kb-api
-  # so callers can cut over without a gap. Remove this release, and
-  # apps/kb-api/mesh/kb-ingest-legacy.yaml on mlops, once kb-ingest sees no
-  # traffic (knowledge-tree docs/api.md#migration).
-  - name: knowledge-tree
-    repo: oci://ghcr.io/teaglebuilt/charts
-    releaseName: knowledge-tree
-    version: 2.0.2
-    namespace: ai
-    valuesInline:
-      image:
-        tag: 0.4.0
-      ingest:
-        enabled: true
-      mcpServer:
-        enabled: false
       # No kagent on this cluster: both agents default to enabled in the chart.
       knowledgeScoutAgent:
         enabled: false

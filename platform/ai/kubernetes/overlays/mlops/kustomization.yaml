@@ -162,15 +162,16 @@ helmCharts:
   - name: knowledge-tree
     repo: oci://ghcr.io/teaglebuilt/charts
     releaseName: knowledge-tree
-    version: 3.0.0
+    version: 3.0.1
     namespace: ai
     valuesInline:
       image:
-        tag: 0.5.0
+        tag: 0.5.1
       knowledgeScoutAgent:
         enabled: false
       docsAgent:
         kbWriter:
+          createRemoteMCPServer: true
           # Same SOPS Secret as application's kb-api (apps/kb-api).
           tokenSecret: kb-ingest-token
           tokenSecretKey: KB_INGEST_TOKEN
