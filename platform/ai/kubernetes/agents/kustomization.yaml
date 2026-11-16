@@ -7,6 +7,6 @@ resources:
 helmCharts:
   - name: solutions-architect
     repo: oci://ghcr.io/teaglebuilt/charts
-    version: 0.1.0
+    version: 0.2.0
     releaseName: solutions-architect
     namespace: ai

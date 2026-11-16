@@ -7,8 +7,11 @@ include_env_vars:
 helmfile_apply: include_env_vars
 	helmfile apply --skip-diff-on-install --suppress-diff .
 
-helmfile_sync:
-	helmfile sync  .
+helmfile_sync_application:
+	helmfile -f clusters/application/helmfile.yaml sync
+
+helmfile_sync_mlops:
+	helmfile -f clusters/mlops/helmfile.yaml sync
 
 # Run deps through each cluster entrypoint so 01-bootstrap receives meshOverlay
 # (and identityOverlay). Bare `helmfile deps` loads helmfile.d/ directly, which
