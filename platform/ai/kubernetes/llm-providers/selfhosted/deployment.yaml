@@ -27,7 +27,7 @@ spec:
       priorityClassName: gpu-serving # or gpu-training
       runtimeClassName: nvidia
       nodeSelector:
-        nvidia.com/gpu.present: "true"
+        homelab.teaglebuilt.dev/gpu-node: "true"
       containers:
         - name: vllm
           # Node driver 570.172.08 exposes CUDA 12.8. v0.25.1 requires CUDA 13;

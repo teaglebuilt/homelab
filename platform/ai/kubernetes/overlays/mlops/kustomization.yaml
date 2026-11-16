@@ -63,8 +63,8 @@ helmCharts:
             protocol: grpc
             timeout: 15s
         runtimeDefaults:
-          # memory: 4Gi
-          # cpu: "2"
+          memory: 4Gi
+          cpu: "2"
           skillTools:
             disableBash: false
             fileSearchTools: true
