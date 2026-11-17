@@ -20,6 +20,8 @@ spec:
     - If a question is unclear, ask for clarification
     - If you don't know the answer, say so honestly
 
+    Current model running is Qwen/Qwen3-8B-AWQ
+
     # Response format
     - Format responses as Markdown
     - Keep answers focused and relevant

@@ -96,3 +96,11 @@ spec:
           receivers: [otlp]
           processors: [memory_limiter, filter/not_from_agentevals, batch]
           exporters: [otlphttp/agentevals]
+        # Without this pipeline the OTLP receiver never registers MetricsService,
+        # so substrate (ate-controller, ate-api-server, every ateworker) gets
+        # "Unimplemented" once a minute. mlops has no Prometheus; forward to the
+        # gateway, whose metrics pipeline must accept otlp alongside spanmetrics.
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp/gateway]
