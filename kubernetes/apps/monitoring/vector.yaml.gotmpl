@@ -51,6 +51,31 @@ customConfig:
           }
         }
 
+    # kagent/substrate/ate log JSON, not tab-separated logfmt, so
+    # parse_access_logs never matches them and trace_id stayed "". Chained off it
+    # (not off kubernetes_logs) — a second edge into enrich_logs would duplicate
+    # every pod log line.
+    parse_json_logs:
+      type: "remap"
+      inputs:
+        - "parse_access_logs"
+      source: |
+        if !exists(.trace_id) {
+          msg, merr = string(.message)
+          if merr == null {
+            parsed, perr = parse_json(msg)
+            if perr == null && is_object(parsed) {
+              obj = object(parsed) ?? {}
+              # Only sampled spans reach Tempo; promoting an unsampled trace_id
+              # renders a "View Trace" link that resolves to nothing.
+              if exists(obj.trace_id) && obj.trace_flags == "01" {
+                .trace_id = string(obj.trace_id) ?? ""
+                .span_id = string(obj.span_id) ?? ""
+              }
+            }
+          }
+        }
+
     talos_json_parse:
       type: "remap"
       inputs:
@@ -73,7 +98,7 @@ customConfig:
     enrich_logs:
       type: "remap"
       inputs:
-        - "parse_access_logs"
+        - "parse_json_logs"
         - "talos_json_parse"
       source: |
         .cluster = "{{ $cluster }}"
