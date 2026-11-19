@@ -102,38 +102,6 @@ tasks:
           crd/workerpools.ate.dev \
           --timeout=60s
 
-  migrate-substrate-crds-v1:
-    dir: ai
-    desc: |
-      DESTRUCTIVE. One-time: substrate 1.0.0 moves the ate.dev CRDs from
-      v1alpha1 to v1 and serves v1 only, so the apiserver rejects the upgrade
-      while v1alpha1 is still a stored version. Recreating the CRDs drops the
-      WorkerPool and SandboxConfig (both chart-owned, recreated by deploy) and
-      kills every running actor and session.
-      Run once, before deploy, then: task platform:ai:deploy CLUSTER=mlops
-    requires:
-      vars: [CLUSTER]
-    vars:
-      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
-    cmds:
-      - |
-        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        echo "These will be deleted with their CRDs:"
-        kubectl get workerpools,sandboxconfigs,csidriverconfigs -A 2>/dev/null || true
-      - |
-        export KUBECONFIG='{{.KUBECONFIG_FILE}}'
-        kubectl delete crd \
-          workerpools.ate.dev \
-          sandboxconfigs.ate.dev \
-          csidriverconfigs.ate.dev \
-          --ignore-not-found --wait
-        kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/substrate/crds | kubectl apply -f -
-        kubectl wait --for=condition=Established \
-          crd/csidriverconfigs.ate.dev \
-          crd/sandboxconfigs.ate.dev \
-          crd/workerpools.ate.dev \
-          --timeout=60s
-
   deploy:
     dir: ai
     desc: Deploy AI platform (per-cluster overlay)
@@ -143,8 +111,6 @@ tasks:
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - task: install-crds
-        vars: { CLUSTER: '{{.CLUSTER}}' }
-      - task: install-agentgateway
         vars: { CLUSTER: '{{.CLUSTER}}' }
       # kubectl apply of CRDs + CRs in one stream races; SandboxConfig needs
       # ate.dev CRDs Established first (overlay also re-applies them, which is fine).

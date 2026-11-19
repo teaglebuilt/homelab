@@ -95,6 +95,9 @@ helmCharts:
       substrateWorkerPool:
         create: true
         name: kagent-default
+        # Each Actor claims config.runtimeDefaults (2 CPU / 6Gi), so the 8Gi
+        # worker limit below fits exactly one. Fewer workers than concurrent
+        # turns fails the golden-actor resume with "no worker has room".
         sandboxClass: gvisor
         # Must match the separate substrate chart version (1.0.0). The v1.0.0
         # ate-controller passes --pod-ips, which v0.6.0-alpha3 workers reject.
