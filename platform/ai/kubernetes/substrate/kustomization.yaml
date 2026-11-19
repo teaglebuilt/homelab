@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - crds
+  - atelet
   - operator
   - rbac.yaml
   - podcert

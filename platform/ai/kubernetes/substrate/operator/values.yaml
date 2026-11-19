@@ -1,6 +1,6 @@
 ---
 # Substrate chart values (not kagent). See:
-# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.6.0-alpha3
+# oci://ghcr.io/kagent-dev/substrate/helm/substrate:1.0.0
 credentialProvider:
   # Lets actors in atespace `ai` read ModelConfig Secrets in namespace `ai`.
   namespacePolicies:
@@ -33,3 +33,8 @@ otel:
     # in Tempo. Below 1.0 the Loki->Tempo derived field yields dead links for the
     # unsampled majority.
     samplingRatio: 1.0
+
+atelet:
+  # Bundled atelet is deprecated: it moves atelet and ate-api-server in one
+  # upgrade, which the version skew policy forbids. Installed from ../atelet.
+  enabled: false

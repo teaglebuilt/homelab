@@ -1,0 +1,29 @@
+---
+# atelet as its own release, upgraded before ate-api-server (version skew
+# policy). The substrate chart renders it too, so ../operator sets
+# atelet.enabled=false.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ate-system
+generators:
+  - secrets-generator.yaml
+helmCharts:
+  - name: substrate-atelet
+    repo: oci://ghcr.io/kagent-dev/substrate/helm
+    version: 1.0.0
+    releaseName: substrate-atelet
+    namespace: ate-system
+    valuesInline:
+      # The standalone chart only reads credentials from a Secret; the bundled
+      # one injected rustfs.accessKey/secretKey literally.
+      objectStore:
+        endpoint: http://rustfs.ate-system.svc:9000
+        region: us-east-1
+        pathStyle: true
+        credentialsSecret: rustfs-credentials
+      otel:
+        endpoint: http://otel-agent-collector.observability.svc.cluster.local:4317
+        traces:
+          # Matches ../operator: below 1.0 the Loki->Tempo derived field yields
+          # dead links for the unsampled majority.
+          samplingRatio: 1.0
