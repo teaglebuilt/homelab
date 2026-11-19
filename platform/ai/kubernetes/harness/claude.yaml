@@ -12,4 +12,4 @@ spec:
     workerPoolRef:
       name: kagent-default
     snapshotPolicy:
-      location: s3://ate-snapshots/claude/
+      location: gs://ate-snapshots/claude/

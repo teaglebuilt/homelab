@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/part-of: homelab
   annotations:
     # Bump when the script changes so a Completed Job is replaced after TTL.
-    homelab.teaglebuilt/substrate-identity-version: v0.6.0-alpha3-1
+    homelab.teaglebuilt/substrate-identity-version: v1.0.0-1
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 3
@@ -128,7 +128,6 @@ spec:
                 # Upstream: omit certificateAuthorityFile / discoveryTokenFile.
                 auth_file=$(mktemp)
                 printf '%s\n' \
-                  'actorIdentityJWTProvider: kubernetes' \
                   'jwtProviders:' \
                   '- name: kubernetes' \
                   "  issuer: ${issuer}" \

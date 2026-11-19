@@ -63,11 +63,8 @@ helmCharts:
             protocol: grpc
             timeout: 15s
         runtimeDefaults:
-          memory: 4Gi
+          memory: 6Gi
           cpu: "2"
-          skillTools:
-            disableBash: false
-            fileSearchTools: true
           telemetry:
             captureContent: true
             traces:
@@ -99,7 +96,8 @@ helmCharts:
         create: true
         name: kagent-default
         sandboxClass: gvisor
-        # Must match the separate substrate chart version (1.0.0).
+        # Must match the separate substrate chart version (1.0.0). The v1.0.0
+        # ate-controller passes --pod-ips, which v0.6.0-alpha3 workers reject.
         workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v1.0.0
         template:
           resources:

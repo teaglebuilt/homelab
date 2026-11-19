@@ -14,6 +14,8 @@ helmCharts:
     releaseName: substrate-atelet
     namespace: ate-system
     valuesInline:
+      # Must match ../operator; atelet enforces the same gates.
+      preview: [GoldenEgressPolicy, PerTemplateSnapshotLocation]
       # The standalone chart only reads credentials from a Secret; the bundled
       # one injected rustfs.accessKey/secretKey literally.
       objectStore:

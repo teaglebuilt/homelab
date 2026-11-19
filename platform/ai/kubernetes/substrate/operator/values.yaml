@@ -1,6 +1,11 @@
 ---
 # Substrate chart values (not kagent). See:
 # oci://ghcr.io/kagent-dev/substrate/helm/substrate:1.0.0
+# kagent 1.0.1 compiles every ActorTemplate with snapshot_config.storage_location
+# (required by the Harness CRD) and golden_egress_policy. Without both gates the
+# substrate API rejects them Forbidden and no Agent reaches Ready.
+preview: [GoldenEgressPolicy, PerTemplateSnapshotLocation]
+
 credentialProvider:
   # Lets actors in atespace `ai` read ModelConfig Secrets in namespace `ai`.
   namespacePolicies:
