@@ -54,7 +54,6 @@ docs/                 # MkDocs documentation site
 - SOPS-encrypted secrets match `kubernetes/*` and `platform/*` path patterns.
 - The homelab-gateway chart is a wrapper: it vendors kgateway CRDs + kgateway as subchart dependencies, then adds Gateway/HTTPRoute/Certificate templates on top.
 - Platform services that need K8s resources put them in a `kubernetes/` subdirectory (e.g., `platform/ai/kubernetes/`).
-- Node selector `kubernetes.io/hostname: mlops-work-01` is used for GPU and cert-manager workloads.
 
 ## Deployment Flow
 

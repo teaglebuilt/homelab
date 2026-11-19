@@ -1,12 +1,14 @@
 ---
 version: 3
 
+vars:
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone
+
 tasks:
   deploy:
     requires:
       vars: [CLUSTER]
     vars:
-      KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       # KUBECONFIG belongs on the kubectl side of the pipe; on the kustomize side it
@@ -18,7 +20,6 @@ tasks:
     requires:
       vars: [CLUSTER]
     vars:
-      KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
       KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
     cmds:
       - |-

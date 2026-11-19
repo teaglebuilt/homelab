@@ -46,7 +46,7 @@ module "talos_cluster" {
       vm_id         = 102
       cpu           = 16
       disk_size     = 200
-      ram_dedicated = 20480
+      ram_dedicated = 40480
       igpu          = true
       pci           = {
         id = "10de:2783"

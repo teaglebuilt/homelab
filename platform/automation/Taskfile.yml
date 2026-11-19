@@ -2,7 +2,7 @@
 version: 3
 
 vars:
-  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins
+  KUSTOMIZE_FLAGS: --enable-helm --enable-exec --enable-alpha-plugins --load-restrictor LoadRestrictionsNone
   SCRAPER_IMAGE: ghcr.io/nextgensolutions-llc/scrapers
   SCRAPER_TAG:
     sh: git rev-parse --short HEAD

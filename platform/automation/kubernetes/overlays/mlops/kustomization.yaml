@@ -5,4 +5,4 @@ namespace: automation
 resources:
   - ../../base
   - ../../apps/n8n/mcp
-  - n8n-mesh-service.yaml
+  - ../../apps/n8n/mesh-service.yaml

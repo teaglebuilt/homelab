@@ -24,6 +24,8 @@ helmCharts:
       #       name: qdrant-secrets
       #       key: qdrant_api_key
       apiKey: your-super-secret-api-key
+      # UniFi Drive NFS root-squashes; chown in ensure-dir-ownership always fails.
+      updateVolumeFsOwnership: false
       # Snapshots land on the NAS (nfs-csi -> unas.internal) via a separate
       # volume, so a large snapshot can't fill the storage volume.
       snapshotPersistence:

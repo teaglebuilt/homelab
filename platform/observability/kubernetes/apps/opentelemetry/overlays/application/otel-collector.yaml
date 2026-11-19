@@ -77,8 +77,12 @@ spec:
           receivers: [otlp]
           processors: [batch, attributes]
           exporters: [spanmetrics, debug, otlp/tempo]
+        # otlp alongside spanmetrics: the mlops agent forwards substrate/kagent
+        # SDK metrics here, and without the receiver this pipeline would answer
+        # them "Unimplemented" exactly as the agent did before.
         metrics:
-          receivers: [spanmetrics]
+          receivers: [spanmetrics, otlp]
+          processors: [batch]
           exporters: [prometheus, prometheusremotewrite, debug]
         logs:
           receivers: [otlp]
