@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/kagent-dev/kagent/claude-harness@sha256:e72d66d9f3b6eafbc59d18cef150fb5d31cb89ead83999a33c06264c21e86d4c
+ARG BASE_IMAGE=ghcr.io/kagent-dev/kagent/claude-harness@sha256:111d28bc8552469b028d91ecd2352c9d44811aba07be12b1e6868db7948f904e
 FROM ${BASE_IMAGE}
 ARG CLAUDE_CODE_VERSION
 ARG TARGETARCH

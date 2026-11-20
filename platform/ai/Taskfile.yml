@@ -56,15 +56,13 @@ tasks:
       # 1.0 serves api.kagent.dev/v1alpha3 only. Upgrading this release from 0.10.x
       # removes the legacy kagent.dev Agent/ModelConfig/RemoteMCPServer/AgentHarness
       # CRDs, which deletes every resource of those kinds (docs/adr/0009).
-      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 0.6.0-alpha3),
-      # not from this chart — keep substrate.enabled=false to avoid double-manage.
+      # ate.dev CRDs come from kubernetes/substrate/ (substrate-crds 1.0.0),
+      # not from this chart. kagent-crds 1.0.1 has no values of its own.
       - |
         KUBECONFIG='{{.KUBECONFIG_FILE}}' helm upgrade --install kagent-crds \
           oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
-          --version 1.0.0-alpha16 \
+          --version 1.0.1 \
           --namespace ai \
-          --set kmcp.enabled=true \
-          --set substrate.enabled=false \
           --wait
 
   install-agentgateway:
@@ -114,8 +112,6 @@ tasks:
     cmds:
       - task: install-crds
         vars: { CLUSTER: '{{.CLUSTER}}' }
-      - task: install-agentgateway
-        vars: { CLUSTER: '{{.CLUSTER}}' }
       # kubectl apply of CRDs + CRs in one stream races; SandboxConfig needs
       # ate.dev CRDs Established first (overlay also re-applies them, which is fine).
       - task: install-substrate-crds
@@ -132,6 +128,53 @@ tasks:
     cmds:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
+
+  vllm:model:
+    desc: >-
+      Point selfhosted vLLM at a model profile under
+      kubernetes/llm-providers/selfhosted/models/<name>. Pass the directory
+      name as CLI_ARGS (e.g. task ai:vllm:model -- qwen25-coder-7b-awq).
+    dir: ai
+    vars:
+      MODEL: '{{.CLI_ARGS | trim}}'
+      SELFHOSTED: kubernetes/llm-providers/selfhosted
+      KUSTOMIZATION: '{{.SELFHOSTED}}/kustomization.yaml'
+    cmds:
+      - |
+        if [ -z '{{.MODEL}}' ]; then
+          echo "usage: task ai:vllm:model -- <profile>"
+          echo "available:"
+          ls -1 '{{.SELFHOSTED}}/models' | grep -v README
+          exit 1
+        fi
+        if [ ! -d '{{.SELFHOSTED}}/models/{{.MODEL}}' ]; then
+          echo "unknown profile: {{.MODEL}}"
+          echo "available:"
+          ls -1 '{{.SELFHOSTED}}/models' | grep -v README
+          exit 1
+        fi
+        # Rewrite the single components: entry (exactly one active profile).
+        awk -v m='{{.MODEL}}' '
+          BEGIN { done=0 }
+          /^components:/ { print; getline; print "  - models/" m; done=1; next }
+          done && /^  - models\// { next }
+          { print }
+        ' '{{.KUSTOMIZATION}}' > '{{.KUSTOMIZATION}}.tmp'
+        mv '{{.KUSTOMIZATION}}.tmp' '{{.KUSTOMIZATION}}'
+        echo "active profile → models/{{.MODEL}}"
+        echo "redeploy with: task platform:ai:deploy CLUSTER=mlops"
+
+  vllm:model:list:
+    desc: List selfhosted vLLM model profiles and show the active one
+    dir: ai
+    vars:
+      SELFHOSTED: kubernetes/llm-providers/selfhosted
+    cmds:
+      - |
+        echo "profiles:"
+        ls -1 '{{.SELFHOSTED}}/models' | grep -v README | sed 's/^/  /'
+        echo "active:"
+        awk '/^components:/{getline; print "  "$0}' '{{.SELFHOSTED}}/kustomization.yaml'
 
   test:
     cmds:

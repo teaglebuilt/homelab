@@ -1,0 +1,40 @@
+---
+# General / tool-calling profile with Qwen3 reasoning parser.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-selfhosted
+  labels:
+    homelab.teaglebuilt.dev/model: qwen3-8b-awq
+  annotations:
+    homelab.teaglebuilt.dev/hf-model: Qwen/Qwen3-8B-AWQ
+spec:
+  template:
+    metadata:
+      labels:
+        homelab.teaglebuilt.dev/model: qwen3-8b-awq
+      annotations:
+        homelab.teaglebuilt.dev/hf-model: Qwen/Qwen3-8B-AWQ
+    spec:
+      containers:
+        - name: vllm
+          args:
+            - "--model"
+            - "Qwen/Qwen3-8B-AWQ"
+            - "--served-model-name"
+            - "vllm-selfhosted"
+            - "--port"
+            - "8000"
+            - "--max-model-len"
+            - "32768"
+            - "--gpu-memory-utilization"
+            - "0.92"
+            - "--enable-auto-tool-choice"
+            - "--enable-prefix-caching"
+            - "--tool-call-parser"
+            - "hermes"
+            - "--reasoning-parser"
+            - "qwen3"
+            - "--max-num-seqs"
+            - "32"
+            - "--enforce-eager"

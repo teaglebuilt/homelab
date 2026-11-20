@@ -11,5 +11,8 @@ resources:
   - httproute.yaml
   - modelconfig.yaml
   - agent.yaml
+# Exactly one model profile. See models/README.md.
+components:
+  - models/qwen25-coder-7b-awq
 generators:
   - secrets-generator.yaml

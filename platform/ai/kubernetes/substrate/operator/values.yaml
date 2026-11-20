@@ -1,6 +1,11 @@
 ---
 # Substrate chart values (not kagent). See:
-# oci://ghcr.io/kagent-dev/substrate/helm/substrate:0.6.0-alpha3
+# oci://ghcr.io/kagent-dev/substrate/helm/substrate:1.0.0
+# kagent 1.0.1 compiles every ActorTemplate with snapshot_config.storage_location
+# (required by the Harness CRD) and golden_egress_policy. Without both gates the
+# substrate API rejects them Forbidden and no Agent reaches Ready.
+preview: [GoldenEgressPolicy, PerTemplateSnapshotLocation]
+
 credentialProvider:
   # Lets actors in atespace `ai` read ModelConfig Secrets in namespace `ai`.
   namespacePolicies:
@@ -15,6 +20,12 @@ ateApi:
     bootstrapOwners:
       - system:serviceaccount:ate-system:ate-client
       - spiffe://cluster.local/ns/ai/sa/kagent-controller
+
+# Empty list renders `source.spiffeId in []` and denies every chat turn with
+# "input was not accepted; retry after the session becomes available".
+atenetRouter:
+  ingressAllowedSPIFFEIDs:
+    - spiffe://cluster.local/ns/ai/sa/kagent-controller
 
 postgres:
   # Connection strings reference /run/postgres.podcert.ate.dev/*.pem, which
@@ -33,3 +44,8 @@ otel:
     # in Tempo. Below 1.0 the Loki->Tempo derived field yields dead links for the
     # unsampled majority.
     samplingRatio: 1.0
+
+atelet:
+  # Bundled atelet is deprecated: it moves atelet and ate-api-server in one
+  # upgrade, which the version skew policy forbids. Installed from ../atelet.
+  enabled: false

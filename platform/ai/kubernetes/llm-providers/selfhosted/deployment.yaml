@@ -31,29 +31,18 @@ spec:
       containers:
         - name: vllm
           # Node driver 570.172.08 exposes CUDA 12.8. v0.25.1 requires CUDA 13;
-          # v0.11.0 is the pinned CUDA 12.8-compatible OpenAI server image.
+          # v0.13.0 is the pinned CUDA 12.8-compatible OpenAI server image.
           image: vllm/vllm-openai:v0.13.0
           imagePullPolicy: IfNotPresent
+          # Model-specific --model / parsers / context come from models/*/ via
+          # kustomize components. Switch active profile in kustomization.yaml.
           args:
-            - "--model"
-            # Safe first boot on 12GB VRAM (4070 SUPER). Step up to AWQ 7–8B later.
-            - "Qwen/Qwen3-8B-AWQ"
             - "--served-model-name"
             - "vllm-selfhosted"
             - "--port"
             - "8000"
-            - "--max-model-len"
-            - "32768"
-            - "--gpu-memory-utilization"
-            - "0.92"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
-            - "--tool-call-parser"
-            - "hermes"
-            - "--reasoning-parser"
-            - "qwen3"
-            - "--max-num-seqs"
-            - "32"
             # Mirror NIM's CUDA-graph disable on this GPU — capture often OOMs at startup.
             - "--enforce-eager"
           env:

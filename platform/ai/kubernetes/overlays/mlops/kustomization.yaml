@@ -35,7 +35,7 @@ helmCharts:
   - name: kagent
     repo: oci://ghcr.io/kagent-dev/kagent/helm
     releaseName: kagent
-    version: 1.0.0-alpha16
+    version: 1.0.1
     namespace: ai
     valuesInline:
       podSecurityContext:
@@ -63,11 +63,8 @@ helmCharts:
             protocol: grpc
             timeout: 15s
         runtimeDefaults:
-          memory: 4Gi
+          memory: 6Gi
           cpu: "2"
-          skillTools:
-            disableBash: false
-            fileSearchTools: true
           telemetry:
             captureContent: true
             traces:
@@ -95,16 +92,16 @@ helmCharts:
         # authenticate to the substrate API in ate-system (kubernetes/substrate/).
         substrateClientCertificate:
           enabled: true
-      # Bundled substrate subchart off — CRDs + control plane come from
-      # platform/ai/kubernetes/substrate/ (substrate-crds + substrate 0.6.0-alpha3).
-      substrate:
-        enabled: false
       substrateWorkerPool:
         create: true
         name: kagent-default
+        # Each Actor claims config.runtimeDefaults (2 CPU / 6Gi), so the 8Gi
+        # worker limit below fits exactly one. Fewer workers than concurrent
+        # turns fails the golden-actor resume with "no worker has room".
         sandboxClass: gvisor
-        # Must match the separate substrate chart version (0.6.0-alpha3).
-        workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v0.6.0-alpha3
+        # Must match the separate substrate chart version (1.0.0). The v1.0.0
+        # ate-controller passes --pod-ips, which v0.6.0-alpha3 workers reject.
+        workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v1.0.0
         template:
           resources:
             requests:
@@ -113,16 +110,6 @@ helmCharts:
             limits:
               cpu: "6"
               memory: 8Gi
-      grafana-mcp:
-        grafana:
-          url: http://grafana-mesh.observability.svc.cluster.local
-          secretRef: kagent-grafana-mcp-auth
-        # Main Org. — silences mcp-grafana's GRAFANA_ORG_ID warning.
-        config:
-          GRAFANA_ORG_ID: "1"
-        allowedHosts: "*"
-        # args:
-        #   - --disable-admin
       kagent-tools:
         otel:
           tracing:
@@ -175,18 +162,3 @@ helmCharts:
           # Same SOPS Secret as application's kb-api (apps/kb-api).
           tokenSecret: kb-ingest-token
           tokenSecretKey: KB_INGEST_TOKEN
-patches:
-  - target:
-      group: api.kagent.dev
-      version: v1alpha3
-      kind: RemoteMCPServer
-      name: kagent-grafana-mcp
-    patch: |
-      - op: add
-        path: /spec/headersFrom
-        value:
-          - name: Authorization
-            valueFrom:
-              type: Secret
-              name: kagent-grafana-mcp-auth
-              key: MCP_GRAFANA_AUTHORIZATION
