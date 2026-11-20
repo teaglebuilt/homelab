@@ -1,0 +1,39 @@
+---
+# Active coding profile for RTX 4070 SUPER 12GB.
+# Weights ~9.9GB AWQ — keep max-model-len modest for KV headroom.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-selfhosted
+  labels:
+    homelab.teaglebuilt.dev/model: qwen25-coder-14b-awq
+  annotations:
+    homelab.teaglebuilt.dev/hf-model: Qwen/Qwen2.5-Coder-14B-Instruct-AWQ
+spec:
+  template:
+    metadata:
+      labels:
+        homelab.teaglebuilt.dev/model: qwen25-coder-14b-awq
+      annotations:
+        homelab.teaglebuilt.dev/hf-model: Qwen/Qwen2.5-Coder-14B-Instruct-AWQ
+    spec:
+      containers:
+        - name: vllm
+          args:
+            - "--model"
+            - "Qwen/Qwen2.5-Coder-14B-Instruct-AWQ"
+            - "--served-model-name"
+            - "vllm-selfhosted"
+            - "--port"
+            - "8000"
+            - "--max-model-len"
+            - "8192"
+            - "--gpu-memory-utilization"
+            - "0.92"
+            - "--enable-auto-tool-choice"
+            - "--enable-prefix-caching"
+            - "--tool-call-parser"
+            - "hermes"
+            - "--max-num-seqs"
+            - "32"
+            - "--enforce-eager"

@@ -20,7 +20,9 @@ spec:
     - If a question is unclear, ask for clarification
     - If you don't know the answer, say so honestly
 
-    Current model running is Qwen/Qwen3-8B-AWQ
+    The active Hugging Face checkpoint is selected by the vLLM Deployment
+    profile (label homelab.teaglebuilt.dev/model); the served name is always
+    vllm-selfhosted.
 
     # Response format
     - Format responses as Markdown

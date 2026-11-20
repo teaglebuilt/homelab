@@ -129,6 +129,53 @@ tasks:
       - |-
         kustomize build {{.KUSTOMIZE_FLAGS}} kubernetes/overlays/{{.CLUSTER}} | KUBECONFIG='{{.KUBECONFIG_FILE}}' kubectl delete -f -
 
+  vllm:model:
+    desc: >-
+      Point selfhosted vLLM at a model profile under
+      kubernetes/llm-providers/selfhosted/models/<name>. Pass the directory
+      name as CLI_ARGS (e.g. task ai:vllm:model -- qwen25-coder-7b-awq).
+    dir: ai
+    vars:
+      MODEL: '{{.CLI_ARGS | trim}}'
+      SELFHOSTED: kubernetes/llm-providers/selfhosted
+      KUSTOMIZATION: '{{.SELFHOSTED}}/kustomization.yaml'
+    cmds:
+      - |
+        if [ -z '{{.MODEL}}' ]; then
+          echo "usage: task ai:vllm:model -- <profile>"
+          echo "available:"
+          ls -1 '{{.SELFHOSTED}}/models' | grep -v README
+          exit 1
+        fi
+        if [ ! -d '{{.SELFHOSTED}}/models/{{.MODEL}}' ]; then
+          echo "unknown profile: {{.MODEL}}"
+          echo "available:"
+          ls -1 '{{.SELFHOSTED}}/models' | grep -v README
+          exit 1
+        fi
+        # Rewrite the single components: entry (exactly one active profile).
+        awk -v m='{{.MODEL}}' '
+          BEGIN { done=0 }
+          /^components:/ { print; getline; print "  - models/" m; done=1; next }
+          done && /^  - models\// { next }
+          { print }
+        ' '{{.KUSTOMIZATION}}' > '{{.KUSTOMIZATION}}.tmp'
+        mv '{{.KUSTOMIZATION}}.tmp' '{{.KUSTOMIZATION}}'
+        echo "active profile → models/{{.MODEL}}"
+        echo "redeploy with: task platform:ai:deploy CLUSTER=mlops"
+
+  vllm:model:list:
+    desc: List selfhosted vLLM model profiles and show the active one
+    dir: ai
+    vars:
+      SELFHOSTED: kubernetes/llm-providers/selfhosted
+    cmds:
+      - |
+        echo "profiles:"
+        ls -1 '{{.SELFHOSTED}}/models' | grep -v README | sed 's/^/  /'
+        echo "active:"
+        awk '/^components:/{getline; print "  "$0}' '{{.SELFHOSTED}}/kustomization.yaml'
+
   test:
     cmds:
       - |-
