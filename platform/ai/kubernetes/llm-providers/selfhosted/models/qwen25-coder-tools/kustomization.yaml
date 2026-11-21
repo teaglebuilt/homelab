@@ -1,0 +1,19 @@
+---
+# Optional addon for Qwen2.5-Coder profiles. Ships the <tools>-tag parser
+# plugin + chat template as a ConfigMap and mounts them at /opt/vllm-parsers.
+# Profiles that need it add: components: [../qwen25-coder-tools]
+# Built-in parsers (hermes / qwen3) do not include this component.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+configMapGenerator:
+  - name: vllm-qwen25-coder-parsers
+    files:
+      - qwen2_5_coder_tool_parser.py
+      - tool_chat_template_qwen2_5_coder.jinja
+    options:
+      disableNameSuffixHash: true
+patches:
+  - path: mount.yaml
+    target:
+      kind: Deployment
+      name: vllm-selfhosted

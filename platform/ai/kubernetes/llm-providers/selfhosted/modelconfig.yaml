@@ -15,5 +15,7 @@ spec:
     temperature: "0.1"
     topP: "0.95"
     seed: 42
-    maxTokens: 4096
+    # Do not set maxTokens. A fixed value 400s when the agent prompt nearly
+    # fills --max-model-len (e.g. 32093 in + 2048 out > 32768). Omitting it
+    # lets vLLM use (max_model_len - prompt_len) for the completion budget.
     timeout: 180

@@ -1,6 +1,9 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
+# Mounts ConfigMap parser + jinja at /opt/vllm-parsers (not used by hermes/qwen3 profiles).
+components:
+  - ../qwen25-coder-tools
 patches:
   - path: patch.yaml
     target:

@@ -1,0 +1,20 @@
+---
+# Volume + mount for the out-of-tree Qwen2.5-Coder tool parser plugin.
+# Only pulled in by profiles that list this directory under components:.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-selfhosted
+spec:
+  template:
+    spec:
+      containers:
+        - name: vllm
+          volumeMounts:
+            - name: vllm-qwen25-coder-parsers
+              mountPath: /opt/vllm-parsers
+              readOnly: true
+      volumes:
+        - name: vllm-qwen25-coder-parsers
+          configMap:
+            name: vllm-qwen25-coder-parsers

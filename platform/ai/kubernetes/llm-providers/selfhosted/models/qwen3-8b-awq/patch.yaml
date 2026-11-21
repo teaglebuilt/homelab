@@ -19,7 +19,7 @@ spec:
       containers:
         - name: vllm
           args:
-            - "--model"
+            # v0.13+: model is a positional arg to `vllm serve` (not --model).
             - "Qwen/Qwen3-8B-AWQ"
             - "--served-model-name"
             - "vllm-selfhosted"

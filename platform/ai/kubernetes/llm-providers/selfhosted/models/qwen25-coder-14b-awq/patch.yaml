@@ -1,7 +1,7 @@
 ---
 # Coding profile for RTX 4070 SUPER 12GB.
 # Weights ~9.9GB AWQ leave ~1GiB KV at util 0.95 — 8192 needs 1.5GiB and fails.
-# vLLM estimated max len ~5456; 4096 leaves headroom for overhead.
+# Tool calling uses the out-of-tree qwen2_5_coder plugin (see ../qwen25-coder-tools).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +21,7 @@ spec:
       containers:
         - name: vllm
           args:
-            - "--model"
+            # v0.13+: model is a positional arg to `vllm serve` (not --model).
             - "Qwen/Qwen2.5-Coder-14B-Instruct-AWQ"
             - "--served-model-name"
             - "vllm-selfhosted"
@@ -33,8 +33,12 @@ spec:
             - "0.95"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
+            - "--tool-parser-plugin"
+            - "/opt/vllm-parsers/qwen2_5_coder_tool_parser.py"
             - "--tool-call-parser"
-            - "hermes"
+            - "qwen2_5_coder"
+            - "--chat-template"
+            - "/opt/vllm-parsers/tool_chat_template_qwen2_5_coder.jinja"
             - "--max-num-seqs"
             - "8"
             - "--enforce-eager"

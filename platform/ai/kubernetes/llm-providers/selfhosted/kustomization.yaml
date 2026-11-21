@@ -13,6 +13,6 @@ resources:
   - agent.yaml
 # Exactly one model profile. See models/README.md.
 components:
-  - models/qwen25-coder-7b-awq
+  - models/qwen3-8b-awq
 generators:
   - secrets-generator.yaml

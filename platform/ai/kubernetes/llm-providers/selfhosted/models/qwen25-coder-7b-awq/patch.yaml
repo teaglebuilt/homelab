@@ -1,5 +1,6 @@
 ---
 # Faster coding profile — more KV headroom / longer context on 12GB.
+# Tool calling uses the out-of-tree qwen2_5_coder plugin (see ../qwen25-coder-tools).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,7 +20,7 @@ spec:
       containers:
         - name: vllm
           args:
-            - "--model"
+            # v0.13+: model is a positional arg to `vllm serve` (not --model).
             - "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ"
             - "--served-model-name"
             - "vllm-selfhosted"
@@ -31,8 +32,12 @@ spec:
             - "0.92"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
+            - "--tool-parser-plugin"
+            - "/opt/vllm-parsers/qwen2_5_coder_tool_parser.py"
             - "--tool-call-parser"
-            - "hermes"
+            - "qwen2_5_coder"
+            - "--chat-template"
+            - "/opt/vllm-parsers/tool_chat_template_qwen2_5_coder.jinja"
             - "--max-num-seqs"
             - "32"
             - "--enforce-eager"
