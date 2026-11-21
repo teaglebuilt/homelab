@@ -30,9 +30,9 @@ helmCharts:
           processor:
             span_metrics:
               dimensions:
-                - gen.ai.request.model
-                - gen.ai.system
-                - kagent.user_id
+                - gen_ai.request.model
+                - gen_ai.provider.name
+                - gen_ai.operation.name
               enable_target_info: true
             local_blocks:
               flush_to_storage: true
