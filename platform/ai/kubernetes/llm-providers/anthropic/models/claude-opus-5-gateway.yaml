@@ -13,6 +13,6 @@ spec:
   apiKeySecret: anthropic-api-key
   apiKeySecretKey: Authorization
   anthropic:
-    baseUrl: http://ai-gateway.ai.svc.cluster.local/anthropic
+    baseUrl: http://ai-gateway.ai.svc.cluster.local/anthropic-ai
     promptCaching: true
     cacheTTL: "5m"
