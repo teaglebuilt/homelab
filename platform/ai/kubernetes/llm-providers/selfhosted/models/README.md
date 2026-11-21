@@ -10,7 +10,7 @@ and agentgateway routes never change when you switch weights.
 
 | Directory | Hugging Face id | Notes |
 |-----------|-----------------|-------|
-| `qwen25-coder-14b-awq` | `Qwen/Qwen2.5-Coder-14B-Instruct-AWQ` | Best coding quality; 8k context |
+| `qwen25-coder-14b-awq` | `Qwen/Qwen2.5-Coder-14B-Instruct-AWQ` | Best coding quality; 4k context (12GB KV tight) |
 | `qwen25-coder-7b-awq` | `Qwen/Qwen2.5-Coder-7B-Instruct-AWQ` | Faster coding; 32k context |
 | `qwen3-8b-awq` | `Qwen/Qwen3-8B-AWQ` | General + Qwen3 reasoning parser |
 

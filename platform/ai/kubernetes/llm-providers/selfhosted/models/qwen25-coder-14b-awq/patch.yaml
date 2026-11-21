@@ -1,6 +1,7 @@
 ---
-# Active coding profile for RTX 4070 SUPER 12GB.
-# Weights ~9.9GB AWQ — keep max-model-len modest for KV headroom.
+# Coding profile for RTX 4070 SUPER 12GB.
+# Weights ~9.9GB AWQ leave ~1GiB KV at util 0.95 — 8192 needs 1.5GiB and fails.
+# vLLM estimated max len ~5456; 4096 leaves headroom for overhead.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,13 +28,13 @@ spec:
             - "--port"
             - "8000"
             - "--max-model-len"
-            - "8192"
+            - "4096"
             - "--gpu-memory-utilization"
-            - "0.92"
+            - "0.95"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
             - "--tool-call-parser"
             - "hermes"
             - "--max-num-seqs"
-            - "32"
+            - "8"
             - "--enforce-eager"
