@@ -11,7 +11,7 @@ spec:
   description: >-
     General Solutions Architect for software engineering and infrastructure.
   modelConfig:
-    name: llmd-vllm-config
+    name: claude-opus-5-gateway
   promptTemplate:
     dataSources:
       - name: kagent-builtin-prompts
