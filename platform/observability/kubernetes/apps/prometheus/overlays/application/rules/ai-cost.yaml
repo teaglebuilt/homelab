@@ -1,0 +1,100 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ai-cost.rules
+spec:
+  groups:
+    - name: ai-cost.rate-card
+      interval: 1m
+      rules:
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(5), "model", "claude-opus-5", "", ""), "kind", "input", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(25), "model", "claude-opus-5", "", ""), "kind", "output", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(0.5), "model", "claude-opus-5", "", ""), "kind", "cache_read", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(6.25), "model", "claude-opus-5", "", ""), "kind", "cache_write_5m", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(10), "model", "claude-opus-5", "", ""), "kind", "cache_write_1h", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(5), "model", "claude-opus-4-5", "", ""), "kind", "input", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(25), "model", "claude-opus-4-5", "", ""), "kind", "output", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(0.5), "model", "claude-opus-4-5", "", ""), "kind", "cache_read", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(6.25), "model", "claude-opus-4-5", "", ""), "kind", "cache_write_5m", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(10), "model", "claude-opus-4-5", "", ""), "kind", "cache_write_1h", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(2), "model", "claude-sonnet-5-5", "", ""), "kind", "input", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(10), "model", "claude-sonnet-5-5", "", ""), "kind", "output", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(0.2), "model", "claude-sonnet-5-5", "", ""), "kind", "cache_read", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(2.5), "model", "claude-sonnet-5-5", "", ""), "kind", "cache_write_5m", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(4), "model", "claude-sonnet-5-5", "", ""), "kind", "cache_write_1h", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(1), "model", "claude-haiku-4-5", "", ""), "kind", "input", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(5), "model", "claude-haiku-4-5", "", ""), "kind", "output", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(0.1), "model", "claude-haiku-4-5", "", ""), "kind", "cache_read", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(1.25), "model", "claude-haiku-4-5", "", ""), "kind", "cache_write_5m", "", ""), "rate_card_version", "2026-11-22", "", "")
+        - record: ai:model_price_usd_per_mtok
+          expr: label_replace(label_replace(label_replace(vector(2), "model", "claude-haiku-4-5", "", ""), "kind", "cache_write_1h", "", ""), "rate_card_version", "2026-11-22", "", "")
+    - name: ai-cost.tokens
+      interval: 1m
+      rules:
+        - record: ai:llm_tokens:rate5m
+          expr: |
+            label_replace(label_replace(label_replace(
+              clamp_min(sum by (ai_cost_key) (rate(gen_ai_usage_input_tokens_total[5m])) - on (ai_cost_key) (sum by (ai_cost_key) (rate({__name__=~"gen_ai_usage_cache_(read|write)_input_tokens_total"}[5m])) or sum by (ai_cost_key) (rate(gen_ai_usage_input_tokens_total[5m])) * 0), 0),
+              "agent", "$1", "ai_cost_key", "([^|]*)\\|.*"),
+              "model", "$1", "ai_cost_key", "[^|]*\\|(.*)"),
+              "kind", "input", "", "")
+        - record: ai:llm_tokens:rate5m
+          expr: |
+            label_replace(label_replace(label_replace(
+              sum by (ai_cost_key) (rate(gen_ai_usage_output_tokens_total[5m])),
+              "agent", "$1", "ai_cost_key", "([^|]*)\\|.*"),
+              "model", "$1", "ai_cost_key", "[^|]*\\|(.*)"),
+              "kind", "output", "", "")
+        - record: ai:llm_tokens:rate5m
+          expr: |
+            label_replace(label_replace(label_replace(
+              sum by (ai_cost_key) (rate(gen_ai_usage_cache_read_input_tokens_total[5m])),
+              "agent", "$1", "ai_cost_key", "([^|]*)\\|.*"),
+              "model", "$1", "ai_cost_key", "[^|]*\\|(.*)"),
+              "kind", "cache_read", "", "")
+        - record: ai:llm_tokens:rate5m
+          expr: |
+            label_replace(label_replace(label_replace(
+              sum by (ai_cost_key) (rate(gen_ai_usage_cache_write_input_tokens_total[5m])),
+              "agent", "$1", "ai_cost_key", "([^|]*)\\|.*"),
+              "model", "$1", "ai_cost_key", "[^|]*\\|(.*)"),
+              "kind", "cache_write_5m", "", "")
+    - name: ai-cost.spend
+      interval: 1m
+      rules:
+        - record: ai:spend_usd:rate5m
+          expr: |
+            sum by (agent, model) (
+              ai:llm_tokens:rate5m * on (model, kind) group_left (rate_card_version) ai:model_price_usd_per_mtok
+            ) / 1e6
+        - record: ai:spend_usd:increase1d
+          expr: sum_over_time(ai:spend_usd:rate5m[1d]) * 60
+    - name: ai-cost.budgets
+      interval: 1m
+      rules:
+        - record: ai:budget_usd_monthly
+          expr: label_replace(vector(150), "workspace", "homelab-agents", "", "")
+        - record: ai:budget_usd_monthly
+          expr: label_replace(vector(50), "workspace", "homelab-chat", "", "")
+        - record: ai:budget_usd_daily_alert
+          expr: label_replace(vector(10), "agent", "*", "", "")

@@ -4,6 +4,10 @@ kind: ModelConfig
 metadata:
   name: gpt-4o-mini
   namespace: ai
+  labels:
+    ai.homelab/tier: standard
+    ai.homelab/paid: "true"
+    ai.homelab/route: direct
 spec:
   provider: OpenAI
   model: gpt-4o-mini

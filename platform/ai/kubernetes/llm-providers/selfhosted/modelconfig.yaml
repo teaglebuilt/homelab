@@ -4,6 +4,10 @@ kind: ModelConfig
 metadata:
   name: llmd-vllm-config
   namespace: ai
+  labels:
+    ai.homelab/tier: local
+    ai.homelab/paid: "false"
+    ai.homelab/route: local
 spec:
   apiKeySecret: llmd-dummy-api-key
   apiKeySecretKey: api-key

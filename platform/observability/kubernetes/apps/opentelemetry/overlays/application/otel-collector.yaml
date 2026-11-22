@@ -34,6 +34,14 @@ spec:
       # outlive the gaps between sparse LLM calls or the stream restarts at zero.
       deltatocumulative:
         max_stale: 2h
+      transform/cost_key:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            conditions:
+              - span.attributes["gen_ai.usage.input_tokens"] != nil or span.attributes["gen_ai.usage.output_tokens"] != nil
+            statements:
+              - set(span.attributes["ai.cost_key"], Concat([resource.attributes["service.name"], span.attributes["gen_ai.request.model"]], "|"))
     connectors:
       spanmetrics:
         namespace: otelcol
@@ -57,36 +65,36 @@ spec:
             conditions:
               - span.attributes["gen_ai.usage.input_tokens"] != nil
             attributes:
-              - key: gen_ai.request.model
-                default_value: unknown
+              - key: ai.cost_key
+                default_value: unknown|unknown
           gen_ai.usage.output_tokens:
             source_attribute: gen_ai.usage.output_tokens
             conditions:
               - span.attributes["gen_ai.usage.output_tokens"] != nil
             attributes:
-              - key: gen_ai.request.model
-                default_value: unknown
+              - key: ai.cost_key
+                default_value: unknown|unknown
           gen_ai.usage.cache_read.input_tokens:
             source_attribute: gen_ai.usage.cache_read.input_tokens
             conditions:
               - span.attributes["gen_ai.usage.cache_read.input_tokens"] != nil
             attributes:
-              - key: gen_ai.request.model
-                default_value: unknown
+              - key: ai.cost_key
+                default_value: unknown|unknown
           gen_ai.usage.cache_write.input_tokens:
             source_attribute: gen_ai.usage.cache_write.input_tokens
             conditions:
               - span.attributes["gen_ai.usage.cache_write.input_tokens"] != nil
             attributes:
-              - key: gen_ai.request.model
-                default_value: unknown
+              - key: ai.cost_key
+                default_value: unknown|unknown
           gen_ai.usage.reasoning.output_tokens:
             source_attribute: gen_ai.usage.reasoning.output_tokens
             conditions:
               - span.attributes["gen_ai.usage.reasoning.output_tokens"] != nil
             attributes:
-              - key: gen_ai.request.model
-                default_value: unknown
+              - key: ai.cost_key
+                default_value: unknown|unknown
     exporters:
       otlp/tempo:
         endpoint: http://tempo.observability.svc.cluster.local:4317
@@ -116,7 +124,7 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [batch, attributes]
+          processors: [batch, attributes, transform/cost_key]
           exporters: [spanmetrics, sum, debug, otlp/tempo]
         # otlp alongside spanmetrics: the mlops agent forwards substrate/kagent
         # SDK metrics here, and without the receiver this pipeline would answer

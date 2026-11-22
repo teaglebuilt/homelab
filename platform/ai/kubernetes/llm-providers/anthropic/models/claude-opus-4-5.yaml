@@ -4,6 +4,10 @@ kind: ModelConfig
 metadata:
   name: claude-opus-4-5
   namespace: ai
+  labels:
+    ai.homelab/tier: premium
+    ai.homelab/paid: "true"
+    ai.homelab/route: direct
 spec:
   provider: Anthropic
   model: claude-opus-4-5
