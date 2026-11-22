@@ -98,3 +98,47 @@ spec:
           expr: label_replace(vector(50), "workspace", "homelab-chat", "", "")
         - record: ai:budget_usd_daily_alert
           expr: label_replace(vector(10), "agent", "*", "", "")
+    - name: ai-cost.alerts
+      rules:
+        - alert: AIAgentDailySpendHigh
+          expr: sum by (agent) (ai:spend_usd:increase1d) > on () group_left () ai:budget_usd_daily_alert
+          for: 15m
+          labels: { severity: warning, team: ai-cost }
+          annotations:
+            summary: "{{ $labels.agent }} spent ${{ $value | printf \"%.2f\" }} in the last 24h"
+            description: "Above the default per-agent daily line in ai:budget_usd_daily_alert."
+        - alert: AIAgentsWeeklyPaceHigh
+          expr: sum(sum_over_time(ai:spend_usd:rate5m[7d])) * 60 > 0.8 * 150 * 7 / 30
+          for: 1h
+          labels: { severity: warning, team: ai-cost }
+          annotations:
+            summary: "7d spend ${{ $value | printf \"%.2f\" }} is on pace for over 80% of the homelab-agents monthly budget"
+            description: "Rolling 7d pace against ai:budget_usd_monthly{workspace=\"homelab-agents\"}. Prometheus retains 15d, so a calendar month-to-date cannot be computed."
+        - alert: AISpendBurst
+          expr: sum by (agent) (ai:spend_usd:rate5m) * 3600 > 10
+          for: 10m
+          labels: { severity: critical, team: ai-cost }
+          annotations:
+            summary: "{{ $labels.agent }} is burning ${{ $value | printf \"%.2f\" }}/h"
+            description: "Sustained for 10m. Likely a runaway loop. No automatic action is taken."
+        - alert: AIUnattributedTokens
+          expr: sum(ai:llm_tokens:rate5m{agent="unknown"}) > 0
+          for: 15m
+          labels: { severity: warning, team: ai-cost }
+          annotations:
+            summary: "LLM tokens are arriving without a service.name"
+            description: "Spend cannot be attributed to an agent. Check for a span shape change after a kagent upgrade."
+        - alert: AISpendTelemetryMissing
+          expr: sum(rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~"chat|generate_content", gen_ai_request_model=~"claude-.*"}[5m])) > 0 unless on () sum(ai:spend_usd:rate5m) > 0
+          for: 15m
+          labels: { severity: warning, team: ai-cost }
+          annotations:
+            summary: "Paid LLM calls are happening but no spend is recorded"
+            description: "The sum connector, the ai_cost_key transform or the rate card rules have stopped producing ai:spend_usd:rate5m."
+        - alert: AIAgentWithoutOwner
+          expr: sum by (agent) (ai:spend_usd:rate5m) > 0 unless on (agent) max by (agent) (ai_agent_info{cost_owner!=""})
+          for: 30m
+          labels: { severity: warning, team: ai-cost }
+          annotations:
+            summary: "{{ $labels.agent }} is spending with no ai.homelab/cost-owner label"
+            description: "Label the Agent or its AgentTemplate. Also fires if ai-cost-audit has stopped pushing ai_agent_info."

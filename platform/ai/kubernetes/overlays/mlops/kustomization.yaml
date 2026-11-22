@@ -12,6 +12,7 @@ resources:
   - ../../substrate
   - ../../database
   - ../../mcp
+  - ../../cost-audit
   - ../../apps/youtube-transcript
   # Bearer shared with application (youtube-transcript, kb-mcp-write -> kb-api over mesh).
   - ../../apps/kb-api
