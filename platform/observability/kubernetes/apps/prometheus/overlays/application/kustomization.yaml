@@ -8,6 +8,8 @@ resources:
   - rules/vllm-alerts.yaml
   - rules/node-memory-alerts.yaml
   - rules/ai-cost.yaml
+generators:
+  - secrets-generator.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: https://prometheus-community.github.io/helm-charts
@@ -26,6 +28,31 @@ helmCharts:
         enabled: true
       alertmanager:
         enabled: true
+        alertmanagerSpec:
+          secrets:
+            - alertmanager-ai-cost
+        config:
+          global:
+            resolve_timeout: 5m
+          route:
+            receiver: "null"
+            group_by: [alertname, agent]
+            routes:
+              - receiver: n8n-ai-cost
+                matchers:
+                  - team="ai-cost"
+                group_wait: 30s
+                repeat_interval: 12h
+          receivers:
+            - name: "null"
+            - name: n8n-ai-cost
+              webhook_configs:
+                - url: http://n8n-service.automation.svc.cluster.local:5678/webhook/ai-cost-alert
+                  send_resolved: true
+                  http_config:
+                    authorization:
+                      type: Bearer
+                      credentials_file: /etc/alertmanager/secrets/alertmanager-ai-cost/token
       grafana:
         # TODO(user): admin creds via SOPS secret, persistence, HTTPRoute hostname.
         enabled: true
