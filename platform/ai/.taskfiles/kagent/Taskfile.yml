@@ -27,3 +27,42 @@ tasks:
         AI_NAMESPACE='{{.AI_NAMESPACE}}' \
         TAIL='{{.TAIL}}' \
         '{{.TASKFILE_DIR}}/debug-agent.sh'
+
+  remove-stuck-session:
+    desc: |
+      List/delete kagent Sessions holding WorkerPool capacity (blocks Agent Ready
+      golden snapshots: "no worker has room for the actor").
+      List:   task platform:ai:kagent:remove-stuck-session
+      One:    task platform:ai:kagent:remove-stuck-session SESSION=<id>
+      Agent:  task platform:ai:kagent:remove-stuck-session AGENT=medday-developer ALL=true
+      Force:  CLI --force (1.0.1+) or API fallback via buf curl (needs KAGENT_PROTO /
+              ~/github/opensource/kagent-dev/kagent/proto) when session has an active task.
+    vars:
+      CLUSTER: '{{.CLUSTER | default "mlops"}}'
+      KUBECONFIG_FILE: '{{.ROOT_DIR}}/kubernetes/generated/{{.CLUSTER}}/kubeconfig'
+      AI_NAMESPACE: '{{.AI_NAMESPACE | default "ai"}}'
+      SESSION: '{{.SESSION | default ""}}'
+      AGENT: '{{.AGENT | default ""}}'
+      ALL: '{{.ALL | default "false"}}'
+      # Prefer Force delete: CLI --force (1.0.1+) or gRPC API fallback.
+      FORCE: '{{.FORCE | default "true"}}'
+      USER_ID: '{{.USER_ID | default "admin@kagent.dev"}}'
+      KAGENT_PROTO: '{{.KAGENT_PROTO | default ""}}'
+    preconditions:
+      - sh: test -f '{{.KUBECONFIG_FILE}}'
+        msg: "kubeconfig not found: {{.KUBECONFIG_FILE}}"
+      - sh: command -v kagent >/dev/null
+        msg: "kagent CLI not found (task platform:ai:kagent:install)"
+      - sh: command -v jq >/dev/null
+        msg: "jq not found on PATH"
+    cmds:
+      - |
+        KUBECONFIG_FILE='{{.KUBECONFIG_FILE}}' \
+        AI_NAMESPACE='{{.AI_NAMESPACE}}' \
+        SESSION='{{.SESSION}}' \
+        AGENT='{{.AGENT}}' \
+        ALL='{{.ALL}}' \
+        FORCE='{{.FORCE}}' \
+        USER_ID='{{.USER_ID}}' \
+        KAGENT_PROTO='{{.KAGENT_PROTO}}' \
+        '{{.TASKFILE_DIR}}/remove-stuck-session.sh'

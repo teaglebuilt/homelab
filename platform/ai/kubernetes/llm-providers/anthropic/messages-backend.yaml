@@ -1,0 +1,16 @@
+---
+# Native Anthropic /v1/messages through the ai: backend so token usage is parsed.
+# No auth policy: the caller's own credential is forwarded.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: anthropic-messages
+  namespace: ai
+spec:
+  ai:
+    provider:
+      anthropic: {}
+  policies:
+    ai:
+      routes:
+        "/v1/messages": Messages

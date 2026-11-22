@@ -30,22 +30,63 @@ spec:
           - key: service.name
             action: upsert
             from_attribute: service.name
+      # sumconnector emits DELTA; remote write needs cumulative. max_stale must
+      # outlive the gaps between sparse LLM calls or the stream restarts at zero.
+      deltatocumulative:
+        max_stale: 2h
     connectors:
       spanmetrics:
         namespace: otelcol
         histogram:
           explicit:
             buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096, 8.192, 16.384]
-        # Token counts intentionally omitted — they explode Prom label cardinality.
         # Keep in sync with tempo metricsGenerator.processor.span_metrics.dimensions.
+        # Token counts belong in the sum connector below, never here as dimensions.
         dimensions:
-          - name: gen.ai.request.model
-          - name: gen.ai.system
-          - name: kagent.user_id
+          - name: gen_ai.request.model
+          - name: gen_ai.provider.name
+          - name: gen_ai.operation.name
         exemplars:
           enabled: true
         metrics_flush_interval: 15s
         aggregation_temporality: AGGREGATION_TEMPORALITY_CUMULATIVE
+      sum:
+        spans:
+          gen_ai.usage.input_tokens:
+            source_attribute: gen_ai.usage.input_tokens
+            conditions:
+              - span.attributes["gen_ai.usage.input_tokens"] != nil
+            attributes:
+              - key: gen_ai.request.model
+                default_value: unknown
+          gen_ai.usage.output_tokens:
+            source_attribute: gen_ai.usage.output_tokens
+            conditions:
+              - span.attributes["gen_ai.usage.output_tokens"] != nil
+            attributes:
+              - key: gen_ai.request.model
+                default_value: unknown
+          gen_ai.usage.cache_read.input_tokens:
+            source_attribute: gen_ai.usage.cache_read.input_tokens
+            conditions:
+              - span.attributes["gen_ai.usage.cache_read.input_tokens"] != nil
+            attributes:
+              - key: gen_ai.request.model
+                default_value: unknown
+          gen_ai.usage.cache_write.input_tokens:
+            source_attribute: gen_ai.usage.cache_write.input_tokens
+            conditions:
+              - span.attributes["gen_ai.usage.cache_write.input_tokens"] != nil
+            attributes:
+              - key: gen_ai.request.model
+                default_value: unknown
+          gen_ai.usage.reasoning.output_tokens:
+            source_attribute: gen_ai.usage.reasoning.output_tokens
+            conditions:
+              - span.attributes["gen_ai.usage.reasoning.output_tokens"] != nil
+            attributes:
+              - key: gen_ai.request.model
+                default_value: unknown
     exporters:
       otlp/tempo:
         endpoint: http://tempo.observability.svc.cluster.local:4317
@@ -76,7 +117,7 @@ spec:
         traces:
           receivers: [otlp]
           processors: [batch, attributes]
-          exporters: [spanmetrics, debug, otlp/tempo]
+          exporters: [spanmetrics, sum, debug, otlp/tempo]
         # otlp alongside spanmetrics: the mlops agent forwards substrate/kagent
         # SDK metrics here, and without the receiver this pipeline would answer
         # them "Unimplemented" exactly as the agent did before.
@@ -84,6 +125,12 @@ spec:
           receivers: [spanmetrics, otlp]
           processors: [batch]
           exporters: [prometheus, prometheusremotewrite, debug]
+        # Separate pipeline so deltatocumulative never sees the already-cumulative
+        # spanmetrics series.
+        metrics/tokens:
+          receivers: [sum]
+          processors: [deltatocumulative, batch]
+          exporters: [prometheusremotewrite]
         logs:
           receivers: [otlp]
           processors: [batch]
