@@ -54,7 +54,7 @@ spec:
         - record: ai:llm_tokens:rate5m
           expr: |
             sum without (service_name, gen_ai_request_model) (label_replace(label_replace(label_replace(
-              clamp_min(sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) - on (service_name, gen_ai_request_model, ai_cost_owner) (sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate({__name__=~"gen_ai_usage_cache_(read|write)_input_tokens_total"}[5m])) or sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) * 0), 0),
+              clamp_min(sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) - on (service_name, gen_ai_request_model, ai_cost_owner) (sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[5m])) or sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) * 0) - on (service_name, gen_ai_request_model, ai_cost_owner) (sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[5m])) or sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) * 0), 0),
               "agent", "$1", "service_name", "(.*)"),
               "model", "$1", "gen_ai_request_model", "(.*)"),
               "kind", "input", "", ""))

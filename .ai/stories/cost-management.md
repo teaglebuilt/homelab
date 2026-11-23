@@ -11,13 +11,13 @@
 
 Know what every paid model call costs, which agent made it, and whether the task it served succeeded. Stop runaway spend before the invoice does. Reduce **cost per verified successful task** without lowering task quality.
 
-The plan adds **no new service**. Cost is handled with telemetry, git-versioned config, gateway policy, admission policy, and the provider's own spend limits. Per-task cost and escalation belong to the improvement loop, which already owns task records and verification.
+The plan adds **no new service**. Cost is handled with telemetry, git-versioned config, gateway policy, and the provider's own spend limits, checked against the provider's billed cost. Per-task cost and escalation belong to the improvement loop, which already owns task records and verification.
 
 **Design constraint: it must work for agents that are not in this repo.** The first paid agent (`medday-developer`) is a Helm chart in `sigmahealth/agents`, and later agents may come from anywhere. So cost identity never depends on scanning this repo's chart tree. It comes from three things every agent has at runtime:
 
 1. **`service.name` on its spans.** kagent sets it to the Agent name, and spend is grouped by it.
 2. **The ModelConfig it references.** v1alpha3 requires the ModelConfig to be in the Agent's namespace, and ModelConfigs are platform-owned in this repo. An external chart can choose a model only by naming one of ours. This is the point where the platform controls pricing, routing, and credentials for every agent.
-3. **Labels on the live `Agent` object.** These are enforced at admission, not checked in CI.
+3. **The `ai.cost_owner` resource attribute**, set per Harness with `OTEL_RESOURCE_ATTRIBUTES` in `spec.env`. It lands on every token series, so no metadata join is needed. Not enforced at admission; see §12.
 
 ### Sequencing / where this fits
 
@@ -112,7 +112,7 @@ Split cost management into four concerns. Each goes where the platform already h
 | Concern | Owner | Mechanism |
 | --- | --- | --- |
 | **Price and attribute** | Observability stack | Rate card per *model* as git-versioned Prometheus recording rules. Spend grouped by `service.name` (agent) × model, both emitted at runtime. Agent → cost owner/tier comes from labels on the live `Agent`. |
-| **Guard** | Provider + gateway + admission + Alertmanager | Anthropic workspace spend limit (hard monthly cap); agentgateway token rate limit keyed on Actor identity (runaway-loop breaker); `ValidatingAdmissionPolicy` that rejects paid Agents without a cost owner; budget alerts |
+| **Guard** | Provider + gateway + Alertmanager | Anthropic workspace spend limit (hard monthly cap); agentgateway token rate limit keyed on Actor identity (runaway-loop breaker); budget alerts, including one for agents with no cost owner |
 | **Select model** | Platform ModelConfigs + agent charts | The platform publishes tiered, gateway-routed ModelConfigs; charts pick one by name. No model switching mid-loop. |
 | **Cost per verified success, escalation, experiments** | Improvement loop | Cost fields on the execution record, computed from that run's trace; escalation is a retry policy in the coordinator; savings experiments use M4 paired comparisons |
 
@@ -144,13 +144,11 @@ flowchart TB
   end
 
   subgraph mlops[mlops / ns ai]
-    VAP[ValidatingAdmissionPolicy<br/>paid Agent needs cost-owner label<br/>and a gateway ModelConfig]
     AG[Agents from any repo<br/>medday-developer, scraping, architect, ...]
     MC[platform ModelConfigs *-gateway<br/>actorJwt, tier label]
     GW[ai-gateway<br/>jwtAuthentication + token rate limit per Actor<br/>backend attaches workspace key]
     SUB[local-tier subagents]
     V[vLLM local]
-    VAP -. admits .-> AG
     AG --> MC --> GW
     AG --> SUB --> V
   end
@@ -222,8 +220,8 @@ Rationale: observed spend is ~$1 per task, so $150 leaves room for about 150 age
 
 - [ ] Application collector: derive `ai.cost_key = <service.name>|<gen_ai.request.model>` on spans with usage, and make it the sum connector's single grouping attribute in place of `gen_ai.request.model`. `service.name` is set by kagent from the Agent name, so this works for agents from any repo with no chart change.
 - [ ] `platform/observability/kubernetes/apps/prometheus/overlays/application/rules/ai-cost.yaml`: rate card (per model), budgets (per cost owner), spend recording rules.
-- [ ] Agent metadata series: `ai_agent_info{agent, cost_owner, tier, model_config}` from the **live** `Agent` objects. The preferred source is kube-state-metrics `customResourceState` on `agents.api.kagent.dev`. mlops has no Prometheus today, so this needs either a kube-state-metrics on mlops remote-writing to application or a small audit CronJob that pushes it over OTLP. Pick one in C1; both read cluster state, not a repo.
-- [ ] Rebuild the `ai-traffic` cost row on `ai:spend_usd:*` recording rules, joined to `ai_agent_info` for cost-owner grouping. Remove `$paid_model`, `$price_in`, `$price_out`.
+- [x] ~~Agent metadata series `ai_agent_info`~~ Replaced by the `ai.cost_owner` resource attribute per Harness (§12).
+- [ ] Rebuild the `ai-traffic` cost row on `ai:spend_usd:*` recording rules, grouped by `ai_cost_owner` for cost-owner grouping. Remove `$paid_model`, `$price_in`, `$price_out`.
 - [ ] Panels: spend by agent, by cost owner, by model; calls per invocation; cache read share per agent; unattributed tokens.
 
 ```yaml
@@ -253,12 +251,12 @@ Kinds: `input` (uncached), `output`, `cache_read`, `cache_write_5m`, `cache_writ
 
 - [ ] Console: create workspaces `homelab-agents` ($150/mo) and `homelab-chat` ($50/mo) with 50%/80% threshold alerts. Mint keys and store them as SOPS secrets referenced **only by gateway backends**. Remove paid usage from the Default Workspace, which cannot be capped.
 - [ ] Alertmanager receiver (n8n webhook or ntfy). No receiver exists today.
-- [ ] Alerts: `AIAgentDailySpendHigh`, `AICostOwner30dBudgetExceeded`, `AISpendTelemetryMissing` (paid `chat` spans present but `ai:spend_usd` absent), `AIUnattributedTokens`, `AIAgentWithoutOwner` (an agent with spend and no `ai_agent_info`).
+- [ ] Alerts: `AIAgentDailySpendHigh`, `AIAgentsWeeklyPaceHigh` (replacing `AICostOwner30dBudgetExceeded`; Prometheus keeps 15d, and the Console alerts cover month-to-date), `AISpendTelemetryMissing` (paid `chat` spans present but `ai:spend_usd` absent), `AIUnattributedTokens`, `AIAgentWithoutOwner` (an agent with spend and no `ai_agent_info`).
 - [ ] Gateway ModelConfigs per paid *model* (not per agent), with `actorJwt` per the §5 decision. Move `medday-developer` from `-direct` to `claude-opus-5-gateway`; this is a one-line values change in its own repo.
 - [ ] `ai-gateway`: `jwtAuthentication` for the Substrate issuer on the paid routes; backend `policies.auth` with the workspace key.
 - [ ] `AgentgatewayPolicy` on the paid routes: `traffic.rateLimit.local` with `tokens` per `Hours`, keyed on the Actor claim from the C0 spike. If C0 rules out the `ai:` backend, use `requests` per `Minutes` on the passthrough instead.
-- [ ] `ValidatingAdmissionPolicy` `paid-agent-cost-owner` (VAPs are already in use on mlops via Substrate): see §8.
-- [ ] Retire the `-direct` ModelConfigs once nothing references them.
+- [ ] ~~`ValidatingAdmissionPolicy` `paid-agent-cost-owner`~~ Shelved 2026-11-23, see §12.
+- [ ] Retire the `route=direct` ModelConfigs once nothing references them. Check by label, not by the `-direct` name suffix.
 
 ```yaml
 apiVersion: agentgateway.dev/v1alpha1
@@ -281,7 +279,7 @@ spec:
 
 `jwt.sub` is a placeholder for the claim the spike identifies. 5M tokens per hour is roughly 2.5x the observed burst.
 
-**Exit:** a synthetic loop gets 429s from the gateway; a budget alert reaches a human; installing a paid Agent without `ai.homelab/cost-owner` is rejected; no Agent references a `-direct` ModelConfig.
+**Exit:** a synthetic loop gets 429s from the gateway; a budget alert reaches a human; `AIAgentWithoutOwner` is quiet; no AgentTemplate references a `route=direct` ModelConfig.
 
 ### C3: Select model
 
@@ -291,7 +289,7 @@ spec:
   - *Rejected: "GPT-4o".* No GPT-4o ModelConfig exists (only `gpt-4o-mini`). More importantly, a second paid provider means a second rate card, a second provider in attribution, and a spend limit outside Anthropic workspaces, which is extra cost plumbing for no capability gain. Keep paid agent traffic in one provider family while the cost model is being built.
   - *Not the default: Haiku 4.5* ($1/$5, 5x cheaper than Opus). Its 200K context is a real ceiling for large scrapes, and it predates adaptive thinking/`effort` (it still takes `budget_tokens`), so it behaves differently from the rest of the fleet. Trial it in C5.
   - **What makes the downgrade safe is structured outputs, not model tier.** Enforce the caller's schema with `strict: true` / structured outputs, so schema conformance is guaranteed by the API rather than by model diligence. Check whether kagent's Anthropic provider exposes it; if not, validate against the schema in the agent's final step and retry once.
-- [ ] Label every ModelConfig `ai.homelab/tier: local|standard|premium` and `ai.homelab/paid: "true|false"`. The admission policy and dashboards key on these, not on model-name patterns.
+- [ ] Label every ModelConfig `ai.homelab/tier: local|standard|premium` and `ai.homelab/paid: "true|false"`. The audit and dashboards key on these, not on model-name patterns.
 - [ ] Refresh the stale `claude-sonnet-4` / `claude-3-5-sonnet` ModelConfigs, or delete them.
 - [ ] `medday-developer`: delegate read-heavy exploration and log or test-output summarization to a local-tier subagent template, so the premium context grows more slowly. Constraint: one 12 GB GPU and one loaded checkpoint, shared with every compaction summarizer. The 14B-AWQ profile has a 4k context, so only small, bounded subtasks qualify. This is a change in the sigmahealth repo, proposed there.
 - [ ] Software-factory: set per-role `modelConfig` defaults (architect/reviewer premium, developer standard, tester local) once the roles do real work.
@@ -326,16 +324,13 @@ Split by what can see what. **CI in this repo cannot see agent charts in other r
 
 | Check | Where | Covers | Cannot cover |
 | --- | --- | --- | --- |
-| Every Anthropic/OpenAI ModelConfig `spec.model` has `input`, `output`, `cache_read` prices in `ai-cost.yaml` | CI, this repo, over `llm-providers/**/models/*.yaml` | Every ModelConfig, since ModelConfigs are platform-owned | A ModelConfig created by an external chart (prevented at admission, see below) |
-| Every ModelConfig carries `ai.homelab/tier` and `ai.homelab/paid` | CI, this repo | Same | Same |
-| Paid ModelConfigs route through `ai-gateway` (or are on a reasoned allowlist) | CI, this repo | Whether a gateway path *exists* for each paid model | Whether any given agent *uses* it; that is chosen in the agent's own repo |
-| **`paid-agent-cost-owner`**: an `AgentTemplate`/`Agent` whose ModelConfig has `ai.homelab/paid=true` must carry `ai.homelab/cost-owner`, and must not reference a ModelConfig labeled `ai.homelab/route=direct` | `ValidatingAdmissionPolicy` in `ai` (mlops) | **Every agent from every repo**, at install/upgrade time | Agents created before the policy existed (the audit catches them) |
-| No ModelConfig is created outside this repo's Kustomize/Argo source | `ValidatingAdmissionPolicy`: ModelConfig writes only from the platform deploy identity | Prevents an external chart from bringing its own paid ModelConfig and key | Break-glass manual `kubectl` by an admin |
-| `AIAgentWithoutOwner`: spend from a `service.name` with no `ai_agent_info` series | Prometheus alert (recurring audit) | Anything that spends without being registered, including pre-policy agents and non-kagent callers | Callers that emit no `gen_ai` spans (laptop Claude Code, by design) |
+| PromQL validity of the cost rules | prometheus-operator's admission webhook at apply time, plus a manual parse against live Prometheus | Syntax and type errors | Wrong prices, missing rate-card rows (caught by `AISpendTelemetryMissing` and the Console reconcile) |
+| Telemetry spend agrees with Anthropic's billed cost | Manual Console reconcile (C0) | Rate-card drift, missing models, double counting | Drift between reconciles |
+| `AIAgentWithoutOwner`: spend with an empty `ai_cost_owner` | Prometheus alert | Any agent whose Harness doesn't set `ai.cost_owner`, from any repo | Callers that emit no `gen_ai` spans (laptop Claude Code, by design) |
 | `AIUnattributedTokens`: `ai:llm_tokens:rate5m{model="unknown"}` > 0 for 15m | Prometheus | Telemetry regressions in any harness | Same |
 | `AISpendTelemetryMissing`: paid `chat` spanmetrics present, spend series absent | Prometheus | Rate-card gaps for new models | Same |
 
-Cross-object CEL note: a VAP cannot directly read the referenced ModelConfig's labels from the Agent's admission request. Use `paramKind` with the ModelConfig list, or move the rule to the paid ModelConfig names via a param ConfigMap that CI generates from this repo's ModelConfigs. Confirm in C2; this is the least-proven piece of the enforcement design.
+Admission checks were dropped on 2026-11-23 (§12).
 
 ## 9. Non-goals
 
@@ -362,16 +357,25 @@ Still open, each owned by a phase:
 1. Does the kagent ADK work against the `ai:` Messages backend? (C0 spike)
 2. Does Substrate's `actorJwt` reach an in-cluster gateway, and which claim names the Agent? (C0 spike)
 3. How do Agent labels get into Prometheus on the application cluster: kube-state-metrics on mlops or an audit CronJob? (C1)
-4. How does the admission policy see the referenced ModelConfig's labels? (C2)
+4. ~~How does the admission policy see the referenced ModelConfig's labels? (C2)~~ Moot: admission shelved (§12).
 
 ## 11. Onboarding a new paid agent
 
-The minimum any agent must do, from any repo, to show up correctly in cost attribution and pass admission:
+The minimum any agent must do, from any repo, to show up correctly in cost attribution:
 
-1. **Reference a platform gateway ModelConfig by name**, e.g. `modelConfig.name: claude-sonnet-5-5-gateway`. Do not ship a ModelConfig or an API key Secret in your chart; admission rejects both.
-2. **Label the `Agent` and `AgentTemplate`** with `ai.homelab/cost-owner: <owner>` (e.g. `homelab`, `sigmahealth`). Admission rejects a paid agent without it.
+1. **Reference a platform gateway ModelConfig by name**, e.g. `modelConfig.name: claude-sonnet-5-5-gateway`. Do not ship a ModelConfig or an API key Secret in your chart. Nothing blocks it, but its spend would bypass the gateway breaker and show up unowned.
+2. **Set the cost owner on your Harness**: `spec.env` entry `OTEL_RESOURCE_ATTRIBUTES` = `ai.cost_owner=<owner>` (e.g. `homelab`, `sigmahealth`). Without it, `AIAgentWithoutOwner` fires once the agent spends.
 3. **Keep kagent's default `service.name`.** Don't override `OTEL_SERVICE_NAME` in the Harness; spend is grouped by it. If you need a different display name, use a resource attribute, not `service.name`.
 4. **Keep default telemetry on.** Don't disable the harness's trace export; an agent with spend and no spans trips `AISpendTelemetryMissing`.
-5. **Nothing else.** Pricing, rate limits, workspace caps and dashboards come from the platform. A new *model* (not a new agent) needs a platform PR: ModelConfig + rate-card row + tier/paid labels, which CI checks.
+5. **Nothing else.** Pricing, rate limits, workspace caps and dashboards come from the platform. A new *model* (not a new agent) needs a platform PR: ModelConfig + rate-card row + tier/paid/route labels. CI lints the rules; a missing rate-card row shows up as `AISpendTelemetryMissing` and as a gap against billed cost.
 
 To verify after install: the agent appears on the `ai-traffic` "spend by agent" and "spend by cost owner" panels after its first paid call, and `AIAgentWithoutOwner` stays quiet.
+
+## 12. Revision 2026-11-23: less machinery
+
+A review of the first implementation found more machinery than a single-operator homelab needs. Changes:
+
+- **Admission shelved.** The `ValidatingAdmissionPolicy` needed a CI-generated params ConfigMap, a generator script that read prices back out of PromQL, and an allowlist of known gaps, all to block the one operator who also writes the policy. The hard protections are the workspace caps (C2), the gateway breaker (C2) and the alerts. Ownership is checked after the fact (`AIAgentWithoutOwner`, the "spend by cost owner" panel). Revisit if a second team deploys agents.
+- **No new scripts.** A billing CronJob (Admin cost API) and the `ai_agent_info` audit CronJob were both built and then removed. The Console's workspace alerts and hard caps cover billed spend. The cost owner is an OTel resource attribute set per Harness, which kagent documents and its Go runtime reads, so it rides on every token series without a join. agentgateway can't replace either: it never sees Kubernetes labels or the invoice, and on the `/anthropic` passthrough it records no tokens.
+- **No CI job.** The `promtool` workflow was removed too; the prometheus-operator validates rules on apply.
+- **Scraping is the first gateway agent.** `claude-sonnet-5-5-gateway` replaces the direct Sonnet ModelConfig, on the existing `/anthropic` passthrough.

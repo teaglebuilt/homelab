@@ -3,14 +3,14 @@
 **Story:** [`.ai/stories/cost-management.md`](../stories/cost-management.md) (architecture, decisions, rationale)
 **Status:** Ready to start (C0–C3); C4/C5 gated on the improvement loop
 **Updated:** 2026-11-22
-**Clusters:** mlops (agents, `ai-gateway`, admission), application (collector, Prometheus, Grafana, Alertmanager)
+**Clusters:** mlops (agents, `ai-gateway`, Harness env), application (collector, Prometheus, Grafana, Alertmanager)
 
 This plan is the build order for the story. Design reasoning stays in the story; this file lists what to change, where, how to verify it, and how to back it out. Work packages (WPs) are sized to one PR each unless noted.
 
 ## 0. Ground rules
 
 - No new long-running service. The only new deployable allowed is a metadata exporter (WP-C1.3), and only if kube-state-metrics cannot do the job.
-- Changes to `ai-gateway` and admission go through `task platform:ai:deploy CLUSTER=mlops`. Observability changes go through the application overlay deploy.
+- Changes to `ai-gateway` and Harnesses go through `task platform:ai:deploy CLUSTER=mlops`. Observability changes go through the application overlay deploy.
 - Every WP ships with a verification step that reads **live** state (Prometheus, `kubectl`, gateway response). A rendered manifest is not evidence.
 - Secrets use SOPS + ksops only. No plaintext keys in values, CRs or env.
 - Changes to agents outside this repo (sigmahealth) are proposed in that repo. This plan does not depend on them landing, except where marked **[external]**.
@@ -30,7 +30,7 @@ flowchart LR
   C2b[WP-C2.2 Alertmanager + alerts]
   C1b --> C2b
   C3a[WP-C3.1 scraping to Sonnet 5.5]
-  C3b[WP-C3.2 ModelConfig labels] --> C2d[WP-C2.4 admission]
+  C3b[WP-C3.2 ModelConfig labels] --> C2d[WP-C2.4 owner labels, admission shelved]
   C1c --> C2d
   C2c --> C2e[WP-C2.5 retire -direct]
   L1[Improvement loop M0-M1] --> C4[C4]
@@ -41,7 +41,7 @@ flowchart LR
 | --- | --- | --- |
 | 1 | C0.1 start, C2.1, C1.1, C1.2, C3.1, C3.2 | Get data accruing against a priced, capped baseline from day one |
 | 1–2 | C0.2, C0.3, C0.4, C2.2, C1.3 | Spikes decide C2.3; reconciliation decides whether the C1 numbers can be trusted |
-| 2–3 | C1.4, C2.3, C2.4 | Gateway and admission land after the spike verdicts |
+| 2–3 | C1.4, C2.3, C2.4 | The gateway lands after the spike verdicts; admission is shelved (story §12) |
 | 3+ | C2.5, C3.3–C3.5, C0 exit (≥20 tasks) | Cleanup and model-selection work that needs the baseline |
 | gated | C4, C5 | Need improvement loop M0–M1 and M4 respectively |
 
@@ -87,12 +87,14 @@ Outcomes:
 - **Pass:** record the claim name (it replaces `jwt.sub` in C2.3).
 - **Fail:** fall back to per-route limits and a gateway-held key, with no per-agent identity at the gateway. Agent attribution still works through spans. Update the story §5.
 
-### WP-C0.4 Reconcile telemetry against the Console
+### WP-C0.4 Reconcile telemetry against billed cost
+
+- [ ] Not started. A billing CronJob on the Admin cost API was built and removed on 2026-11-23 (story §12); the Console's own workspace alerts cover notification. Do this reconcile by hand from the Console.
 
 Steps:
 1. Pick one UTC day with medday traffic. Export Console usage for the workspace/key: input, output, cache read, cache write.
 2. Compare with `increase(gen_ai_usage_*_tokens_total[1d])` for that day.
-3. Answer specifically: does `gen_ai_usage_input_tokens` **include** cache read and write tokens? The current dashboard subtracts them, which assumes it does. If it doesn't, fix the C1.2 rule formula.
+3. *Answered 2026-11-23: yes, it includes them (11.78M input vs 11.29M cache read over one window).* Answer specifically: does `gen_ai_usage_input_tokens` **include** cache read and write tokens? The current dashboard subtracts them, which assumes it does. If it doesn't, fix the C1.2 rule formula.
 
 Exit: within 5% per token kind, or the gap is explained and fixed in C1.2.
 
@@ -110,7 +112,7 @@ Outcome: a one-paragraph note in the story. If compaction is firing early and re
 
 ### WP-C1.1 Composite cost key in the application collector
 
-- [x] Repo change done. Live verify and deploy-time note pending.
+- [x] Reverted 2026-11-23: not needed. The sum connector already carries `service.name` (and any other resource attribute) as a label, so the rules group by `service_name` and `gen_ai_request_model` directly. The collector file is back to main. The transform is still live; it goes away on the next application deploy, and since medday's last paid call (2026-11-22 20:55 UTC) predates it, no history is lost. The apparent double counting was two medday revisions (`service_version`), not duplicates.
 
 **File:** `platform/observability/kubernetes/apps/opentelemetry/overlays/application/otel-collector.yaml`
 
@@ -135,7 +137,7 @@ Rollback: revert the file; the old series resume.
 
 ### WP-C1.2 Rate card, budgets and spend recording rules
 
-- [x] Repo change done (`ai-cost.yaml`). `promtool check rules` and the Console reconcile (C0.4) pending.
+- [x] Rules group by `service_name`, `gen_ai_request_model` and `ai_cost_owner`. Fixed a latent bug: `rate()` over both cache metric names at once failed with duplicate labelsets. Backtested on medday's 2026-11-22 19:30–21:10 UTC run: $10.73, about 9% under the same window priced from raw `increase()` ($11.83), because summing 1-minute samples of a 5-minute rate loses each new series' first delta. About 2% of medday's tokens have `gen_ai_request_model="unknown"` and are unpriced; `AIUnattributedTokens` now covers them.
 
 **New file:** `platform/observability/kubernetes/apps/prometheus/overlays/application/rules/ai-cost.yaml`
 **Edit:** `.../overlays/application/kustomization.yaml`, adding it to `resources`.
@@ -155,11 +157,11 @@ Contents (`PrometheusRule`, groups):
 3. `ai-cost.spend`: `ai:spend_usd:rate5m{agent, model}` and `ai:spend_usd:increase1d{agent, model}`.
 4. `ai-cost.budgets`: `ai:budget_usd_monthly{workspace="homelab-agents"} 150`, `{workspace="homelab-chat"} 50`, plus `ai:budget_usd_daily_alert{agent="*"} 10` as the default per-agent daily alert line.
 
-Verify: `ai:spend_usd:increase1d` summed over a day equals the C0.4 Console figure within 5%. `promtool check rules` passes in CI (WP-F.1).
+Verify: `ai:spend_usd:increase1d` summed over a day equals the C0.4 Console figure within 5%.
 
 ### WP-C1.3 Agent metadata from the live cluster
 
-- [x] Option B chosen: mlops has no kube-state-metrics. CronJob `ai-cost-audit` in `platform/ai/kubernetes/cost-audit/`, every 2m. Live verify pending.
+- [x] Replaced 2026-11-23: no metadata series and no CronJob. Each Harness sets `OTEL_RESOURCE_ATTRIBUTES=ai.cost_owner=<owner>` in `spec.env` (kagent's documented path), so every token series carries `ai_cost_owner` and the spend rules group by it. Done for the `kagent` Harness (`homelab`); **[external]** `sigmahealth-harness` needs `ai.cost_owner=sigmahealth`. The audit CronJob built first is still live: delete it after deploy (`kubectl --context mlops -n ai delete cronjob ai-cost-audit role/ai-cost-audit rolebinding/ai-cost-audit sa/ai-cost-audit`). Not verified live: that the label reaches Prometheus.
 
 **Goal:** a series `ai_agent_info{agent, cost_owner, tier, model_config}` built from live `Agent`/`AgentTemplate` objects in mlops `ai`.
 
@@ -173,13 +175,13 @@ Verify: `ai_agent_info{agent="medday-developer"}` exists in application Promethe
 
 ### WP-C1.4 Dashboard
 
-- [x] Repo change done. Month-to-date panel understates after day 15 (Prometheus retains 15d).
+- [x] Repo change done. No month-to-date panel: Prometheus keeps 15 days, and the Console shows month-to-date per workspace. Cost-owner panel groups by `ai_cost_owner`.
 
 **File:** `platform/observability/kubernetes/apps/grafana/overlays/application/dashboards/ai-traffic.yaml`
 
 1. Rewrite the "Cost and token usage" row on recording rules:
    - Estimated spend (range): `sum(increase(ai:spend_usd:rate5m[$__range]))`, written as a sum over `ai:spend_usd:increase1d` for multi-day ranges.
-   - Spend by agent, by model, by cost owner (`* on(agent) group_left(cost_owner) ai_agent_info`).
+   - Spend by agent, by model, by cost owner (`sum by (ai_cost_owner)`).
    - Calls per invocation, per agent.
    - Cache read share, per agent.
    - Month-to-date vs budget, per workspace.
@@ -210,7 +212,7 @@ Rollback: switch `secretRef` back to `anthropic-api-key`.
 
 ### WP-C2.2 Alertmanager receiver and cost alerts
 
-- [ ] In progress. Done: `ai-cost.alerts` group (weekly pace replaces month-to-date, no `homelab-chat` alert), Alertmanager route and SOPS bearer token. Not done: n8n notify node and credential, `amtool` test.
+- [ ] In progress. Done: `ai-cost.alerts` group, Alertmanager route to an n8n webhook with a SOPS bearer token, a reference `ai-cost-alert` workflow JSON. Not done: n8n notify node and credential, `amtool` test (parked 2026-11-23).
 
 Files:
 - `platform/observability/kubernetes/apps/prometheus/overlays/application/values.yaml`: add `alertmanager.config` with a route for `team=ai-cost` to a webhook receiver. The target is an n8n webhook in the application cluster (`n8n` lives there) or ntfy. The URL secret goes in via SOPS (`alertmanager.alertmanagerSpec.secrets` or an `AlertmanagerConfig` CR).
@@ -219,11 +221,11 @@ Files:
 | Alert | Expr (sketch) | For | Severity |
 | --- | --- | --- | --- |
 | `AIAgentDailySpendHigh` | `ai:spend_usd:increase1d > on() group_left ai:budget_usd_daily_alert` | 15m | warning |
-| `AIWorkspaceMonthToDateHigh` | month-to-date per workspace > 0.8 × `ai:budget_usd_monthly` | 1h | warning |
+| `AIAgentsWeeklyPaceHigh` | rolling 7d telemetry spend > 0.8 × `ai:budget_usd_monthly{workspace="homelab-agents"}` × 7/30 | 1h | warning |
 | `AISpendBurst` | `sum by (agent) (ai:spend_usd:rate5m) * 3600 > 10` | 10m | critical |
 | `AIUnattributedTokens` | `sum(ai:llm_tokens:rate5m{agent="unknown"}) > 0` | 15m | warning |
 | `AISpendTelemetryMissing` | paid `chat` spanmetrics rate > 0 and `absent(ai:spend_usd:rate5m)` | 15m | warning |
-| `AIAgentWithoutOwner` | spend by agent `unless on(agent) ai_agent_info{cost_owner!=""}` | 30m | warning |
+| `AIAgentWithoutOwner` | spend by agent with `ai_cost_owner=""` | 30m | warning |
 
 Workspace mapping: agents map to `homelab-agents`, and `service.name` of the OpenWebUI/gateway path maps to `homelab-chat`. Encode this as a small `ai:agent_workspace` info rule.
 
@@ -254,44 +256,27 @@ Verify:
 
 Rollback: delete the two policies and restore `apiKeySecret` on the gateway ModelConfig. Agents keep working on the old key.
 
-### WP-C2.4 Admission: paid agents need a cost owner
+### WP-C2.4 Admission: paid agents need a cost owner (shelved)
 
-- [ ] In progress. Done: params ConfigMap, `paid-agent-cost-owner` policy, Warn/Audit binding. Not done: `modelconfig-platform-only` (deploy and helm identity are both `admin`), Deny switch, labels on external and local agents.
+- [ ] Shelved 2026-11-23 (story §12). Built, reviewed and removed: it needed a CI-generated params ConfigMap, a generator script and an allowlist, to block the one operator who also writes the policy. Ownership comes from the `ai.cost_owner` resource attribute per Harness (WP-C1.3), checked by `AIAgentWithoutOwner` and the "spend by cost owner" panel. Revisit if a second team deploys agents.
 
-**New dir:** `platform/ai/kubernetes/admission/` (add to the mlops overlay `resources`).
-
-Resources:
-1. `ConfigMap ai-paid-modelconfigs`: a list of ModelConfig names labelled `ai.homelab/paid=true`, plus the `direct` subset. Generated in CI from `llm-providers/**/models/*.yaml` (WP-F.1), so the policy never has to look up another object.
-2. `ValidatingAdmissionPolicy paid-agent-cost-owner` (`paramKind: ConfigMap`), matching `CREATE`/`UPDATE` on `agenttemplates.api.kagent.dev` and `agents.api.kagent.dev` in `ai`:
-   - AgentTemplate: if `spec.modelConfig.name` is in the paid list, require `metadata.labels['ai.homelab/cost-owner']` to be non-empty.
-   - AgentTemplate: deny if `spec.modelConfig.name` is in the `direct` list, unless labelled `ai.homelab/direct-exception` with a reason annotation.
-   - Agent: require `ai.homelab/cost-owner` whenever its referenced template is paid. If a template lookup isn't possible, require the label on **every** Agent, which is simpler and probably fine.
-3. `ValidatingAdmissionPolicy modelconfig-platform-only`: deny `CREATE`/`UPDATE` of `modelconfigs.api.kagent.dev` unless `request.userInfo.username` is the platform deploy identity, or the request has a break-glass group.
-4. Bindings start with `validationActions: [Warn, Audit]` for one week, then switch to `[Deny]`.
-
-Before switching to Deny:
-- label this repo's paid agents (`scraping-service-agent`, `solutions-architect` if paid) with `ai.homelab/cost-owner: homelab`;
-- **[external]** add `ai.homelab/cost-owner: sigmahealth` to the medday chart's AgentTemplate and Agent labels.
-
-Verify: `kubectl apply --dry-run=server` of an unlabelled paid AgentTemplate warns (Warn phase) and is rejected (Deny phase). `helm upgrade` of medday with labels succeeds.
-
-Rollback: delete the bindings. Policies without bindings do nothing.
+Still worth doing: every Harness that runs paid agents sets `ai.cost_owner` (done for `kagent`; **[external]** `sigmahealth-harness`).
 
 ### WP-C2.5 Retire direct paths
 
 After C2.3 + [external] land and `AIAgentWithoutOwner` has been quiet for a week:
-- delete `claude-opus-5-direct` and `claude-opus-4-5` (or keep one, labelled direct-exception, for break-glass);
+- delete every `route=direct` paid ModelConfig still unreferenced (`claude-opus-5-direct`, `claude-opus-4-5`, `default-model-config` if kagent allows; keep one for break-glass if wanted);
 - revoke the Default-Workspace key.
 
-Verify: `kubectl --context mlops -n ai get agenttemplates -o json | jq '[.items[].spec.modelConfig.name] | unique'` contains no `-direct` names.
+Verify by label, not by name (`claude-sonnet-5-5`, `claude-opus-4-5` and `gpt-4o-mini` are direct without the suffix): every ModelConfig named by `kubectl --context mlops -n ai get agenttemplates -o json | jq -r '[.items[].spec.modelConfig.name] | unique[]'` has `ai.homelab/route` of `gateway` or `local`.
 
-**C2 exit:** synthetic loop gets 429; an alert reaches a human; unlabelled paid agents are rejected; no direct references remain.
+**C2 exit:** synthetic loop gets 429; an alert reaches a human; `AIAgentWithoutOwner` is quiet; no AgentTemplate references a `route=direct` ModelConfig.
 
 ## 5. Phase C3 — Select model
 
 ### WP-C3.1 `scraping-service-agent` → `claude-sonnet-5-5`
 
-- [ ] In progress. Done: ModelConfig, agent switched, cost-owner label. Not done: structured output check and the three-task verification.
+- [ ] In progress. Done: scraping moved to `claude-sonnet-5-5-gateway` (via the `/anthropic` passthrough; the direct Sonnet config is gone from the repo but still live until deploy and cleanup), cost-owner label. Not done: deploy, confirm the kagent ADK works over the passthrough, structured output check, three-task verification. Rollback: point `modelConfig.name` back at a direct config.
 
 Files:
 1. New `platform/ai/kubernetes/llm-providers/anthropic/models/claude-sonnet-5-5.yaml`: `model: claude-sonnet-5-5`, `promptCaching: true`, `cacheTTL: 5m`, labels `ai.homelab/tier: standard`, `ai.homelab/paid: "true"`. Becomes `-gateway` + `actorJwt` in C2.3. Add it to `kustomization.yaml`.
@@ -304,7 +289,7 @@ Rollback: one-line revert of `modelConfig.name`.
 
 ### WP-C3.2 ModelConfig labels
 
-- [x] Labels on every deployed ModelConfig; `claude-3-5-sonnet` and `claude-sonnet-4` removed from the repo. Undeployed bedrock/nim/ollama configs are unlabelled.
+- [ ] Nearly done. `claude-3-5-sonnet` and `claude-sonnet-4` deleted from the repo and from the cluster (2026-11-23). `default-model-config` (from the kagent chart) gets its labels from a patch in the mlops overlay, not deployed yet. Verify with the `-L` check after deploy. Undeployed bedrock/nim/ollama configs are unlabelled.
 
 Add `ai.homelab/tier` (`local|standard|premium`), `ai.homelab/paid` (`true|false`) and `ai.homelab/route` (`gateway|direct|local`) to every ModelConfig under `platform/ai/kubernetes/llm-providers/`. Delete or refresh the stale `claude-3-5-sonnet` and `claude-sonnet-4` (check `kubectl get agenttemplates` references first).
 
@@ -333,7 +318,7 @@ Add to the execution event schema (`platform/ai/learning/contracts/event.schema.
 
 ### WP-C4.2 Pricing in capture
 
-In `agent-learning-capture` (n8n), after the OTLP export step: sum `gen_ai.usage.*` over `chat` spans of the exported session (from the same file agentevals scores) and price it. The rate card should be read from a single source: a JSON rendering of `ai-cost.yaml` generated in CI (WP-F.1) and published as a ConfigMap, so Prometheus and the loop cannot drift apart.
+In `agent-learning-capture` (n8n), after the OTLP export step: sum `gen_ai.usage.*` over `chat` spans of the exported session (from the same file agentevals scores) and price it. The rate card should be read from a single source so Prometheus and the loop cannot drift apart. Decide the format when C4 starts; reading prices back out of PromQL was tried and dropped as brittle.
 
 ### WP-C4.3 Panel
 
@@ -358,18 +343,13 @@ Grafana Postgres datasource on learning Postgres; panel `sum(cost_usd) / NULLIF(
 
 ### WP-F.1 CI job
 
-- [x] Repo change done: `.github/workflows/ai-cost-checks.yaml`, `scripts/check-modelconfigs.py` and `.allow`. The workflow itself has not run in CI; the Python check passes locally. Allowlist holds 6 known gaps (OpenAI rate card and gateway, `claude-opus-4-5` and `claude-sonnet-5-5` gateway).
+- [x] Dropped 2026-11-23: no CI job. The ModelConfig script went with admission, and the `promtool` workflow was removed too. Before changing `ai-cost.yaml`, check each expression parses by running it against Prometheus (port-forward to `prometheus-community-kube-prometheus` in application `observability`); the operator rejects an invalid PrometheusRule at apply time anyway.
 
-**New:** `.github/workflows/ai-cost-checks.yaml` (current CI only builds docs), running on PRs touching `platform/ai/kubernetes/llm-providers/**` or `platform/observability/**/rules/ai-cost.yaml`:
-1. `promtool check rules` on `ai-cost.yaml`.
-2. `scripts/check-modelconfigs.py`: every ModelConfig has the tier, paid and route labels; every paid `spec.model` has `input`, `output` and `cache_read` rate-card rows; every paid model has at least one `route=gateway` ModelConfig.
-3. Generate `ai-paid-modelconfigs` ConfigMap data (WP-C2.4) and the rate-card JSON (WP-C4.2), and fail if the committed copies differ.
-
-**Explicit limit:** CI sees only this repo. It cannot check which ModelConfig an external agent picks. That is covered by WP-C2.4 (admission) and `AIAgentWithoutOwner` (audit).
+**Explicit limit:** nothing checks prices automatically. Wrong or missing prices show up as `AISpendTelemetryMissing` and in the manual Console reconcile (WP-C0.4).
 
 ### WP-F.2 Cluster checks
 
-Covered by WP-C2.4 and the WP-C2.2 alerts. No extra work beyond those WPs.
+Covered by the WP-C2.2 alerts and the Console reconcile (WP-C0.4). No extra work beyond those WPs.
 
 ## 9. Definition of done (story level, C0–C3)
 
@@ -377,7 +357,7 @@ Covered by WP-C2.4 and the WP-C2.2 alerts. No extra work beyond those WPs.
 - [ ] Spend by agent, model and cost owner on the dashboard, from git-versioned rates.
 - [ ] Two capped workspaces; the Default Workspace key revoked.
 - [ ] A runaway loop is throttled at the gateway and notified through Alertmanager.
-- [ ] Unlabelled paid agents are rejected at admission; no `-direct` references remain.
+- [ ] Every Harness running paid agents sets `ai.cost_owner`; no AgentTemplate references a `route=direct` ModelConfig.
 - [ ] `scraping-service-agent` on Sonnet 5.5 with schema-valid output.
 - [ ] The onboarding checklist is in `platform/ai/README.md`, and one external agent (medday) has followed it.
 
