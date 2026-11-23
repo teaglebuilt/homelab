@@ -2,19 +2,21 @@
 apiVersion: api.kagent.dev/v1alpha3
 kind: ModelConfig
 metadata:
-  name: claude-sonnet-5-5
+  name: claude-sonnet-5-5-gateway
   namespace: ai
   labels:
     app: anthropic
     component: model-config
     ai.homelab/tier: standard
     ai.homelab/paid: "true"
-    ai.homelab/route: direct
+    ai.homelab/route: gateway
 spec:
   provider: Anthropic
   model: claude-sonnet-5-5
   apiKeySecret: anthropic-api-key
   apiKeySecretKey: Authorization
+  stream: true
   anthropic:
+    baseUrl: http://ai-gateway.ai.svc.cluster.local/anthropic
     promptCaching: true
     cacheTTL: "5m"

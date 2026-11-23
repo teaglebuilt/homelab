@@ -9,7 +9,7 @@ resources:
   - messages-backend.yaml
   - messages-httproute.yaml
   - models/claude-opus-4-5.yaml
-  - models/claude-sonnet-5-5.yaml
+  - models/claude-sonnet-5-5-gateway.yaml
   - models/claude-opus-5-gateway.yaml
   - models/claude-opus-5-direct.yaml
 generators:

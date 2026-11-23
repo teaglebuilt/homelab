@@ -15,7 +15,7 @@ spec:
     MCP tools and returns the extracted records as strict JSON matching the
     caller-supplied schema. Reusable by any A2A/MCP caller.
   modelConfig:
-    name: claude-sonnet-5-5
+    name: claude-sonnet-5-5-gateway
   systemPrompt: |-
     You are web-scraper, a generic browser-automation agent. You handle ALL
     scraping tasks for the platform. You are domain-agnostic: the CALLER tells

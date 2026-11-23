@@ -110,6 +110,8 @@ Outcome: a one-paragraph note in the story. If compaction is firing early and re
 
 ### WP-C1.1 Composite cost key in the application collector
 
+- [x] Repo change done. Live verify and deploy-time note pending.
+
 **File:** `platform/observability/kubernetes/apps/opentelemetry/overlays/application/otel-collector.yaml`
 
 Steps:
@@ -133,6 +135,8 @@ Rollback: revert the file; the old series resume.
 
 ### WP-C1.2 Rate card, budgets and spend recording rules
 
+- [x] Repo change done (`ai-cost.yaml`). `promtool check rules` and the Console reconcile (C0.4) pending.
+
 **New file:** `platform/observability/kubernetes/apps/prometheus/overlays/application/rules/ai-cost.yaml`
 **Edit:** `.../overlays/application/kustomization.yaml`, adding it to `resources`.
 
@@ -155,6 +159,8 @@ Verify: `ai:spend_usd:increase1d` summed over a day equals the C0.4 Console figu
 
 ### WP-C1.3 Agent metadata from the live cluster
 
+- [x] Option B chosen: mlops has no kube-state-metrics. CronJob `ai-cost-audit` in `platform/ai/kubernetes/cost-audit/`, every 2m. Live verify pending.
+
 **Goal:** a series `ai_agent_info{agent, cost_owner, tier, model_config}` built from live `Agent`/`AgentTemplate` objects in mlops `ai`.
 
 Option A (preferred): kube-state-metrics `customResourceState` for `agents.api.kagent.dev` and `agenttemplates.api.kagent.dev`. It exports `metadata.labels["ai.homelab/cost-owner"]` and `spec.template.ref.name`; joining the template to `spec.modelConfig.name` happens in a recording rule. mlops runs no Prometheus, so the KSM pod needs to be scraped by the mlops OTel collector (`prometheus` receiver) and forwarded over the existing mesh export.
@@ -166,6 +172,8 @@ Decide by checking whether mlops already has kube-state-metrics (`kubectl --cont
 Verify: `ai_agent_info{agent="medday-developer"}` exists in application Prometheus. It will carry `cost_owner=""` until C2.4 / [external] labelling.
 
 ### WP-C1.4 Dashboard
+
+- [x] Repo change done. Month-to-date panel understates after day 15 (Prometheus retains 15d).
 
 **File:** `platform/observability/kubernetes/apps/grafana/overlays/application/dashboards/ai-traffic.yaml`
 
@@ -201,6 +209,8 @@ Verify: a request through `/claude` returns an `anthropic-workspace-id` response
 Rollback: switch `secretRef` back to `anthropic-api-key`.
 
 ### WP-C2.2 Alertmanager receiver and cost alerts
+
+- [ ] In progress. Done: `ai-cost.alerts` group (weekly pace replaces month-to-date, no `homelab-chat` alert), Alertmanager route and SOPS bearer token. Not done: n8n notify node and credential, `amtool` test.
 
 Files:
 - `platform/observability/kubernetes/apps/prometheus/overlays/application/values.yaml`: add `alertmanager.config` with a route for `team=ai-cost` to a webhook receiver. The target is an n8n webhook in the application cluster (`n8n` lives there) or ntfy. The URL secret goes in via SOPS (`alertmanager.alertmanagerSpec.secrets` or an `AlertmanagerConfig` CR).
@@ -246,6 +256,8 @@ Rollback: delete the two policies and restore `apiKeySecret` on the gateway Mode
 
 ### WP-C2.4 Admission: paid agents need a cost owner
 
+- [ ] In progress. Done: params ConfigMap, `paid-agent-cost-owner` policy, Warn/Audit binding. Not done: `modelconfig-platform-only` (deploy and helm identity are both `admin`), Deny switch, labels on external and local agents.
+
 **New dir:** `platform/ai/kubernetes/admission/` (add to the mlops overlay `resources`).
 
 Resources:
@@ -279,6 +291,8 @@ Verify: `kubectl --context mlops -n ai get agenttemplates -o json | jq '[.items[
 
 ### WP-C3.1 `scraping-service-agent` → `claude-sonnet-5-5`
 
+- [ ] In progress. Done: ModelConfig, agent switched, cost-owner label. Not done: structured output check and the three-task verification.
+
 Files:
 1. New `platform/ai/kubernetes/llm-providers/anthropic/models/claude-sonnet-5-5.yaml`: `model: claude-sonnet-5-5`, `promptCaching: true`, `cacheTTL: 5m`, labels `ai.homelab/tier: standard`, `ai.homelab/paid: "true"`. Becomes `-gateway` + `actorJwt` in C2.3. Add it to `kustomization.yaml`.
 2. `platform/ai/kubernetes/agents/scraping-service-agent.yaml`: `modelConfig.name: claude-sonnet-5-5`, add `ai.homelab/cost-owner: homelab`.
@@ -289,6 +303,8 @@ Verify: run three existing scraping tasks (a known Craigslist JSON API and a Red
 Rollback: one-line revert of `modelConfig.name`.
 
 ### WP-C3.2 ModelConfig labels
+
+- [x] Labels on every deployed ModelConfig; `claude-3-5-sonnet` and `claude-sonnet-4` removed from the repo. Undeployed bedrock/nim/ollama configs are unlabelled.
 
 Add `ai.homelab/tier` (`local|standard|premium`), `ai.homelab/paid` (`true|false`) and `ai.homelab/route` (`gateway|direct|local`) to every ModelConfig under `platform/ai/kubernetes/llm-providers/`. Delete or refresh the stale `claude-3-5-sonnet` and `claude-sonnet-4` (check `kubectl get agenttemplates` references first).
 
@@ -341,6 +357,8 @@ Grafana Postgres datasource on learning Postgres; panel `sum(cost_usd) / NULLIF(
 ## 8. Fitness functions (WP-F)
 
 ### WP-F.1 CI job
+
+- [x] Repo change done: `.github/workflows/ai-cost-checks.yaml`, `scripts/check-modelconfigs.py` and `.allow`. The workflow itself has not run in CI; the Python check passes locally. Allowlist holds 6 known gaps (OpenAI rate card and gateway, `claude-opus-4-5` and `claude-sonnet-5-5` gateway).
 
 **New:** `.github/workflows/ai-cost-checks.yaml` (current CI only builds docs), running on PRs touching `platform/ai/kubernetes/llm-providers/**` or `platform/observability/**/rules/ai-cost.yaml`:
 1. `promtool check rules` on `ai-cost.yaml`.

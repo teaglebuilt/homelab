@@ -652,7 +652,7 @@ spec:
           "id": 200,
           "type": "timeseries",
           "title": "Spend by agent ($/h)",
-          "description": "ai:spend_usd:rate5m by agent. agent=unknown means the span carried no service.name.",
+          "description": "ai:spend_usd:rate5m by agent (the span's service.name).",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -708,7 +708,7 @@ spec:
           "id": 201,
           "type": "timeseries",
           "title": "Spend by cost owner ($/h)",
-          "description": "Joins spend to ai_agent_info (ai-cost-audit CronJob). Agents without an ai.homelab/cost-owner label, or missing from the audit, show as unowned.",
+          "description": "Spend grouped by the ai.cost_owner resource attribute, set per Harness via OTEL_RESOURCE_ATTRIBUTES. Agents without it show as unowned.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -726,9 +726,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (cost_owner) (ai:spend_usd:rate5m * on (agent) group_left (cost_owner) max by (agent, cost_owner) (ai_agent_info{cost_owner!=\"\"})) * 3600 or label_replace(sum(ai:spend_usd:rate5m unless on (agent) max by (agent) (ai_agent_info{cost_owner!=\"\"})) * 3600, \"cost_owner\", \"unowned\", \"\", \"\")",
+              "expr": "label_replace(sum by (ai_cost_owner) (ai:spend_usd:rate5m) * 3600, \"ai_cost_owner\", \"unowned\", \"ai_cost_owner\", \"\")",
               "refId": "A",
-              "legendFormat": "{{cost_owner}}"
+              "legendFormat": "{{ai_cost_owner}}"
             }
           ],
           "options": {
@@ -761,17 +761,17 @@ spec:
           }
         },
         {
-          "id": 202,
+          "id": 203,
           "type": "stat",
-          "title": "Month-to-date vs budget",
-          "description": "Spend this calendar month over the combined monthly workspace budgets (ai:budget_usd_monthly). Prometheus retains 15d, so after day 15 this understates.",
+          "title": "Unattributed tokens ($__range)",
+          "description": "Tokens with no service.name or no request model over the range. These are not attributed or not priced. Should be zero.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
           "gridPos": {
             "h": 7,
-            "w": 4,
+            "w": 8,
             "x": 16,
             "y": 12
           },
@@ -782,83 +782,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "(sum(sum_over_time(ai:spend_usd:rate5m[$__range])) * 60 or vector(0)) / sum(ai:budget_usd_monthly)",
-              "refId": "A",
-              "instant": true,
-              "range": false
-            }
-          ],
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "textMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "unit": "percentunit",
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 0.5
-                  },
-                  {
-                    "color": "orange",
-                    "value": 0.8
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              },
-              "decimals": 2
-            },
-            "overrides": []
-          },
-          "timeFrom": "now/M"
-        },
-        {
-          "id": 203,
-          "type": "stat",
-          "title": "Unattributed tokens ($__range)",
-          "description": "Tokens from spans with no service.name (agent=unknown). Should be zero.",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 4,
-            "x": 20,
-            "y": 12
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "editorMode": "code",
-              "expr": "sum(sum_over_time(ai:llm_tokens:rate5m{agent=\"unknown\"}[$__range])) * 60 or vector(0)",
+              "expr": "sum(sum_over_time((ai:llm_tokens:rate5m{agent=\"\"} or ai:llm_tokens:rate5m{model=\"unknown\"})[$__range:1m])) * 60 or vector(0)",
               "refId": "A",
               "instant": true,
               "range": false

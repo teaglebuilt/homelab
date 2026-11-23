@@ -12,7 +12,6 @@ resources:
   - ../../substrate
   - ../../database
   - ../../mcp
-  - ../../cost-audit
   - ../../apps/youtube-transcript
   # Bearer shared with application (youtube-transcript, kb-mcp-write -> kb-api over mesh).
   - ../../apps/kb-api
@@ -163,3 +162,17 @@ helmCharts:
           # Same SOPS Secret as application's kb-api (apps/kb-api).
           tokenSecret: kb-ingest-token
           tokenSecretKey: KB_INGEST_TOKEN
+patches:
+  - target:
+      group: api.kagent.dev
+      kind: ModelConfig
+      name: default-model-config
+    patch: |-
+      apiVersion: api.kagent.dev/v1alpha3
+      kind: ModelConfig
+      metadata:
+        name: default-model-config
+        labels:
+          ai.homelab/tier: standard
+          ai.homelab/paid: "true"
+          ai.homelab/route: direct
