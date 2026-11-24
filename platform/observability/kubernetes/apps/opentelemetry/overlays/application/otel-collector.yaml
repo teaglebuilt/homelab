@@ -38,8 +38,9 @@ spec:
       spanmetrics:
         namespace: otelcol
         histogram:
+          unit: s
           explicit:
-            buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096, 8.192, 16.384]
+            buckets: [2ms, 4ms, 8ms, 16ms, 32ms, 64ms, 128ms, 256ms, 512ms, 1024ms, 2048ms, 4096ms, 8192ms, 16384ms, 32768ms, 65536ms, 131072ms]
         # Keep in sync with tempo metricsGenerator.processor.span_metrics.dimensions.
         # Token counts belong in the sum connector below, never here as dimensions.
         dimensions:

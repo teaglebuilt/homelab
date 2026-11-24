@@ -7,6 +7,9 @@ metadata:
   labels:
     app: kagent
     component: model-config
+    ai.homelab/tier: standard
+    ai.homelab/paid: "true"
+    ai.homelab/route: direct
 spec:
   provider: OpenAI
   model: text-embedding-3-small

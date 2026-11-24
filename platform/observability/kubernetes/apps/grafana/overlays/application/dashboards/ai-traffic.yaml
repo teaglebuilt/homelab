@@ -26,7 +26,7 @@ spec:
           }
         ]
       },
-      "description": "gen_ai telemetry for the AI stack. Cost tiles price the token counters produced by the otel-collector sum connector from gen_ai.usage.* span attributes; edit $price_in/$price_out/$paid_model to change the price table. Self-hosted models are free and excluded from spend. Claude Code reports its own USD figure via claude_code.cost.usage when its telemetry is exported. Model panels use Tempo span metrics, whose gen_ai dimensions are gen_ai.request.model, gen_ai.provider.name and gen_ai.operation.name. Gateway panels use agentgateway's own counters and are pinned to one scrape job. Loki and Tempo retain 24h; Prometheus 15d.",
+      "description": "gen_ai telemetry for the AI stack. Cost tiles price the otel-collector sum connector token counters at query time against the git-versioned rate card in ai-cost.rules. Self-hosted models have no rate-card row and are excluded from spend. Claude Code reports its own USD figure via claude_code.cost.usage when its telemetry is exported. Model panels use the otel-collector spanmetrics connector (otelcol_calls_total, otelcol_duration_seconds), whose gen_ai dimensions are gen_ai.request.model, gen_ai.provider.name and gen_ai.operation.name. Gateway panels use agentgateway's own counters and are pinned to one scrape job. Loki and Tempo retain 24h; Prometheus 15d.",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -49,7 +49,7 @@ spec:
           "id": 101,
           "type": "stat",
           "title": "Estimated spend ($__range)",
-          "description": "Token counts x the $price_in/$price_out variables, with cached input carved out and billed at 0.1x (read) and 1.25x (write). Covers only models matching $paid_model; self-hosted models are free and excluded. Needs the otel-collector sum connector.",
+          "description": "Estimated spend over the dashboard range. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -109,7 +109,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "(clamp_min((sum(increase({__name__=~\"gen_ai_usage_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__range])) or vector(0)) - (sum(increase({__name__=~\"gen_ai_usage_cache_read_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__range])) or vector(0)) - (sum(increase({__name__=~\"gen_ai_usage_cache_write_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__range])) or vector(0)), 0) * $price_in + (sum(increase({__name__=~\"gen_ai_usage_cache_read_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__range])) or vector(0)) * $price_in * 0.1 + (sum(increase({__name__=~\"gen_ai_usage_cache_write_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__range])) or vector(0)) * $price_in * 1.25 + (sum(increase({__name__=~\"gen_ai_usage_output_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__range])) or vector(0)) * $price_out) / 1e6",
+              "expr": "((sum (clamp_min(label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model) (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_read_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model) (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_write_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_output_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_read_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_write_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or vector(0))) / 1e6",
               "refId": "A",
               "instant": true,
               "range": false
@@ -438,7 +438,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "((sum(increase({__name__=~\"gen_ai_usage_input_tokens(_total)?\"}[$__range])) or vector(0)) + (sum(increase({__name__=~\"gen_ai_usage_output_tokens(_total)?\"}[$__range])) or vector(0))) / clamp_min(sum(increase(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__range])), 1)",
+              "expr": "((sum(increase({__name__=~\"gen_ai_usage_input_tokens(_total)?\"}[$__range])) or vector(0)) + (sum(increase({__name__=~\"gen_ai_usage_output_tokens(_total)?\"}[$__range])) or vector(0))) / clamp_min(sum(increase(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__range])), 1)",
               "refId": "A",
               "instant": true,
               "range": false
@@ -448,8 +448,8 @@ spec:
         {
           "id": 107,
           "type": "timeseries",
-          "title": "Estimated spend rate",
-          "description": "Same pricing as the tile above, projected to USD per hour.",
+          "title": "Estimated spend rate by model ($/h)",
+          "description": "Spend rate by model in $/h. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -475,23 +475,7 @@ spec:
               },
               "unit": "currencyUSD"
             },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "$paid_model"
-                },
-                "properties": [
-                  {
-                    "id": "color",
-                    "value": {
-                      "mode": "fixed",
-                      "fixedColor": "orange"
-                    }
-                  }
-                ]
-              }
-            ]
+            "overrides": []
           },
           "options": {
             "legend": {
@@ -511,9 +495,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "(clamp_min((sum(rate({__name__=~\"gen_ai_usage_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__rate_interval])) or vector(0)) - (sum(rate({__name__=~\"gen_ai_usage_cache_read_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__rate_interval])) or vector(0)) - (sum(rate({__name__=~\"gen_ai_usage_cache_write_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__rate_interval])) or vector(0)), 0) * $price_in + (sum(rate({__name__=~\"gen_ai_usage_cache_read_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__rate_interval])) or vector(0)) * $price_in * 0.1 + (sum(rate({__name__=~\"gen_ai_usage_cache_write_input_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__rate_interval])) or vector(0)) * $price_in * 1.25 + (sum(rate({__name__=~\"gen_ai_usage_output_tokens(_total)?\", gen_ai_request_model=~\"$paid_model\"}[$__rate_interval])) or vector(0)) * $price_out) / 1e6 * 3600",
+              "expr": "((sum by (model) (clamp_min(label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model, model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model, model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_output_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0))) / 1e6 * 3600",
               "refId": "A",
-              "legendFormat": "$paid_model"
+              "legendFormat": "{{model}}"
             }
           ]
         },
@@ -665,6 +649,297 @@ spec:
           ]
         },
         {
+          "id": 200,
+          "type": "timeseries",
+          "title": "Spend by agent ($/h)",
+          "description": "Spend rate by agent (span service.name) in $/h. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 8,
+            "x": 0,
+            "y": 12
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "((sum by (service_name) (clamp_min(label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_output_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0))) / 1e6 * 3600",
+              "refId": "A",
+              "legendFormat": "{{service_name}}"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 18,
+                "lineWidth": 2,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 201,
+          "type": "timeseries",
+          "title": "Spend by cost owner ($/h)",
+          "description": "Spend rate by the ai.cost_owner resource attribute (set per Harness via OTEL_RESOURCE_ATTRIBUTES), in $/h. Unowned agents show as unowned. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 8,
+            "x": 8,
+            "y": 12
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "label_replace(((sum by (ai_cost_owner) (clamp_min(label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model, ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model, ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_output_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0))) / 1e6 * 3600, \"ai_cost_owner\", \"unowned\", \"ai_cost_owner\", \"\")",
+              "refId": "A",
+              "legendFormat": "{{ai_cost_owner}}"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 18,
+                "lineWidth": 2,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 203,
+          "type": "stat",
+          "title": "Unpriced tokens ($__range)",
+          "description": "Input and output tokens on spans with no gen_ai.request.model. They cannot be priced. Should be zero.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 8,
+            "x": 16,
+            "y": 12
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "(sum(increase(gen_ai_usage_input_tokens_total{gen_ai_request_model=\"unknown\"}[$__range])) or vector(0)) + (sum(increase(gen_ai_usage_output_tokens_total{gen_ai_request_model=\"unknown\"}[$__range])) or vector(0))",
+              "refId": "A",
+              "instant": true,
+              "range": false
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "decimals": 2
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 204,
+          "type": "timeseries",
+          "title": "Calls per invocation by agent",
+          "description": "LLM calls (chat/generate_content spans) divided by invoke_agent spans, per service.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 19
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\", service_name=~\"$agent\"}[$__rate_interval])) / clamp_min(sum by (service_name) (rate(otelcol_calls_total{span_name=~\"invoke_agent.*\", service_name=~\"$agent\"}[$__rate_interval])), 1e-9)",
+              "refId": "A",
+              "legendFormat": "{{service_name}}"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 18,
+                "lineWidth": 2,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 205,
+          "type": "timeseries",
+          "title": "Cache read share by agent",
+          "description": "Cache read tokens as a share of all input tokens (input includes cache). A low share on a long-running agent means the prefix is not being reused.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 19
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "sum by (service_name) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])) / sum by (service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval]))",
+              "refId": "A",
+              "legendFormat": "{{service_name}}"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 18,
+                "lineWidth": 2,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "percentunit"
+            },
+            "overrides": []
+          }
+        },
+        {
           "id": 110,
           "type": "row",
           "title": "Model performance",
@@ -674,7 +949,7 @@ spec:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 12
+            "y": 26
           }
         },
         {
@@ -690,7 +965,7 @@ spec:
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 13
+            "y": 27
           },
           "fieldConfig": {
             "defaults": {
@@ -727,7 +1002,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (gen_ai_request_model, gen_ai_operation_name) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval]))",
+              "expr": "sum by (gen_ai_request_model, gen_ai_operation_name) (rate(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval]))",
               "refId": "A",
               "legendFormat": "{{gen_ai_request_model}} / {{gen_ai_operation_name}}"
             }
@@ -746,7 +1021,7 @@ spec:
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 13
+            "y": 27
           },
           "fieldConfig": {
             "defaults": {
@@ -829,7 +1104,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(traces_spanmetrics_latency_bucket{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval])))",
+              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(otelcol_duration_seconds_bucket{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval])))",
               "refId": "A",
               "legendFormat": "{{gen_ai_request_model}}"
             }
@@ -848,7 +1123,7 @@ spec:
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 13
+            "y": 27
           },
           "fieldConfig": {
             "defaults": {
@@ -931,7 +1206,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (gen_ai_request_model) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
+              "expr": "sum by (gen_ai_request_model) (rate(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
               "refId": "A",
               "legendFormat": "{{gen_ai_request_model}}"
             }
@@ -950,7 +1225,7 @@ spec:
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 34
           },
           "fieldConfig": {
             "defaults": {
@@ -1006,7 +1281,7 @@ spec:
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 34
           },
           "fieldConfig": {
             "defaults": {
@@ -1105,7 +1380,7 @@ spec:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 27
+            "y": 41
           }
         },
         {
@@ -1121,7 +1396,7 @@ spec:
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 28
+            "y": 42
           },
           "fieldConfig": {
             "defaults": {
@@ -1158,9 +1433,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=\"execute_tool\", service=~\"$agent\"}[$__rate_interval]))",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{gen_ai_operation_name=\"execute_tool\", service_name=~\"$agent\"}[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ]
         },
@@ -1177,7 +1452,7 @@ spec:
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 28
+            "y": 42
           },
           "fieldConfig": {
             "defaults": {
@@ -1214,9 +1489,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=\"compact_events\", service=~\"$agent\"}[$__rate_interval]))",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{gen_ai_operation_name=\"compact_events\", service_name=~\"$agent\"}[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ]
         },
@@ -1233,7 +1508,7 @@ spec:
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 28
+            "y": 42
           },
           "fieldConfig": {
             "defaults": {
@@ -1270,9 +1545,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{span_name=~\"invoke_agent.*\", service=~\"$agent\"}[$__rate_interval]))",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{span_name=~\"invoke_agent.*\", service_name=~\"$agent\"}[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ]
         },
@@ -1289,7 +1564,7 @@ spec:
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 35
+            "y": 49
           },
           "targets": [
             {
@@ -1315,7 +1590,7 @@ spec:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 45
+            "y": 59
           }
         },
         {
@@ -1355,7 +1630,7 @@ spec:
             "h": 6,
             "w": 6,
             "x": 0,
-            "y": 46
+            "y": 60
           },
           "id": 131,
           "options": {
@@ -1415,7 +1690,7 @@ spec:
             "h": 6,
             "w": 18,
             "x": 6,
-            "y": 46
+            "y": 60
           },
           "id": 132,
           "options": {
@@ -1475,7 +1750,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 52
+            "y": 66
           },
           "id": 133,
           "options": {
@@ -1530,7 +1805,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 52
+            "y": 66
           },
           "id": 134,
           "options": {
@@ -1570,7 +1845,7 @@ spec:
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 60
+            "y": 74
           },
           "id": 135,
           "options": {
@@ -1608,7 +1883,7 @@ spec:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 70
+            "y": 84
           }
         },
         {
@@ -1621,7 +1896,7 @@ spec:
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 71
+            "y": 85
           },
           "id": 141,
           "targets": [
@@ -1650,7 +1925,7 @@ spec:
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 81
+            "y": 95
           },
           "id": 142,
           "options": {
@@ -1693,63 +1968,6 @@ spec:
       "templating": {
         "list": [
           {
-            "name": "paid_model",
-            "label": "paid model",
-            "type": "textbox",
-            "description": "Regex of models that cost money. Self-hosted models must not match.",
-            "current": {
-              "selected": false,
-              "text": "claude-opus-5",
-              "value": "claude-opus-5"
-            },
-            "options": [
-              {
-                "selected": true,
-                "text": "claude-opus-5",
-                "value": "claude-opus-5"
-              }
-            ],
-            "query": "claude-opus-5"
-          },
-          {
-            "name": "price_in",
-            "label": "$/1M input",
-            "type": "textbox",
-            "description": "Input price per 1M tokens for $paid_model.",
-            "current": {
-              "selected": false,
-              "text": "5",
-              "value": "5"
-            },
-            "options": [
-              {
-                "selected": true,
-                "text": "5",
-                "value": "5"
-              }
-            ],
-            "query": "5"
-          },
-          {
-            "name": "price_out",
-            "label": "$/1M output",
-            "type": "textbox",
-            "description": "Output price per 1M tokens for $paid_model.",
-            "current": {
-              "selected": false,
-              "text": "25",
-              "value": "25"
-            },
-            "options": [
-              {
-                "selected": true,
-                "text": "25",
-                "value": "25"
-              }
-            ],
-            "query": "25"
-          },
-          {
             "allValue": ".+",
             "current": {
               "selected": true,
@@ -1791,19 +2009,19 @@ spec:
           {
             "current": {
               "selected": false,
-              "text": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
-              "value": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
+              "text": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+              "value": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
             },
             "label": "agent",
             "name": "agent",
             "options": [
               {
                 "selected": true,
-                "text": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
-                "value": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
+                "text": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+                "value": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
               }
             ],
-            "query": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+            "query": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
             "type": "textbox"
           }
         ]

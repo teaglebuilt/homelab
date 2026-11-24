@@ -10,10 +10,10 @@
   - [x] - [Stabilize GPU Workloads](./stories/gpu-hardware-reliability.md)
 - [ ] - Observability
   - [ ] - GPU Hardware Observability
-  - [ ] - AI Gateway Observability
-  - [ ] - AI Agents Observability
+  - [x] - AI Gateway Observability
+  - [x] - AI Agents Observability
   - [ ] - Cluster Observability
-  - [ ] - Network Observability
+  - [x] - Network Observability
 - [ ] - Build AI Platform
   - [x] - AI Gateway
   - [x] - AI Agents
@@ -29,6 +29,7 @@
   - [ ] - [Agent Improvement Loop](./stories/improvement-loop.md)
   - [ ] - [Agent Workspace](./stories/agent-workspace.md)
   - [ ] - [Agent Task Management](./stories/task-framework.md)
+  - [x] - [AI Cost Management](./stories/cost-management.md)
   - [ ] - setup llmd for multi gpu support for inference https://llm-d.ai/docs/infrastructure/gateway/agentgateway
 - [ ] - Build Software Factory
 - [ ] - Build Scraping Platform

@@ -5,6 +5,7 @@ metadata:
   name: scraping-service-agent
   namespace: ai
   labels:
+    ai.homelab/cost-owner: homelab
     app.kubernetes.io/name: scraping-service-agent
     app.kubernetes.io/part-of: homelab
 spec:
@@ -14,7 +15,7 @@ spec:
     MCP tools and returns the extracted records as strict JSON matching the
     caller-supplied schema. Reusable by any A2A/MCP caller.
   modelConfig:
-    name: claude-opus-4-5
+    name: claude-sonnet-5-5-gateway
   systemPrompt: |-
     You are web-scraper, a generic browser-automation agent. You handle ALL
     scraping tasks for the platform. You are domain-agnostic: the CALLER tells
@@ -75,6 +76,7 @@ metadata:
   name: scraping-service-agent
   namespace: ai
   labels:
+    ai.homelab/cost-owner: homelab
     app.kubernetes.io/name: scraping-service-agent
     app.kubernetes.io/part-of: homelab
 spec:
