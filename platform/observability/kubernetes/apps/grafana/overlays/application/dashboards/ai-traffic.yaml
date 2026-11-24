@@ -26,7 +26,7 @@ spec:
           }
         ]
       },
-      "description": "gen_ai telemetry for the AI stack. Cost tiles price the otel-collector sum connector token counters at query time against the git-versioned rate card in ai-cost.rules. Self-hosted models have no rate-card row and are excluded from spend. Claude Code reports its own USD figure via claude_code.cost.usage when its telemetry is exported. Model panels use Tempo span metrics, whose gen_ai dimensions are gen_ai.request.model, gen_ai.provider.name and gen_ai.operation.name. Gateway panels use agentgateway's own counters and are pinned to one scrape job. Loki and Tempo retain 24h; Prometheus 15d.",
+      "description": "gen_ai telemetry for the AI stack. Cost tiles price the otel-collector sum connector token counters at query time against the git-versioned rate card in ai-cost.rules. Self-hosted models have no rate-card row and are excluded from spend. Claude Code reports its own USD figure via claude_code.cost.usage when its telemetry is exported. Model panels use the otel-collector spanmetrics connector (otelcol_calls_total, otelcol_duration_seconds), whose gen_ai dimensions are gen_ai.request.model, gen_ai.provider.name and gen_ai.operation.name. Gateway panels use agentgateway's own counters and are pinned to one scrape job. Loki and Tempo retain 24h; Prometheus 15d.",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -438,7 +438,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "((sum(increase({__name__=~\"gen_ai_usage_input_tokens(_total)?\"}[$__range])) or vector(0)) + (sum(increase({__name__=~\"gen_ai_usage_output_tokens(_total)?\"}[$__range])) or vector(0))) / clamp_min(sum(increase(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__range])), 1)",
+              "expr": "((sum(increase({__name__=~\"gen_ai_usage_input_tokens(_total)?\"}[$__range])) or vector(0)) + (sum(increase({__name__=~\"gen_ai_usage_output_tokens(_total)?\"}[$__range])) or vector(0))) / clamp_min(sum(increase(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__range])), 1)",
               "refId": "A",
               "instant": true,
               "range": false
@@ -849,9 +849,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\", service=~\"$agent\"}[$__rate_interval])) / clamp_min(sum by (service) (rate(traces_spanmetrics_calls_total{span_name=~\"invoke_agent.*\", service=~\"$agent\"}[$__rate_interval])), 1e-9)",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\", service_name=~\"$agent\"}[$__rate_interval])) / clamp_min(sum by (service_name) (rate(otelcol_calls_total{span_name=~\"invoke_agent.*\", service_name=~\"$agent\"}[$__rate_interval])), 1e-9)",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ],
           "options": {
@@ -1002,7 +1002,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (gen_ai_request_model, gen_ai_operation_name) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval]))",
+              "expr": "sum by (gen_ai_request_model, gen_ai_operation_name) (rate(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval]))",
               "refId": "A",
               "legendFormat": "{{gen_ai_request_model}} / {{gen_ai_operation_name}}"
             }
@@ -1104,7 +1104,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(traces_spanmetrics_latency_bucket{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval])))",
+              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(otelcol_duration_seconds_bucket{gen_ai_operation_name=~\"chat|generate_content\"}[$__rate_interval])))",
               "refId": "A",
               "legendFormat": "{{gen_ai_request_model}}"
             }
@@ -1206,7 +1206,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (gen_ai_request_model) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~\"chat|generate_content\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
+              "expr": "sum by (gen_ai_request_model) (rate(otelcol_calls_total{gen_ai_operation_name=~\"chat|generate_content\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
               "refId": "A",
               "legendFormat": "{{gen_ai_request_model}}"
             }
@@ -1433,9 +1433,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=\"execute_tool\", service=~\"$agent\"}[$__rate_interval]))",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{gen_ai_operation_name=\"execute_tool\", service_name=~\"$agent\"}[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ]
         },
@@ -1489,9 +1489,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{gen_ai_operation_name=\"compact_events\", service=~\"$agent\"}[$__rate_interval]))",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{gen_ai_operation_name=\"compact_events\", service_name=~\"$agent\"}[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ]
         },
@@ -1545,9 +1545,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{span_name=~\"invoke_agent.*\", service=~\"$agent\"}[$__rate_interval]))",
+              "expr": "sum by (service_name) (rate(otelcol_calls_total{span_name=~\"invoke_agent.*\", service_name=~\"$agent\"}[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{service}}"
+              "legendFormat": "{{service_name}}"
             }
           ]
         },

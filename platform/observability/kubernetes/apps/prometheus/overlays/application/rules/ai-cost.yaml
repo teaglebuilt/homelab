@@ -48,47 +48,6 @@ spec:
           expr: label_replace(label_replace(label_replace(vector(1.25), "model", "claude-haiku-4-5", "", ""), "kind", "cache_write_5m", "", ""), "rate_card_version", "2026-11-22", "", "")
         - record: ai:model_price_usd_per_mtok
           expr: label_replace(label_replace(label_replace(vector(2), "model", "claude-haiku-4-5", "", ""), "kind", "cache_write_1h", "", ""), "rate_card_version", "2026-11-22", "", "")
-    - name: ai-cost.tokens
-      interval: 1m
-      rules:
-        - record: ai:llm_tokens:rate5m
-          expr: |
-            sum without (service_name, gen_ai_request_model) (label_replace(label_replace(label_replace(
-              clamp_min(sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) - on (service_name, gen_ai_request_model, ai_cost_owner) (sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[5m])) or sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) * 0) - on (service_name, gen_ai_request_model, ai_cost_owner) (sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[5m])) or sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[5m])) * 0), 0),
-              "agent", "$1", "service_name", "(.*)"),
-              "model", "$1", "gen_ai_request_model", "(.*)"),
-              "kind", "input", "", ""))
-        - record: ai:llm_tokens:rate5m
-          expr: |
-            sum without (service_name, gen_ai_request_model) (label_replace(label_replace(label_replace(
-              sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_output_tokens_total[5m])),
-              "agent", "$1", "service_name", "(.*)"),
-              "model", "$1", "gen_ai_request_model", "(.*)"),
-              "kind", "output", "", ""))
-        - record: ai:llm_tokens:rate5m
-          expr: |
-            sum without (service_name, gen_ai_request_model) (label_replace(label_replace(label_replace(
-              sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[5m])),
-              "agent", "$1", "service_name", "(.*)"),
-              "model", "$1", "gen_ai_request_model", "(.*)"),
-              "kind", "cache_read", "", ""))
-        - record: ai:llm_tokens:rate5m
-          expr: |
-            sum without (service_name, gen_ai_request_model) (label_replace(label_replace(label_replace(
-              sum by (service_name, gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[5m])),
-              "agent", "$1", "service_name", "(.*)"),
-              "model", "$1", "gen_ai_request_model", "(.*)"),
-              "kind", "cache_write_5m", "", ""))
-    - name: ai-cost.spend
-      interval: 1m
-      rules:
-        - record: ai:spend_usd:rate5m
-          expr: |
-            sum by (agent, model, ai_cost_owner) (
-              ai:llm_tokens:rate5m * on (model, kind) group_left (rate_card_version) ai:model_price_usd_per_mtok
-            ) / 1e6
-        - record: ai:spend_usd:increase1d
-          expr: sum_over_time(ai:spend_usd:rate5m[1d]) * 60
     - name: ai-cost.budgets
       interval: 1m
       rules:
@@ -101,44 +60,58 @@ spec:
     - name: ai-cost.alerts
       rules:
         - alert: AIAgentDailySpendHigh
-          expr: sum by (agent) (ai:spend_usd:increase1d) > on () group_left () ai:budget_usd_daily_alert
+          expr: >-
+            ((sum by (service_name) (clamp_min(label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_read_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") or label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") * 0) - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_write_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") or label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind="input"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_output_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="output"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_read_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="cache_read"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_write_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="cache_write_5m"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[1d])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0))) / 1e6 > on () group_left () ai:budget_usd_daily_alert
           for: 15m
           labels: { severity: warning, team: ai-cost }
           annotations:
-            summary: "{{ $labels.agent }} spent ${{ $value | printf \"%.2f\" }} in the last 24h"
+            summary: "{{ $labels.service_name }} spent ${{ $value | printf \"%.2f\" }} in the last 24h"
             description: "Above the default per-agent daily line in ai:budget_usd_daily_alert."
         - alert: AIAgentsWeeklyPaceHigh
-          expr: sum(sum_over_time(ai:spend_usd:rate5m[7d])) * 60 > 0.8 * sum(ai:budget_usd_monthly{workspace="homelab-agents"}) * 7 / 30
+          expr: >-
+            ((sum (clamp_min(label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") - on (model) (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_read_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") or label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") * 0) - on (model) (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_write_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") or label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind="input"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_output_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="output"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_read_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="cache_read"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_write_input_tokens_total[7d])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="cache_write_5m"}) or vector(0))) / 1e6 > 0.8 * sum(ai:budget_usd_monthly{workspace="homelab-agents"}) * 7 / 30
           for: 1h
           labels: { severity: warning, team: ai-cost }
           annotations:
             summary: "7d spend ${{ $value | printf \"%.2f\" }} is on pace for over 80% of the homelab-agents monthly budget"
-            description: "Rolling 7d pace against ai:budget_usd_monthly{workspace=\"homelab-agents\"}. Prometheus retains 15d, so a calendar month-to-date cannot be computed."
+            description: "Rolling 7d pace against ai:budget_usd_monthly. The Console workspace alerts cover calendar month-to-date."
         - alert: AISpendBurst
-          expr: sum by (agent) (ai:spend_usd:rate5m) * 3600 > 10
-          for: 10m
+          expr: >-
+            ((sum by (service_name) (clamp_min(label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_read_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") or label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") * 0) - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_write_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") or label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind="input"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_output_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="output"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_read_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="cache_read"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_cache_write_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)") * on (model) group_left () ai:model_price_usd_per_mtok{kind="cache_write_5m"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (increase(gen_ai_usage_input_tokens_total[15m])), "model", "$1", "gen_ai_request_model", "(.*)")) * 0))) / 1e6 * 4 > 10
+          for: 5m
           labels: { severity: critical, team: ai-cost }
           annotations:
-            summary: "{{ $labels.agent }} is burning ${{ $value | printf \"%.2f\" }}/h"
-            description: "Sustained for 10m. Likely a runaway loop. No automatic action is taken."
+            summary: "{{ $labels.service_name }} is burning ${{ $value | printf \"%.2f\" }}/h"
+            description: "Averaged over 15m, which absorbs late-arriving token samples. Likely a runaway loop. No automatic action is taken."
         - alert: AIUnattributedTokens
-          expr: sum(ai:llm_tokens:rate5m{agent=""} or ai:llm_tokens:rate5m{model="unknown"}) > 0
+          expr: >-
+            sum(increase({__name__=~"gen_ai_usage_(input|output)_tokens_total", gen_ai_request_model="unknown"}[1h]) or increase({__name__=~"gen_ai_usage_(input|output)_tokens_total", service_name=""}[1h])) > 0
           for: 15m
           labels: { severity: warning, team: ai-cost }
           annotations:
             summary: "LLM tokens are arriving without a service.name or a request model"
             description: "These tokens are not priced or not attributed. Check for a span shape change after a kagent upgrade."
-        - alert: AISpendTelemetryMissing
-          expr: sum(rate(traces_spanmetrics_calls_total{gen_ai_operation_name=~"chat|generate_content", gen_ai_request_model=~"claude-.*"}[5m])) > 0 unless on () sum(ai:spend_usd:rate5m) > 0
+        - alert: AIModelNotPriced
+          expr: >-
+            sum by (gen_ai_request_model) (increase(gen_ai_usage_output_tokens_total{gen_ai_request_model=~"claude-.*"}[1h])) > 0 unless on (gen_ai_request_model) label_replace(ai:model_price_usd_per_mtok{kind="output"}, "gen_ai_request_model", "$1", "model", "(.*)")
           for: 15m
           labels: { severity: warning, team: ai-cost }
           annotations:
-            summary: "Paid LLM calls are happening but no spend is recorded"
-            description: "The sum connector or the rate card rules have stopped producing ai:spend_usd:rate5m."
-        - alert: AIAgentWithoutOwner
-          expr: sum by (agent) (ai:spend_usd:rate5m{ai_cost_owner=""}) > 0
-          for: 30m
+            summary: "{{ $labels.gen_ai_request_model }} is in use but has no rate-card row"
+            description: "Its tokens are left out of every spend panel and alert. Add rows to the ai-cost.rate-card group."
+        - alert: AISpendTelemetryMissing
+          expr: >-
+            sum(increase(traces_spanmetrics_calls_total{gen_ai_operation_name=~"chat|generate_content", gen_ai_request_model=~"claude-.*"}[1h])) > 0 unless on () sum(increase(gen_ai_usage_output_tokens_total{gen_ai_request_model=~"claude-.*"}[1h])) > 0
+          for: 15m
           labels: { severity: warning, team: ai-cost }
           annotations:
-            summary: "{{ $labels.agent }} is spending with no ai.cost_owner resource attribute"
-            description: "Set OTEL_RESOURCE_ATTRIBUTES=ai.cost_owner=<owner> in the agent's Harness spec.env."
+            summary: "Paid LLM calls are happening but no token usage is recorded"
+            description: "The sum connector has stopped producing gen_ai_usage_* counters, so spend reads zero."
+        - alert: AIAgentWithoutOwner
+          expr: >-
+            sum by (service_name) (increase(gen_ai_usage_output_tokens_total{gen_ai_request_model=~"claude-.*", ai_cost_owner="", service_name!="ai-gateway"}[1h])) > 0
+          for: 15m
+          labels: { severity: warning, team: ai-cost }
+          annotations:
+            summary: "{{ $labels.service_name }} is spending with no ai.cost_owner resource attribute"
+            description: "Set OTEL_RESOURCE_ATTRIBUTES=ai.cost_owner=<owner> in the agent's Harness spec.env. ai-gateway is excluded: its tokens are OpenWebUI chat traffic."
