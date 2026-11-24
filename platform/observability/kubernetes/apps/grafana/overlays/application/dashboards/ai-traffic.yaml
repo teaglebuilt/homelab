@@ -2009,19 +2009,19 @@ spec:
           {
             "current": {
               "selected": false,
-              "text": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
-              "value": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
+              "text": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+              "value": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
             },
             "label": "agent",
             "name": "agent",
             "options": [
               {
                 "selected": true,
-                "text": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
-                "value": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
+                "text": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+                "value": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$"
               }
             ],
-            "query": "^(kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
+            "query": "^(medday-developer|kagent-controller|agentgateway|ateapi|solutions-architect|workflow-builder|workflow-builder-agent|youtube-knowledge-agent|scraping-service-agent|incident-responder)$",
             "type": "textbox"
           }
         ]
