@@ -8,6 +8,7 @@ kind: Kustomization
 resources:
   - ../../base
   - servicemonitor.yaml
+  - httproute.yaml
 helmCharts:
   - name: opentelemetry-operator
     releaseName: open-telemetry

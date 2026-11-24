@@ -339,7 +339,7 @@ Admission checks were dropped on 2026-11-23 (§12).
 - Request-level model routing for agent traffic. `apps/ai/jev-routing` (undeployed classifier ext_proc) remains a candidate for OpenAI-compatible chat traffic only.
 - Semantic or exact response caching. The tree advises against it for long-context conversations (`tree/infrastructure/kubernetes/ai/agent-runtime/17-agent-rate-limiting-cost-control.md`, §4.3).
 - A second paid provider on agent paths while the cost model is being built.
-- Laptop Claude Code spend.
+- Laptop Claude Code spend beyond its own self-reported `claude_code.cost.usage` (exported over OTLP to `otel.homelab.internal`, shown on the "Claude Code spend" tile).
 - GPU power cost for the local tier.
 - CI checks against external agent repos.
 

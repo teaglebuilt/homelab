@@ -137,7 +137,7 @@ Rollback: revert the file; the old series resume.
 
 ### WP-C1.2 Rate card, budgets and spend recording rules
 
-- [x] Rules group by `service_name`, `gen_ai_request_model` and `ai_cost_owner`. Fixed a latent bug: `rate()` over both cache metric names at once failed with duplicate labelsets. Backtested on medday's 2026-11-22 19:30–21:10 UTC run: $10.73, about 9% under the same window priced from raw `increase()` ($11.83), because summing 1-minute samples of a 5-minute rate loses each new series' first delta. About 2% of medday's tokens have `gen_ai_request_model="unknown"` and are unpriced; `AIUnattributedTokens` now covers them.
+- [x] Revised 2026-11-24: the token and spend **recording rules were removed**. They never produced a sample: token samples reach Prometheus late and out of order, after the rules have already evaluated. The rate card and budgets stay as recording rules. Spend is computed at query time in the dashboard and alerts (raw counters × `ai:model_price_usd_per_mtok`), and the alerts use windows of 15m or longer to absorb the delay. New alert `AIModelNotPriced` replaces the CI rate-card check.
 
 **New file:** `platform/observability/kubernetes/apps/prometheus/overlays/application/rules/ai-cost.yaml`
 **Edit:** `.../overlays/application/kustomization.yaml`, adding it to `resources`.
