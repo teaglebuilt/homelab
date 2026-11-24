@@ -180,7 +180,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum(increase({__name__=~\"claude_code_cost_usage.*\"}[$__range])) or vector(0)",
+              "expr": "sum(max_over_time(claude_code_cost_usage_USD_total[$__range])) or vector(0)",
               "refId": "A",
               "instant": true,
               "range": false
