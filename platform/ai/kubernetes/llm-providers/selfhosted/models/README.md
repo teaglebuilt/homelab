@@ -10,7 +10,7 @@ and agentgateway routes never change when you switch weights.
 
 | Directory | Hugging Face id | Tool calling | Notes |
 |-----------|-----------------|--------------|-------|
-| `qwen25-coder-14b-awq` | `Qwen/Qwen2.5-Coder-14B-Instruct-AWQ` | plugin + jinja via `qwen25-coder-tools` | Best coding; 4k context |
+| `qwen25-coder-14b-awq` | `Qwen/Qwen2.5-Coder-14B-Instruct-AWQ` | plugin + jinja via `qwen25-coder-tools` | Best coding; 8k context (fp8 KV) |
 | `qwen25-coder-7b-awq` | `Qwen/Qwen2.5-Coder-7B-Instruct-AWQ` | plugin + jinja via `qwen25-coder-tools` | Faster coding; 32k context |
 | `qwen3-8b-awq` | `Qwen/Qwen3-8B-AWQ` | built-in `hermes` + `qwen3` reasoning | No extra mounts |
 

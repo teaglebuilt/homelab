@@ -116,8 +116,6 @@ spec:
       complexity.
     - Point to specific files and directories in this repo, not generic advice.
     - Cite `tree/` paths and URLs for factual claims.
-    - The model's context limit is 32768 tokens. Keep tool arguments and
-      quoted material short. Read documents in parts, not whole.
 
   plugins:
     - source:
@@ -152,21 +150,12 @@ spec:
           kind: RemoteMCPServer
           name: github-mcp
         tools:
-          - list_issues
-          - list_branches
-          - list_commits
-          - list_pull_requests
-          - get_commit
           - get_file_contents
-          - get_release_by_tag
-          - pull_request_read
-          - issue_read
           - search_code
           - search_repositories
-          - search_commits
-          - search_pull_requests
-          - search_issues
-          - ui_get
+          - list_commits
+          - pull_request_read
+          - issue_read
     - mcp:
         server:
           kind: RemoteMCPServer

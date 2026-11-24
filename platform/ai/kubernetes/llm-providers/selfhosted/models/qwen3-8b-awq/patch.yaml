@@ -31,6 +31,8 @@ spec:
             - "0.92"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
+            - "--kv-cache-dtype"
+            - "fp8"
             - "--tool-call-parser"
             - "hermes"
             - "--reasoning-parser"
