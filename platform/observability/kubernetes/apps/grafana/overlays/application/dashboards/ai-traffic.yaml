@@ -26,7 +26,7 @@ spec:
           }
         ]
       },
-      "description": "gen_ai telemetry for the AI stack. Cost tiles read the ai:spend_usd recording rules (ai-cost.rules), which price the otel-collector sum connector token counters from the git-versioned rate card. Self-hosted models have no rate-card row and are excluded from spend. Claude Code reports its own USD figure via claude_code.cost.usage when its telemetry is exported. Model panels use Tempo span metrics, whose gen_ai dimensions are gen_ai.request.model, gen_ai.provider.name and gen_ai.operation.name. Gateway panels use agentgateway's own counters and are pinned to one scrape job. Loki and Tempo retain 24h; Prometheus 15d.",
+      "description": "gen_ai telemetry for the AI stack. Cost tiles price the otel-collector sum connector token counters at query time against the git-versioned rate card in ai-cost.rules. Self-hosted models have no rate-card row and are excluded from spend. Claude Code reports its own USD figure via claude_code.cost.usage when its telemetry is exported. Model panels use Tempo span metrics, whose gen_ai dimensions are gen_ai.request.model, gen_ai.provider.name and gen_ai.operation.name. Gateway panels use agentgateway's own counters and are pinned to one scrape job. Loki and Tempo retain 24h; Prometheus 15d.",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -49,7 +49,7 @@ spec:
           "id": 101,
           "type": "stat",
           "title": "Estimated spend ($__range)",
-          "description": "Priced from the ai:spend_usd:rate5m recording rule (ai-cost.rules, versioned in git). Self-hosted models have no rate-card row and are excluded.",
+          "description": "Estimated spend over the dashboard range. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -109,7 +109,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum(sum_over_time(ai:spend_usd:rate5m[$__range])) * 60 or vector(0)",
+              "expr": "((sum (clamp_min(label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model) (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_read_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model) (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_write_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_output_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_read_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or vector(0)) + (sum (label_replace(sum by (gen_ai_request_model) (increase(gen_ai_usage_cache_write_input_tokens_total[$__range])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or vector(0))) / 1e6",
               "refId": "A",
               "instant": true,
               "range": false
@@ -449,7 +449,7 @@ spec:
           "id": 107,
           "type": "timeseries",
           "title": "Estimated spend rate by model ($/h)",
-          "description": "Same pricing as the tile above, projected to USD per hour.",
+          "description": "Spend rate by model in $/h. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -495,7 +495,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (model) (ai:spend_usd:rate5m) * 3600",
+              "expr": "((sum by (model) (clamp_min(label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model, model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model, model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_output_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or (sum by (model) (label_replace(sum by (gen_ai_request_model, model) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0))) / 1e6 * 3600",
               "refId": "A",
               "legendFormat": "{{model}}"
             }
@@ -652,7 +652,7 @@ spec:
           "id": 200,
           "type": "timeseries",
           "title": "Spend by agent ($/h)",
-          "description": "ai:spend_usd:rate5m by agent (the span's service.name).",
+          "description": "Spend rate by agent (span service.name) in $/h. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -670,9 +670,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (agent) (ai:spend_usd:rate5m) * 3600",
+              "expr": "((sum by (service_name) (clamp_min(label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model, service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_output_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or (sum by (service_name) (label_replace(sum by (gen_ai_request_model, service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0))) / 1e6 * 3600",
               "refId": "A",
-              "legendFormat": "{{agent}}"
+              "legendFormat": "{{service_name}}"
             }
           ],
           "options": {
@@ -708,7 +708,7 @@ spec:
           "id": 201,
           "type": "timeseries",
           "title": "Spend by cost owner ($/h)",
-          "description": "Spend grouped by the ai.cost_owner resource attribute, set per Harness via OTEL_RESOURCE_ATTRIBUTES. Agents without it show as unowned.",
+          "description": "Spend rate by the ai.cost_owner resource attribute (set per Harness via OTEL_RESOURCE_ATTRIBUTES), in $/h. Unowned agents show as unowned. Computed at query time from the gen_ai_usage_* counters x the ai:model_price_usd_per_mtok rate card (ai-cost.rules). Token samples reach Prometheus after the fact, so recording rules over them miss data. Cache tokens are carved out of input and priced at their own rates.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -726,7 +726,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "label_replace(sum by (ai_cost_owner) (ai:spend_usd:rate5m) * 3600, \"ai_cost_owner\", \"unowned\", \"ai_cost_owner\", \"\")",
+              "expr": "label_replace(((sum by (ai_cost_owner) (clamp_min(label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") - on (model, ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0) - on (model, ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") or label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * 0), 0) * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"input\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_output_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"output\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_read\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0)) + (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_cache_write_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\") * on (model) group_left () ai:model_price_usd_per_mtok{kind=\"cache_write_5m\"}) or (sum by (ai_cost_owner) (label_replace(sum by (gen_ai_request_model, ai_cost_owner) (rate(gen_ai_usage_input_tokens_total[$__rate_interval])), \"model\", \"$1\", \"gen_ai_request_model\", \"(.*)\")) * 0))) / 1e6 * 3600, \"ai_cost_owner\", \"unowned\", \"ai_cost_owner\", \"\")",
               "refId": "A",
               "legendFormat": "{{ai_cost_owner}}"
             }
@@ -763,8 +763,8 @@ spec:
         {
           "id": 203,
           "type": "stat",
-          "title": "Unattributed tokens ($__range)",
-          "description": "Tokens with no service.name or no request model over the range. These are not attributed or not priced. Should be zero.",
+          "title": "Unpriced tokens ($__range)",
+          "description": "Input and output tokens on spans with no gen_ai.request.model. They cannot be priced. Should be zero.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -782,7 +782,7 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum(sum_over_time((ai:llm_tokens:rate5m{agent=\"\"} or ai:llm_tokens:rate5m{model=\"unknown\"})[$__range:1m])) * 60 or vector(0)",
+              "expr": "(sum(increase(gen_ai_usage_input_tokens_total{gen_ai_request_model=\"unknown\"}[$__range])) or vector(0)) + (sum(increase(gen_ai_usage_output_tokens_total{gen_ai_request_model=\"unknown\"}[$__range])) or vector(0))",
               "refId": "A",
               "instant": true,
               "range": false
@@ -887,7 +887,7 @@ spec:
           "id": 205,
           "type": "timeseries",
           "title": "Cache read share by agent",
-          "description": "cache_read / (input + cache_read + cache_write). A low share on a long-running agent means the prefix is not being reused.",
+          "description": "Cache read tokens as a share of all input tokens (input includes cache). A low share on a long-running agent means the prefix is not being reused.",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -905,9 +905,9 @@ spec:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "sum by (agent) (ai:llm_tokens:rate5m{kind=\"cache_read\"}) / sum by (agent) (ai:llm_tokens:rate5m{kind=~\"input|cache_read|cache_write_5m\"})",
+              "expr": "sum by (service_name) (rate(gen_ai_usage_cache_read_input_tokens_total[$__rate_interval])) / sum by (service_name) (rate(gen_ai_usage_input_tokens_total[$__rate_interval]))",
               "refId": "A",
-              "legendFormat": "{{agent}}"
+              "legendFormat": "{{service_name}}"
             }
           ],
           "options": {
