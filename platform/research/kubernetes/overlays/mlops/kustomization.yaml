@@ -5,3 +5,7 @@ namespace: research
 resources:
   - ../../base
   - ../../apps/searxng/mesh
+  - ../../apps/searxng/mcp
+  - workerpool.yaml
+  - harness.yaml
+  - research-agent.yaml

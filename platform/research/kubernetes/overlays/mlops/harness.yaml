@@ -1,0 +1,30 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Harness
+metadata:
+  name: kagent
+  namespace: research
+  labels:
+    app.kubernetes.io/name: kagent
+    app.kubernetes.io/part-of: search-agent
+spec:
+  kagent:
+    compaction:
+      tokenThreshold: 22000
+      eventRetentionSize: 20
+      summarizer:
+        modelConfigRef:
+          name: llmd-vllm-config
+          namespace: ai
+  env:
+    - name: OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
+      value: SPAN_ONLY
+    - name: OTEL_RESOURCE_ATTRIBUTES
+      value: ai.cost_owner=homelab
+  workload:
+    image: ghcr.io/kagent-dev/kagent/golang-adk@sha256:d3b1151d39c529a6f921a58a995ff699963012001d2e5075f69bf613abebc24d
+  substrate:
+    workerPoolRef:
+      name: research-default
+    snapshotPolicy:
+      location: gs://ate-snapshots/kagent/

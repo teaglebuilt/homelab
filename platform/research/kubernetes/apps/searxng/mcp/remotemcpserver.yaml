@@ -1,0 +1,32 @@
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: searxng-mcp
+  namespace: research
+  labels:
+    app.kubernetes.io/name: searxng-mcp
+    app.kubernetes.io/component: remote-mcp-server
+    app.kubernetes.io/part-of: search-agent
+spec:
+  protocol: STREAMABLE_HTTP
+  # KMCP MCPServer/searxng-mcp publishes Service/searxng-mcp — not the SearXNG UI.
+  url: "http://searxng-mcp.research.svc.cluster.local:8080/mcp"
+  description: "SearXNG web search - search the web and read URLs"
+  timeout: 60s
+---
+# Same-namespace shim: AgentTemplate bindings cannot reach RemoteMCPServers in ai/.
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: firecrawl
+  namespace: research
+  labels:
+    app.kubernetes.io/name: firecrawl
+    app.kubernetes.io/component: remote-mcp-server
+    app.kubernetes.io/part-of: search-agent
+spec:
+  description: "Firecrawl MCP (self-hosted): scrape, crawl, map, search, extract"
+  protocol: STREAMABLE_HTTP
+  url: http://firecrawl-mcp.automation.svc.cluster.local:3000/mcp
+  timeout: 120s
