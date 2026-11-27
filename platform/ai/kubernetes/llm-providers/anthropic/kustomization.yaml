@@ -12,5 +12,6 @@ resources:
   - models/claude-sonnet-5-5-gateway.yaml
   - models/claude-opus-5-gateway.yaml
   - models/claude-opus-5-direct.yaml
+  - models/claude-haiku-5-5.yaml
 generators:
   - secrets-generator.yaml
