@@ -1,6 +1,9 @@
 ---
 # Coding profile for RTX 4070 SUPER 12GB.
-# Weights ~9.9GB AWQ leave ~1GiB KV at util 0.95 — 8192 needs 1.5GiB and fails.
+# hf-mem: weights 9.29GiB + vLLM overhead ~1.35GiB leaves no room to raise
+# context. 8192 needs 11.40GiB vs 10.80GiB usable; 4096 is the safe ceiling.
+# Retest: uvx hf-mem Qwen/Qwen2.5-Coder-14B-Instruct-AWQ --gpu-memory 12 \
+#   --max-model-len 8192 --kv-cache-dtype fp8
 # Tool calling uses the out-of-tree qwen2_5_coder plugin (see ../qwen25-coder-tools).
 apiVersion: apps/v1
 kind: Deployment
@@ -33,6 +36,8 @@ spec:
             - "0.95"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
+            - "--kv-cache-dtype"
+            - "fp8"
             - "--tool-parser-plugin"
             - "/opt/vllm-parsers/qwen2_5_coder_tool_parser.py"
             - "--tool-call-parser"

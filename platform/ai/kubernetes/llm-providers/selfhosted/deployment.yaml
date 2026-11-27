@@ -30,8 +30,8 @@ spec:
         homelab.teaglebuilt.dev/gpu-node: "true"
       containers:
         - name: vllm
-          # Node driver 570.172.08 exposes CUDA 12.8. v0.25.1 requires CUDA 13;
-          # v0.13.0 is the pinned CUDA 12.8-compatible OpenAI server image.
+          # Node is on driver 595.91.07 / CUDA 13.2; this CUDA 12.8 pin is no
+          # longer required. Untested on CUDA 13 — see models/README.md.
           image: vllm/vllm-openai:v0.13.0
           imagePullPolicy: IfNotPresent
           # Model-specific --model / parsers / context come from models/*/ via

@@ -32,6 +32,8 @@ spec:
             - "0.92"
             - "--enable-auto-tool-choice"
             - "--enable-prefix-caching"
+            - "--kv-cache-dtype"
+            - "fp8"
             - "--tool-parser-plugin"
             - "/opt/vllm-parsers/qwen2_5_coder_tool_parser.py"
             - "--tool-call-parser"
